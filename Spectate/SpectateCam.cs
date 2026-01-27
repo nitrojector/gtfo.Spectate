@@ -1,4 +1,5 @@
 ﻿using Player;
+using SNetwork;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -7,13 +8,13 @@ namespace Spectate;
 public class SpectateCam : MonoBehaviour {
 	public static SpectateCam Instance { get; set; }
 
-	public bool Ready => _self != null;
+	public bool SelfReady => _self != null && _self.FPSCamera != null;
+	public bool TargetReady => _target != null;
 	public bool Active { get; private set; } = false;
 
 	public Vector3 CurrentOffset = Vector3.zero;
 	public readonly Vector3 IdealOffset = new(0.0f, 2.0f, -2.0f);
 
-	private Transform? _selfParent = null;
 	private SpectateTarget? _self = null;
 	private SpectateTarget? _target = null;
 
@@ -35,7 +36,6 @@ public class SpectateCam : MonoBehaviour {
 		}
 
 		_self = new SpectateTarget(localAgent);
-		_selfParent = _self.Agent.FPSCamera.transform.parent;
 		return true;
 	}
 
@@ -49,25 +49,20 @@ public class SpectateCam : MonoBehaviour {
 		_target = new SpectateTarget(agent);
 	}
 
-	public bool Attach() {
-		if (_self == null) return false;
-		if (_self.FPSCamera == null) return false;
-		if (_target == null && !TrySetAnyNonLocalTarget()) return false; // TODO: TrySet is for testing only
+	bool Attach() {
+		if (!SelfReady && !Load()) return false;
+		if (!TargetReady && !TrySetAnyNonLocalTarget()) return false; // TODO: TrySet is for testing only
 
-		SetRelatedActive(_self, false);
-
-		_self.FPSCamera.transform.parent = _target!.Transform;
-		_self.FPSCamera.transform.localPosition = IdealOffset;
-		_self.FPSCamera.transform.localRotation = Quaternion.identity;
+		SetRelatedActive(false);
 		UpdateCull();
 		Logger.Debug("Attach");
 		return true;
 	}
 
-	public bool Detach() {
-		if (_self == null || _self.FPSCamera == null) return false;
-		_self.FPSCamera.transform.parent = _selfParent;
-		SetRelatedActive(_self, true);
+	bool Detach() {
+		if (!SelfReady) return false;
+
+		SetRelatedActive(true);
 		RevertCull();
 		Logger.Debug("Detach");
 		return true;
@@ -80,31 +75,45 @@ public class SpectateCam : MonoBehaviour {
 	private void Update() {
 		if (!enabled || !gameObject.activeInHierarchy) return;
 
-		if (Active) {
-			UpdateCamPos();
-			UpdateCull();
+		if (Input.GetKeyDown(KeyCode.V) && InputMapper.Current.FocusStateFilterPass(eFocusState.FPS)) {
+			if (Active) {
+				if (Detach()) SetActive(false);
+				else Logger.Error("Failed to detach SpecCam.");
+			} else {
+				if (Attach()) SetActive(true);
+				else Logger.Error("Failed to attach SpecCam.");
+			}
 		}
 
-		if (!Input.GetKeyDown(KeyCode.V)) return;
-
 		if (Active) {
-			if (Detach()) SetActive(false);
-			else Logger.Error("Failed to detach SpecCam.");
-		} else {
-			if (Attach()) SetActive(true);
-			else Logger.Error("Failed to attach SpecCam.");
+			if (_target == null) {
+				SetActive(false);
+				return;
+			}
+
+			int idx = InputHelper.GetAlphaNumKeyDown();
+			var agents = PlayerManager.PlayerAgentsInLevel;
+			if (idx > 0 && idx - 1 < agents.Count) {
+				if (!agents[idx - 1].IsLocallyOwned)
+					SetTarget(agents[idx - 1]);
+			}
+
+			UpdateCamPos();
+			UpdateCull();
 		}
 	}
 
 	// ReSharper disable Unity.PerformanceAnalysis
-	static void SetRelatedActive(SpectateTarget target, bool active) {
-		target.Locomotion.enabled = active;
+	void SetRelatedActive(bool active) {
+		if (!SelfReady || !TargetReady) {
+			Logger.Error("SpectateCam: SetRelatedActive failed - target or self not ready");
+			return;
+		}
 
-		// if (target.FPSCamera != null) target.FPSCamera.enabled = active;
+		_self!.SetRigActive(active);
+		_target!.Locomotion.enabled = active;
 
-		// TODO: What to enable, what to disable ?
-
-		var fpsCamera = target.FPSCamera;
+		var fpsCamera = _target.FPSCamera;
 		if (fpsCamera != null) {
 			fpsCamera.MouseLookEnabled = active;
 			fpsCamera.PlayerAgentRotationEnabled = active;
@@ -116,6 +125,7 @@ public class SpectateCam : MonoBehaviour {
 		// target.Agent.PlayerSyncModel.gameObject.SetActive(active);
 	}
 
+	// TESTING purpose only
 	bool TrySetAnyNonLocalTarget() {
 		foreach (var agent in PlayerManager.PlayerAgentsInLevel) {
 			if (!agent.IsLocallyOwned) {
@@ -128,27 +138,31 @@ public class SpectateCam : MonoBehaviour {
 	}
 
 	void UpdateCamPos() {
-		Vector3 eyePos = _target.Agent.Position;
+		if (!SelfReady || !TargetReady) {
+			Logger.Error("SpectateCam: UpdateCull failed - target or self not ready");
+			return;
+		}
+
+		Vector3 eyePos = _target!.Agent.Position;
 		eyePos.y = _target.Agent.m_eyePosition.y;
 		eyePos += IdealOffset.z * _target.Transform.forward;
 		eyePos += IdealOffset.y * Vector3.up;
 
-		_self.FPSCamera.OverridePositionAndRotation(eyePos,
-			Quaternion.LookRotation(_target.Transform.forward));
+		_self!.FPSCamera!.OverridePositionAndRotation(eyePos, Quaternion.LookRotation(_target.Transform.forward));
 	}
 
 	void UpdateCull() {
-		if (_target == null || _self == null || _self.FPSCamera == null) {
-			Logger.Error("SpectateCam: UpdateCull failed - target or self is null.");
+		if (!SelfReady || !TargetReady) {
+			Logger.Error("SpectateCam: UpdateCull failed - target or self not ready");
 			return;
 		}
 
-		Vector3 targetCullPosition = _target.Agent.Position;
+		Vector3 targetCullPosition = _target!.Agent.Position;
 		if (Physics.Raycast(targetCullPosition, Vector3.down, out var hit, 64f, LayerManager.MASK_WORLD))
 			targetCullPosition = hit.m_Point;
 
 		CameraManager.CullingPosition = targetCullPosition;
-		CameraManager.CullingDirection = _self.FPSCamera.Forward;
+		CameraManager.CullingDirection = _self!.FPSCamera!.Forward;
 
 		_self.Agent.m_movingCuller.UpdatePosition(_self.Agent.m_dimensionIndex, targetCullPosition);
 		if (_self.Agent.m_movingCuller.CurrentNode != _target.Agent.CourseNode.m_cullNode)
