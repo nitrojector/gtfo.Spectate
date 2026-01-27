@@ -1,3 +1,3 @@
-<h1 align="center">AutoHop</h1>
+<h1 align="center">Spectate</h1>
 
-<p align="center">Hold space to hop :)</p>
+<p align="center">spectate your teammates</p>
