@@ -1,0 +1,76 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <ModName>Spectate</ModName>
+        <Profile>Dev</Profile>
+
+        <TargetFramework>net6.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <DebugType>None</DebugType>
+        <AssemblyName>$(ModName)</AssemblyName>
+        <RootNamespace>$(ModName)</RootNamespace>
+
+        <DebugType>embedded</DebugType>
+
+        <IsMacOS Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::OSX)))' == 'true'">true</IsMacOS>
+        <BepInEx Condition="'$(CI)' == 'true'">$(SolutionDir)/GTFOBepInDep</BepInEx>
+        <BepInEx Condition="'$(CI)' != 'true' AND '$(IsMacOS)' != 'true'">$(AppData)\com.kesomannen.gale\gtfo\profiles\$(Profile)\BepInEx</BepInEx>
+        <BepInEx Condition="'$(CI)' != 'true' AND '$(IsMacOS)' == 'true'">/opt/GTFOBepInDep</BepInEx>
+        <PlugOutput>$(BepInEx)\plugins\$(SolutionName)\</PlugOutput>
+        <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    </PropertyGroup>
+    <Target Name="PostBuild" BeforeTargets="PostBuildEvent">
+        <Delete Files="$(OutputPath)/$(AssemblyName).deps.json"/>
+    </Target>
+    <Target Name="PostBuildCopy" AfterTargets="Build">
+        <Copy Condition="'$(CI)' != 'true' AND '$(IsMacOS)' != 'true'" SourceFiles="$(OutputPath)/$(AssemblyName).dll" DestinationFolder="$(PlugOutput)"/>
+    </Target>
+
+    <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+        <DebugType>embedded</DebugType>
+        <Optimize>false</Optimize>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+        <DebugType>none</DebugType>
+        <Optimize>true</Optimize>
+    </PropertyGroup>
+
+    <Target Name="Package" AfterTargets="Build">
+        <PropertyGroup>
+            <PkgFolder>$(SolutionDir)\pkg\</PkgFolder>
+            <ZipFile>$(SolutionDir)$(SolutionName).zip</ZipFile>
+        </PropertyGroup>
+        <MakeDir Directories="$(PkgFolder)"/>
+        <Exec WorkingDirectory="$(SolutionDir)" Command="python &quot;$(SolutionDir)/mkmanifest.py&quot;"/>
+        <Copy SourceFiles="$(OutputPath)/$(AssemblyName).dll" DestinationFolder="$(PkgFolder)"/>
+        <Copy SourceFiles="$(SolutionDir)/.assets/icon.png" DestinationFolder="$(PkgFolder)"/>
+        <Copy SourceFiles="$(SolutionDir)/README.md" DestinationFolder="$(PkgFolder)"/>
+        <Copy SourceFiles="$(SolutionDir)/CHANGELOG.md" DestinationFolder="$(PkgFolder)"/>
+        <Copy SourceFiles="$(SolutionDir)/manifest.json" DestinationFolder="$(PkgFolder)"/>
+        <!-- Windows (local packaging) -->
+        <Exec Condition="'$(OS)' == 'Windows_NT' AND '$(CI)' != 'true'"
+              Command="powershell -NoProfile -Command &quot;Compress-Archive -Path '$(PkgFolder)*' -DestinationPath '$(ZipFile)' -Force&quot;"/>
+    </Target>
+    <ItemGroup>
+        <Reference Include="$(BepInEx)\core\0Harmony.dll" Private="false"/>
+        <Reference Include="$(BepInEx)\core\BepInEx.Core.dll" Private="false"/>
+        <Reference Include="$(BepInEx)\core\BepInEx.Unity.IL2CPP.dll" Private="false"/>
+        <Reference Include="$(BepInEx)\core\Il2CppInterop.Common.dll" Private="false"/>
+        <Reference Include="$(BepInEx)\core\Il2CppInterop.Runtime.dll" Private="false"/>
+        <Reference Include="$(BepInEx)\interop\*.dll" Private="false"/>
+        <Reference Remove="$(BepInEx)\interop\netstandard.dll"/>
+    </ItemGroup>
+    <ItemGroup>
+        <Compile Remove="obj\**"/>
+        <Compile Remove="pkg\**"/>
+    </ItemGroup>
+    <ItemGroup>
+        <EmbeddedResource Remove="obj\**"/>
+        <EmbeddedResource Remove="pkg\**"/>
+    </ItemGroup>
+    <ItemGroup>
+        <None Remove="obj\**"/>
+        <None Remove="pkg\**"/>
+    </ItemGroup>
+</Project>

@@ -1,0 +1,41 @@
+# --- Rider / IntelliJ IDEA ---
+.idea/
+*.sln.iml
+
+# --- VS / Rider user-specific files ---
+.vs/
+*.user
+*.suo
+
+# --- DotNet build ---
+bin/
+obj/
+
+# --- System ---
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+**/.DS_Store
+
+# --- Logs and crashes ---
+*.log
+*.stacktrace
+sysinfo.txt
+
+# --- DotNet ---
+*.csproj.DotSettings
+*.csproj.DotSettings.user
+
+# --- NuGet packages ---
+*.nupkg
+*.snupkg
+packages/
+
+# --- Plugin Packaging ---
+pkg/
+*.zip
+manifest.json
+
+
+# --- Tests ---
+TestResults/
