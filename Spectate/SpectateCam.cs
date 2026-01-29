@@ -193,8 +193,7 @@ public class SpectateCam : MonoBehaviour {
 			return;
 
 		// Universal inputs
-		bool allowKeySwitch = ConfigMgr.DevEnables(eDevOpts.AllowSpectatingAnytime) ||
-		                      (SelfReady && _self!.IsDowned); // BUG: can't switch while downed
+		bool allowKeySwitch = ConfigMgr.DevEnables(eDevOpts.AllowSpectatingAnytime) || (SelfReady && _self!.IsDowned);
 		if (allowKeySwitch && Input.GetKeyDown(KeyCode.V)) {
 			if (Active) {
 				if (!Detach()) Logger.Error("Failed to detach SpecCam.");
