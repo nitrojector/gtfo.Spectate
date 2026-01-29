@@ -39,7 +39,7 @@ public class SpectateUI : MonoBehaviour {
 		_specTargetTmp.rectTransform.SetParent(pstatus.transform.parent); // set parent to MovementRoot
 		_specTargetTmp.rectTransform.anchorMin = new Vector2(0.5f, 1.0f);
 		_specTargetTmp.rectTransform.anchorMax = new Vector2(0.5f, 1.0f);
-		_specTargetTmp.rectTransform.anchoredPosition = new Vector2(0f, -200f);
+		_specTargetTmp.rectTransform.anchoredPosition3D = new Vector3(0f, -200f, 0f);
 		_specTargetTmp.gameObject.SetActive(false);
 		return true;
 	}
