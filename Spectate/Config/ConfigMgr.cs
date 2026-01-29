@@ -1,8 +1,7 @@
 ﻿using BepInEx;
 using BepInEx.Configuration;
-using UnityEngine;
 
-namespace Spectate;
+namespace Spectate.Config;
 
 // TODO: Implement value clamping
 // TODO: Implement dev options
@@ -10,43 +9,40 @@ internal static class ConfigMgr {
 	private static ConfigFile _conf;
 	private static bool _configDirty = false;
 
-	[Flags]
-	public enum eDevOpts {
-		None = 0,
-		AllowSpectatingAnytime = 1 << 0,
-		ExperimentalFeatures = 1 << 1,
-	}
-
 	private static readonly Dictionary<string, eDevOpts> _devOptsStr2Enum = new() {
 		["--any"] = eDevOpts.AllowSpectatingAnytime,
 		["--exp"] = eDevOpts.ExperimentalFeatures,
 	};
 
 	// DEBUG
-	private static ConfigEntry<bool> _debug;
-	private static ConfigEntry<string> _devOpts;
+	private static ConfigEntryExtended<bool> _debug;
+	private static ConfigEntryExtended<string> _devOpts;
 	public static bool Debug => _debug.Value;
 	private static eDevOpts _devOptsVal = 0;
 	public static bool DevEnables(eDevOpts opt) => _devOptsVal.HasFlag(opt);
 
 	// Behavior
-	private static ConfigEntry<bool> _switchOnDeath;
-	private static ConfigEntry<bool> _defaultFreecamView;
-	private static ConfigEntry<bool> _autoTransitionToFollowView;
-	private static ConfigEntry<float> _autoTransitionDelay;
-	private static ConfigEntry<float> _scrollSensitivity;
-	private static ConfigEntry<float> _freecamSensitivity;
+	private static ConfigEntryExtended<bool> _switchOnDeath;
+	private static ConfigEntryExtended<bool> _defaultFreecamView;
+	private static ConfigEntryExtended<bool> _autoTransitionToFollowView;
+	private static ConfigEntryExtended<float> _autoTransitionDelay;
 	public static bool SwitchOnDeath => _switchOnDeath.Value;
 	public static bool DefaultFreecamView => _defaultFreecamView.Value;
 	public static bool AutoTransitionToFollowView => _autoTransitionToFollowView.Value;
 	public static float AutoTransitionDelay => _autoTransitionDelay.Value;
+
+	// Sensitivity
+	private static ConfigEntryExtended<float> _scrollSensitivity;
+	private static ConfigEntryExtended<float> _freecamSensitivity;
+	private static ConfigEntryExtended<float> _freecamLerpGain;
 	public static float ScrollSensitivity => _scrollSensitivity.Value;
 	public static float FreecamSensitivity => _freecamSensitivity.Value;
+	public static float FreecamLerpGain => _freecamLerpGain.Value;
 
 	// Camera
-	private static ConfigEntry<float> _cameraDistance;
-	private static ConfigEntry<float> _cameraOrbitVerticalOffset;
-	private static ConfigEntry<float> _cameraPitchAngleDeg;
+	private static ConfigEntryExtended<float> _cameraDistance;
+	private static ConfigEntryExtended<float> _cameraOrbitVerticalOffset;
+	private static ConfigEntryExtended<float> _cameraPitchAngleDeg;
 	private static float _cameraDistanceCache = float.NaN;
 	private static float _cameraOrbitVerticalOffsetCache = float.NaN;
 	private static float _cameraPitchAngleDegCache = float.NaN;
@@ -89,7 +85,6 @@ internal static class ConfigMgr {
 	}
 
 	static ConfigMgr() {
-		// TODO: periodically save dirty config
 		string cfgPath = Path.Combine(Paths.ConfigPath, $"{Plugin.NAME}.cfg");
 		Logger.Info($"cfgPath = {cfgPath}");
 		_conf = new ConfigFile(cfgPath, true);
@@ -121,20 +116,31 @@ internal static class ConfigMgr {
 			sectionHeader,
 			"Auto Transition Delay",
 			5.0f,
-			"delay after no mouse input in seconds before automatically transitioning to temporary follow view");
+			"delay after no mouse input in seconds before automatically transitioning to temporary follow view (min: 0.0)");
+		_autoTransitionDelay.AddRule(ConfigEntryRule.Min, 0.0f);
+
+		sectionHeader = $"({section++}) Sensitivity";
 
 		_scrollSensitivity = _conf.Bind(
 			sectionHeader,
 			"Scroll Sensitivity",
 			SpectateCam.DefaultScrollSensitivity,
-			"sensitivity for scroll wheel based adjustments (camera distance, camera pitch, orbit center offset)");
+			"sensitivity for scroll wheel based adjustments (camera distance, camera pitch, orbit center offset) (min: 0.01)");
+		_scrollSensitivity.AddRule(ConfigEntryRule.Min, 0.01f);
 
 		_freecamSensitivity = _conf.Bind(
 			sectionHeader,
 			"Free-Look Sensitivity",
 			SpectateCam.DefaultFreecamSensitivity,
-			"sensitivity for free-look mouse movement");
+			"sensitivity for free-look mouse movement (min: 0.01)");
+		_freecamSensitivity.AddRule(ConfigEntryRule.Min, 0.01f);
 
+		_freecamLerpGain = _conf.Bind(
+			sectionHeader,
+			"Free-Look Smoothing Rate",
+			SpectateCam.DefaultCameraLerpGain,
+			"rate at which camera snaps to target: higher is snappier, lower is smoother (min: 1.0)");
+		_freecamLerpGain.AddRule(ConfigEntryRule.Min, 1.0f);
 
 		sectionHeader = $"({section++}) Camera Settings <SYNCED>";
 
@@ -142,19 +148,25 @@ internal static class ConfigMgr {
 			sectionHeader,
 			"Camera Orbit Vertical Offset",
 			SpectateCam.DefaultOrbitCenterVerticalOffset,
-			"vertical offset of the camera orbit center/point from the player's position");
+			$"vertical offset of the camera orbit center/point from the player's position (min: {SpectateCam.OrbitCenterVerticalOffsetMin:F2}, max: {SpectateCam.OrbitCenterVerticalOffsetMax:F2})");
+		_cameraOrbitVerticalOffset.AddRule(ConfigEntryRule.Min, SpectateCam.OrbitCenterVerticalOffsetMin);
+		_cameraOrbitVerticalOffset.AddRule(ConfigEntryRule.Max, SpectateCam.OrbitCenterVerticalOffsetMax);
 
 		_cameraDistance = _conf.Bind(
 			sectionHeader,
 			"Camera Distance",
 			SpectateCam.DefaultDistanceFromEye,
-			"distance of the camera from the orbit point");
+			$"distance of the camera from the orbit point (min: {SpectateCam.DistanceMin:F2}, max: {SpectateCam.DistanceMax:F2})");
+		_cameraDistance.AddRule(ConfigEntryRule.Min, SpectateCam.DistanceMin);
+		_cameraDistance.AddRule(ConfigEntryRule.Max, SpectateCam.DistanceMax);
 
 		_cameraPitchAngleDeg = _conf.Bind(
 			sectionHeader,
 			"Camera Pitch Angle (deg)",
 			SpectateCam.DefaultPitchAngleDeg,
-			"pitch angle of the camera in degrees");
+			$"pitch angle of the camera in degrees (min: {SpectateCam.PitchAngleDegMin:F2}, max: {SpectateCam.PitchAngleDegMax:F2})");
+		_cameraPitchAngleDeg.AddRule(ConfigEntryRule.Min, SpectateCam.PitchAngleDegMin);
+		_cameraPitchAngleDeg.AddRule(ConfigEntryRule.Max, SpectateCam.PitchAngleDegMax);
 
 		sectionHeader = "(Z) Dev";
 

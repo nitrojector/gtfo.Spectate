@@ -1,5 +1,5 @@
 ﻿using BepInEx.Logging;
-using TenCC.Utils;
+using Spectate.Config;
 
 namespace Spectate;
 

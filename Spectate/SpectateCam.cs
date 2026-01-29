@@ -1,12 +1,6 @@
-﻿using System.Numerics;
-using Player;
-using SNetwork;
-using TenCC.Utils;
-using Unity.Mathematics;
+﻿using Player;
 using UnityEngine;
-using UnityEngine.Serialization;
-using Matrix4x4 = UnityEngine.Matrix4x4;
-using Object = UnityEngine.Object;
+using Spectate.Config;
 using Quaternion = UnityEngine.Quaternion;
 using Vector2 = UnityEngine.Vector2;
 using Vector3 = UnityEngine.Vector3;
@@ -32,13 +26,19 @@ public class SpectateCam : MonoBehaviour {
 	private float _pitchTarget = ConfigMgr.CameraPitchAngleDeg;
 	private float _yawTarget = 0f;
 
-	// TODO: make const
-	private static float CameraLerpSpeed = 6f;
+	public const float DefaultCameraLerpGain = 6f;
 	public const float DefaultOrbitCenterVerticalOffset = 0.325f;
 	public const float DefaultPitchAngleDeg = -18.75f;
 	public const float DefaultDistanceFromEye = 0.625f;
 	public const float DefaultScrollSensitivity = 0.5f;
 	public const float DefaultFreecamSensitivity = 1.0f;
+
+	public const float OrbitCenterVerticalOffsetMin = -5.0f;
+	public const float OrbitCenterVerticalOffsetMax = 5.0f;
+	public const float DistanceMin = 0.1f;
+	public const float DistanceMax = 5.0f;
+	public const float PitchAngleDegMin = -89f;
+	public const float PitchAngleDegMax = 89f;
 
 	private SpectateTarget? _self = null;
 	private SpectateTarget? _target = null;
@@ -79,9 +79,10 @@ public class SpectateCam : MonoBehaviour {
 		_target = new SpectateTarget(agent);
 	}
 
-	bool Attach() {
+	public bool Attach() {
 		if (!SelfReady && !Load()) return false;
-		if (!TargetReady && !TrySetAnyNonLocalTarget()) return false; // TODO: TrySet is for testing only
+		if (!TargetReady && !TrySetAnyNonLocalTarget())
+			return false; // TODO: TrySet is for testing only // combine with UI to switch
 
 		SetRelatedActive(false);
 		UpdateCull();
@@ -90,7 +91,7 @@ public class SpectateCam : MonoBehaviour {
 		return true;
 	}
 
-	bool Detach() {
+	public bool Detach() {
 		if (!SelfReady) return false;
 
 		SetRelatedActive(true);
@@ -100,7 +101,7 @@ public class SpectateCam : MonoBehaviour {
 		return true;
 	}
 
-	public void SetActive(bool active) {
+	void SetActive(bool active) {
 		if (active && !_wasActive) {
 			OnActive?.Invoke();
 		}
@@ -142,14 +143,13 @@ public class SpectateCam : MonoBehaviour {
 		if (!enabled || !gameObject.activeInHierarchy) return;
 
 		ProcessInput();
+		UpdateTransitions();
 
 		if (Active) {
 			if (_target == null) {
-				SetActive(false);
+				Detach();
 				return;
 			}
-
-			UpdateActiveTransitions();
 
 			if (_freecam) {
 				UpdateYawPitch();
@@ -160,7 +160,17 @@ public class SpectateCam : MonoBehaviour {
 		}
 	}
 
-	private void UpdateActiveTransitions() {
+	private void UpdateTransitions() {
+		if (!SelfReady) {
+			return;
+		}
+
+		// transition OnDown/OnUnDown moved to patches
+
+		// Active only
+		if (!Active)
+			return;
+
 		if (ConfigMgr.AutoTransitionToFollowView && _freeLookReturnTimer > 0.0f) {
 			_freeLookReturnTimer -= Time.deltaTime;
 		}
@@ -183,8 +193,9 @@ public class SpectateCam : MonoBehaviour {
 			return;
 
 		// Universal inputs
-		// TODO: Add death condition and ondeath auto transition
-		if (Input.GetKeyDown(KeyCode.V)) {
+		bool allowKeySwitch = ConfigMgr.DevEnables(eDevOpts.AllowSpectatingAnytime) ||
+		                      (SelfReady && _self!.IsDowned); // BUG: can't switch while downed
+		if (allowKeySwitch && Input.GetKeyDown(KeyCode.V)) {
 			if (Active) {
 				if (!Detach()) Logger.Error("Failed to detach SpecCam.");
 			} else {
@@ -233,16 +244,21 @@ public class SpectateCam : MonoBehaviour {
 				else ConfigMgr.CameraPitchAngleDeg += 0.5f * scrollDelta;
 			} else if (InputHelper.OnlyModifies(KeyCode.LeftControl, KeyCode.RightControl)) {
 				// adjust center vertical offset
-				ConfigMgr.CameraOrbitVerticalOffset += 0.05f * scrollDelta;
+				ConfigMgr.CameraOrbitVerticalOffset = Mathf.Clamp(
+					ConfigMgr.CameraOrbitVerticalOffset + 0.05f * scrollDelta,
+					OrbitCenterVerticalOffsetMin,
+					OrbitCenterVerticalOffsetMax);
 			} else {
 				// adjust distance
-				ConfigMgr.CameraDistance -= 0.05f * scrollDelta;
+				ConfigMgr.CameraDistance = Mathf.Clamp(
+					ConfigMgr.CameraDistance - 0.05f * scrollDelta,
+					DistanceMin,
+					DistanceMax);
 			}
 		}
 	}
 
 	void UpdateCamPos() {
-		// TODO: Improve free look
 		// TODO: Use spherecast for better clipping avoidance
 		if (!SelfReady || !TargetReady) {
 			Logger.Error("SpectateCam: UpdateCull failed - target or self not ready");
@@ -282,7 +298,7 @@ public class SpectateCam : MonoBehaviour {
 
 	void UpdateYawPitch() {
 		if (!Util.GoodEnoughDeg(_yaw, _yawTarget)) {
-			_yaw = Mathf.LerpAngle(_yaw, _yawTarget, Time.deltaTime * CameraLerpSpeed);
+			_yaw = Mathf.LerpAngle(_yaw, _yawTarget, Time.deltaTime * ConfigMgr.FreecamLerpGain);
 			float yawDiff = _yawTarget - _yaw;
 			_yaw = Mathf.Repeat(_yaw, 360f);
 			_yawTarget = _yaw + yawDiff;
@@ -291,7 +307,7 @@ public class SpectateCam : MonoBehaviour {
 		}
 
 		if (!Util.GoodEnoughDeg(_pitch, _pitchTarget)) {
-			_pitch = Mathf.LerpAngle(_pitch, _pitchTarget, Time.deltaTime * CameraLerpSpeed);
+			_pitch = Mathf.LerpAngle(_pitch, _pitchTarget, Time.deltaTime * ConfigMgr.FreecamLerpGain);
 		} else {
 			_pitch = _pitchTarget;
 		}
@@ -348,7 +364,7 @@ public class SpectateCam : MonoBehaviour {
 	}
 
 	void SetPitch(float pitch, bool instant = false) {
-		pitch = Mathf.Clamp(pitch, -89f, 89f);
+		pitch = Mathf.Clamp(pitch, PitchAngleDegMin, PitchAngleDegMax);
 		_pitchTarget = pitch;
 		if (instant) _pitch = pitch;
 	}

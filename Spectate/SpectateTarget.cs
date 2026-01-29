@@ -15,6 +15,8 @@ public class SpectateTarget {
 	public FirstPersonItemHolder? FPHolder => Agent.FPItemHolder;
 
 	public PlayerLocomotion Locomotion => Agent.Locomotion;
+	public PlayerLocomotion.PLOC_State LocomotionStateEnum => Locomotion.m_currentStateEnum;
+	public bool IsDowned => LocomotionStateEnum == PlayerLocomotion.PLOC_State.Downed;
 
 	public SNet_Player SAgent => Agent.Owner;
 	public bool IsBot => SAgent.IsBot;
@@ -34,7 +36,7 @@ public class SpectateTarget {
 	}
 
 	public void SetRigActive(bool active) {
-		Agent.PlayerSyncModel.gameObject.SetActive(active);
+		Util.SetObjActiveIfChanged(Agent.PlayerSyncModel, active);
 	}
 
 	public static bool operator ==(SpectateTarget? a, SpectateTarget? b) {
