@@ -11,7 +11,6 @@ public class Patch {
 	)]
 	[HarmonyPostfix]
 	public static void GS_ReadyToStopElevatorRide_Enter(GS_ReadyToStopElevatorRide __instance) {
-		SpectateCam.Instance.Load();
+		SpectateCam.Instance?.Load();
 	}
-
 }

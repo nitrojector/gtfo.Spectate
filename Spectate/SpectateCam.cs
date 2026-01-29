@@ -1,22 +1,30 @@
 ﻿using Player;
 using SNetwork;
 using UnityEngine;
+using UnityEngine.Serialization;
 using Object = UnityEngine.Object;
 
 namespace Spectate;
 
 public class SpectateCam : MonoBehaviour {
-	public static SpectateCam Instance { get; set; }
+	public static SpectateCam? Instance { get; set; }
 
 	public bool SelfReady => _self != null && _self.FPSCamera != null;
 	public bool TargetReady => _target != null;
 	public bool Active { get; private set; } = false;
 
-	public Vector3 CurrentOffset = Vector3.zero;
-	public readonly Vector3 IdealOffset = new(0.0f, 2.0f, -2.0f);
+	[NonSerialized] private Vector3 _orbitCenterOffset = new(0.0f, 0.325f, 0.0f);
+	[NonSerialized] private Vector3 _pitchAdjustOffset = new(0.0f, 0.45f, 0.0f);
+	[NonSerialized] private float _distanceFromEye = 0.625f;
+	[NonSerialized] private float _scrollSensitivity = 0.5f;
 
 	private SpectateTarget? _self = null;
 	private SpectateTarget? _target = null;
+
+	public SpectateTarget? Target => _target;
+
+	public SpectateCam(IntPtr ptr) : base(ptr) {
+	}
 
 	private void Awake() {
 		if (Instance != null && Instance != this) {
@@ -98,6 +106,7 @@ public class SpectateCam : MonoBehaviour {
 					SetTarget(agents[idx - 1]);
 			}
 
+			ProcessInput();
 			UpdateCamPos();
 			UpdateCull();
 		}
@@ -111,18 +120,16 @@ public class SpectateCam : MonoBehaviour {
 		}
 
 		_self!.SetRigActive(active);
-		_target!.Locomotion.enabled = active;
+		_self.Locomotion.enabled = active;
+		_self.Inventory.enabled = active;
+		_self.FPHolder?.gameObject.SetActive(active);
 
-		var fpsCamera = _target.FPSCamera;
+		var fpsCamera = _self.FPSCamera;
 		if (fpsCamera != null) {
 			fpsCamera.MouseLookEnabled = active;
 			fpsCamera.PlayerAgentRotationEnabled = active;
 			fpsCamera.PlayerMoveEnabled = active;
 		}
-
-		// target.Inventory.enabled = active;
-		// target.FPSCamera?.m_holder.GetComponentInChildren<FirstPersonItemHolder>()?.gameObject.SetActive(active);
-		// target.Agent.PlayerSyncModel.gameObject.SetActive(active);
 	}
 
 	// TESTING purpose only
@@ -143,12 +150,36 @@ public class SpectateCam : MonoBehaviour {
 			return;
 		}
 
-		Vector3 eyePos = _target!.Agent.Position;
-		eyePos.y = _target.Agent.m_eyePosition.y;
-		eyePos += IdealOffset.z * _target.Transform.forward;
-		eyePos += IdealOffset.y * Vector3.up;
+		// calculated desired view direction
+		Vector3 dir = _target!.Agent.Forward;
+		dir -= _pitchAdjustOffset;
+		dir.Normalize();
 
-		_self!.FPSCamera!.OverridePositionAndRotation(eyePos, Quaternion.LookRotation(_target.Transform.forward));
+		// raycast to avoid clipping into walls
+		Vector3 orbitCenter = _target!.Agent.m_eyePosition + _orbitCenterOffset;
+		Vector3 eyePos = orbitCenter - dir * _distanceFromEye;
+		if (Physics.Raycast(orbitCenter, -dir, out var hit, _distanceFromEye, LayerManager.MASK_WORLD)) {
+			eyePos = hit.m_Point + dir * 0.1f;
+		}
+
+		_self!.FPSCamera!.OverridePositionAndRotation(eyePos, Quaternion.LookRotation(dir));
+	}
+
+	void ProcessInput() {
+		float scrollDelta = Input.mouseScrollDelta.y * _scrollSensitivity;
+		if (Mathf.Abs(scrollDelta) > 0f) {
+			if (InputHelper.OnlyModifies(KeyCode.LeftShift, KeyCode.RightShift)) {
+				// adjust top down
+				// TODO: this is for testing optimal angle only, final version should use mouse delta instead
+				_pitchAdjustOffset.y += 0.05f * scrollDelta;
+			} else if (InputHelper.OnlyModifies(KeyCode.LeftControl, KeyCode.RightControl)) {
+				// adjust center vertical offset
+				_orbitCenterOffset.y += 0.05f * scrollDelta;
+			} else {
+				// adjust distance
+				_distanceFromEye -= 0.05f * scrollDelta;
+			}
+		}
 	}
 
 	void UpdateCull() {
