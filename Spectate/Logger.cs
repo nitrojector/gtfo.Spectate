@@ -1,4 +1,5 @@
 ﻿using BepInEx.Logging;
+using TenCC.Utils;
 
 namespace Spectate;
 
@@ -16,7 +17,13 @@ internal static class Logger {
 
 	private static string Format(object data) => data.ToString();
 
-	public static void Debug(object msg) => _mLogSource.LogDebug(Format(msg));
+	public static void Debug(object msg) {
+		if (ConfigMgr.Debug) {
+			_mLogSource.LogInfo("[DEBUG] " + Format(msg));
+		} else {
+			_mLogSource.LogDebug(Format(msg));
+		}
+	}
 
 	public static void Info(object msg) => _mLogSource.LogInfo(Format(msg));
 

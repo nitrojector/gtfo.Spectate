@@ -3,10 +3,10 @@
 namespace Spectate;
 
 public static class Util {
-	public const float GOOD_ENOUGH_EPS = 0.004f;
+	public const float GOOD_ENOUGH_DEG_EPS = 0.2f;
 
-	public static bool GoodEnough(float a, float b) {
-		return NearlyEqual(a, b, GOOD_ENOUGH_EPS);
+	public static bool GoodEnoughDeg(float a, float b) {
+		return NearlyEqual(a, b, GOOD_ENOUGH_DEG_EPS);
 	}
 
 	public static bool NearlyEqual(float a, float b, float eps = 0.0001f) {

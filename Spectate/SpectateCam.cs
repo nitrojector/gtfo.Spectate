@@ -24,7 +24,7 @@ public class SpectateCam : MonoBehaviour {
 	public event Action? OnActive;
 
 	private bool _freecam = ConfigMgr.DefaultFreecamView;
-	private bool _freeCamFollow = true;
+	private bool _freecamFollow = ConfigMgr.AutoTransitionToFollowView;
 	private float _freeLookReturnTimer = 0f;
 
 	private float _pitch = ConfigMgr.CameraPitchAngleDeg;
@@ -110,22 +110,8 @@ public class SpectateCam : MonoBehaviour {
 		if (!Active) {
 			_yaw = 0f;
 			_pitch = ConfigMgr.CameraPitchAngleDeg;
-		}
-	}
-
-	private void Update() {
-		if (!enabled || !gameObject.activeInHierarchy) return;
-
-		ProcessInput();
-
-		if (Active) {
-			if (_target == null) {
-				SetActive(false);
-				return;
-			}
-
-			UpdateCamPos();
-			UpdateCull();
+			_freeLookReturnTimer = 0f;
+			_freecamFollow = false;
 		}
 	}
 
@@ -149,6 +135,34 @@ public class SpectateCam : MonoBehaviour {
 			fpsCamera.MouseLookEnabled = active;
 			fpsCamera.PlayerAgentRotationEnabled = active;
 			fpsCamera.PlayerMoveEnabled = active;
+		}
+	}
+
+	private void Update() {
+		if (!enabled || !gameObject.activeInHierarchy) return;
+
+		ProcessInput();
+
+		if (Active) {
+			if (_target == null) {
+				SetActive(false);
+				return;
+			}
+
+			UpdateActiveTransitions();
+
+			if (_freecam) {
+				UpdateYawPitch();
+			}
+
+			UpdateCamPos();
+			UpdateCull();
+		}
+	}
+
+	private void UpdateActiveTransitions() {
+		if (ConfigMgr.AutoTransitionToFollowView && _freeLookReturnTimer > 0.0f) {
+			_freeLookReturnTimer -= Time.deltaTime;
 		}
 	}
 
@@ -195,6 +209,11 @@ public class SpectateCam : MonoBehaviour {
 		if (_freecam && mouseDelta != Vector2.zero) {
 			AdjustYaw(mouseDelta.x * ConfigMgr.FreecamSensitivity);
 			AdjustPitch(mouseDelta.y * ConfigMgr.FreecamSensitivity);
+
+			if (ConfigMgr.AutoTransitionToFollowView) {
+				_freecamFollow = false;
+				_freeLookReturnTimer = ConfigMgr.AutoTransitionDelay;
+			}
 		}
 
 		int idx = InputHelper.GetAlphaNumKeyDown();
@@ -223,26 +242,20 @@ public class SpectateCam : MonoBehaviour {
 	}
 
 	void UpdateCamPos() {
-		// TODO: Allow free look
+		// TODO: Improve free look
 		// TODO: Use spherecast for better clipping avoidance
 		if (!SelfReady || !TargetReady) {
 			Logger.Error("SpectateCam: UpdateCull failed - target or self not ready");
 			return;
 		}
 
-		if (!Util.GoodEnough(_yaw, _yawTarget)) {
-			_yaw = Mathf.LerpAngle(_yaw, _yawTarget, Time.deltaTime * CameraLerpSpeed);
-			float yawDiff = _yawTarget - _yaw;
-			_yaw = Mathf.Repeat(_yaw, 360f);
-			_yawTarget = _yaw + yawDiff;
-		} else {
-			_yaw = _yawTarget;
-		}
-
-		if (!Util.GoodEnough(_pitch, _pitchTarget)) {
-			_pitch = Mathf.LerpAngle(_pitch, _pitchTarget, Time.deltaTime * CameraLerpSpeed);
-		} else {
-			_pitch = _pitchTarget;
+		if (ConfigMgr.AutoTransitionToFollowView && _freecam) {
+			if (_freecamFollow) {
+				UpdateYawPitchWithFollowView(false);
+			} else if (_freeLookReturnTimer < 0.0f) {
+				_freecamFollow = true;
+				UpdateYawPitchWithFollowView(false);
+			}
 		}
 
 		Vector3 forward = _target!.Agent.Forward.normalized;
@@ -263,7 +276,25 @@ public class SpectateCam : MonoBehaviour {
 			eyePos = hit.m_Point + dir * 0.1f;
 		}
 
+		// TODO: perhaps lerp this to avoid jitter on high ping?
 		_self!.FPSCamera!.OverridePositionAndRotation(eyePos, Quaternion.LookRotation(dir));
+	}
+
+	void UpdateYawPitch() {
+		if (!Util.GoodEnoughDeg(_yaw, _yawTarget)) {
+			_yaw = Mathf.LerpAngle(_yaw, _yawTarget, Time.deltaTime * CameraLerpSpeed);
+			float yawDiff = _yawTarget - _yaw;
+			_yaw = Mathf.Repeat(_yaw, 360f);
+			_yawTarget = _yaw + yawDiff;
+		} else {
+			_yaw = _yawTarget;
+		}
+
+		if (!Util.GoodEnoughDeg(_pitch, _pitchTarget)) {
+			_pitch = Mathf.LerpAngle(_pitch, _pitchTarget, Time.deltaTime * CameraLerpSpeed);
+		} else {
+			_pitch = _pitchTarget;
+		}
 	}
 
 	void UpdateCull() {
@@ -290,7 +321,7 @@ public class SpectateCam : MonoBehaviour {
 			return;
 		}
 
-		UpdateYawPitchWithFollowView(false);
+		UpdateYawPitchWithFollowView(true);
 	}
 
 	void OnFree2Follow() {
@@ -302,13 +333,9 @@ public class SpectateCam : MonoBehaviour {
 		UpdateYawPitchWithFollowView(true);
 	}
 
-	void DoTransitionToFollowInFree() {
-		// TODO: for auto transition to follow view in freecam mode
-	}
-
 	// WARNING: should not be called without check TargetReady
 	void UpdateYawPitchWithFollowView(bool instant) {
-		SetYaw(Vector3.Angle(Vector3.forward, _target!.Agent.Forward), instant);
+		SetYaw(Vector3.SignedAngle(Vector3.forward, _target!.Agent.Forward, Vector3.up), instant);
 		SetPitch(ConfigMgr.CameraPitchAngleDeg, instant);
 	}
 
@@ -344,5 +371,9 @@ public class SpectateCam : MonoBehaviour {
 		_self.Agent.m_movingCuller.UpdatePosition(_self.Agent.m_dimensionIndex, targetCullPosition);
 		if (_self.Agent.m_movingCuller.CurrentNode != _self.Agent.CourseNode.m_cullNode)
 			_self.Agent.m_movingCuller.SetCurrentNode(_self.Agent.CourseNode.m_cullNode);
+	}
+
+	private void OnApplicationQuit() {
+		ConfigMgr.WriteConfigIfDirty();
 	}
 }
