@@ -33,6 +33,10 @@ public class SpectateTarget {
 		Agent = agent;
 	}
 
+	public void SetRigActive(bool active) {
+		Agent.PlayerSyncModel.gameObject.SetActive(active);
+	}
+
 	public static bool operator ==(SpectateTarget? a, SpectateTarget? b) {
 		if (ReferenceEquals(a, b))
 			return true;
@@ -53,9 +57,5 @@ public class SpectateTarget {
 
 	public override int GetHashCode() {
 		return Agent.GetHashCode();
-	}
-
-	public void SetRigActive(bool active) {
-		Agent.PlayerSyncModel.gameObject.SetActive(active);
 	}
 }
