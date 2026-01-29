@@ -40,4 +40,9 @@ public class InputHelper {
 
 		return targetPressed && !otherModPressed;
 	}
+
+	public static Vector2 GetMouseDelta() {
+		return new Vector2(InputMapper.GetAxis.Invoke(InputAction.LookHorizontal),
+			InputMapper.GetAxis.Invoke(InputAction.LookVertical));
+	}
 }

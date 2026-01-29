@@ -1,8 +1,15 @@
-﻿using Player;
+﻿using System.Numerics;
+using Player;
 using SNetwork;
+using TenCC.Utils;
+using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Serialization;
+using Matrix4x4 = UnityEngine.Matrix4x4;
 using Object = UnityEngine.Object;
+using Quaternion = UnityEngine.Quaternion;
+using Vector2 = UnityEngine.Vector2;
+using Vector3 = UnityEngine.Vector3;
 
 namespace Spectate;
 
@@ -12,11 +19,26 @@ public class SpectateCam : MonoBehaviour {
 	public bool SelfReady => _self != null && _self.FPSCamera != null;
 	public bool TargetReady => _target != null;
 	public bool Active { get; private set; } = false;
+	private bool _wasActive = false;
 
-	[NonSerialized] private Vector3 _orbitCenterOffset = new(0.0f, 0.325f, 0.0f);
-	[NonSerialized] private Vector3 _pitchAdjustOffset = new(0.0f, 0.45f, 0.0f);
-	[NonSerialized] private float _distanceFromEye = 0.625f;
-	[NonSerialized] private float _scrollSensitivity = 0.5f;
+	public event Action? OnActive;
+
+	private bool _freecam = ConfigMgr.DefaultFreecamView;
+	private bool _freeCamFollow = true;
+	private float _freeLookReturnTimer = 0f;
+
+	private float _pitch = ConfigMgr.CameraPitchAngleDeg;
+	private float _yaw = 0f;
+	private float _pitchTarget = ConfigMgr.CameraPitchAngleDeg;
+	private float _yawTarget = 0f;
+
+	// TODO: make const
+	private static float CameraLerpSpeed = 6f;
+	public const float DefaultOrbitCenterVerticalOffset = 0.325f;
+	public const float DefaultPitchAngleDeg = -18.75f;
+	public const float DefaultDistanceFromEye = 0.625f;
+	public const float DefaultScrollSensitivity = 0.5f;
+	public const float DefaultFreecamSensitivity = 1.0f;
 
 	private SpectateTarget? _self = null;
 	private SpectateTarget? _target = null;
@@ -44,7 +66,7 @@ public class SpectateCam : MonoBehaviour {
 		}
 
 		_self = new SpectateTarget(localAgent);
-		return true;
+		return _self.FPSCamera != null;
 	}
 
 	public bool Unload() {
@@ -63,6 +85,7 @@ public class SpectateCam : MonoBehaviour {
 
 		SetRelatedActive(false);
 		UpdateCull();
+		SetActive(true);
 		Logger.Debug("Attach");
 		return true;
 	}
@@ -72,26 +95,28 @@ public class SpectateCam : MonoBehaviour {
 
 		SetRelatedActive(true);
 		RevertCull();
+		SetActive(false);
 		Logger.Debug("Detach");
 		return true;
 	}
 
 	public void SetActive(bool active) {
+		if (active && !_wasActive) {
+			OnActive?.Invoke();
+		}
+
+		_wasActive = Active;
 		Active = active;
+		if (!Active) {
+			_yaw = 0f;
+			_pitch = ConfigMgr.CameraPitchAngleDeg;
+		}
 	}
 
 	private void Update() {
 		if (!enabled || !gameObject.activeInHierarchy) return;
 
-		if (Input.GetKeyDown(KeyCode.V) && InputMapper.Current.FocusStateFilterPass(eFocusState.FPS)) {
-			if (Active) {
-				if (Detach()) SetActive(false);
-				else Logger.Error("Failed to detach SpecCam.");
-			} else {
-				if (Attach()) SetActive(true);
-				else Logger.Error("Failed to attach SpecCam.");
-			}
-		}
+		ProcessInput();
 
 		if (Active) {
 			if (_target == null) {
@@ -99,21 +124,15 @@ public class SpectateCam : MonoBehaviour {
 				return;
 			}
 
-			int idx = InputHelper.GetAlphaNumKeyDown();
-			var agents = PlayerManager.PlayerAgentsInLevel;
-			if (idx > 0 && idx - 1 < agents.Count) {
-				if (!agents[idx - 1].IsLocallyOwned)
-					SetTarget(agents[idx - 1]);
-			}
-
-			ProcessInput();
 			UpdateCamPos();
 			UpdateCull();
 		}
 	}
 
-	// ReSharper disable Unity.PerformanceAnalysis
 	void SetRelatedActive(bool active) {
+		// TODO: let locomotion run for a bit? so that when player is mid jump while switching back, there is no lerping
+		// TODO: transition to/from certain UIs reset the state of some elements (e.g. crosshair), we want them to stay disabled
+		// Patch FocusStateManager.ChangeState ?
 		if (!SelfReady || !TargetReady) {
 			Logger.Error("SpectateCam: SetRelatedActive failed - target or self not ready");
 			return;
@@ -123,6 +142,7 @@ public class SpectateCam : MonoBehaviour {
 		_self.Locomotion.enabled = active;
 		_self.Inventory.enabled = active;
 		_self.FPHolder?.gameObject.SetActive(active);
+		GuiManager.CrosshairLayer?.m_circleCrosshair?.transform.parent.gameObject.SetActive(active);
 
 		var fpsCamera = _self.FPSCamera;
 		if (fpsCamera != null) {
@@ -144,42 +164,106 @@ public class SpectateCam : MonoBehaviour {
 		return false;
 	}
 
+	void ProcessInput() {
+		if (!InputMapper.Current.FocusStateFilterPass(eFocusState.FPS))
+			return;
+
+		// Universal inputs
+		// TODO: Add death condition and ondeath auto transition
+		if (Input.GetKeyDown(KeyCode.V)) {
+			if (Active) {
+				if (!Detach()) Logger.Error("Failed to detach SpecCam.");
+			} else {
+				if (!Attach()) Logger.Error("Failed to attach SpecCam.");
+			}
+		}
+
+		// Active-only inputs
+		if (!Active) return;
+
+		if (Input.GetKeyDown(KeyCode.F)) {
+			if (_freecam) {
+				_freecam = false;
+				OnFree2Follow();
+			} else {
+				_freecam = true;
+				OnFollow2Free();
+			}
+		}
+
+		Vector2 mouseDelta = InputHelper.GetMouseDelta();
+		if (_freecam && mouseDelta != Vector2.zero) {
+			AdjustYaw(mouseDelta.x * ConfigMgr.FreecamSensitivity);
+			AdjustPitch(mouseDelta.y * ConfigMgr.FreecamSensitivity);
+		}
+
+		int idx = InputHelper.GetAlphaNumKeyDown();
+		var agents = PlayerManager.PlayerAgentsInLevel;
+		if (idx > 0 && idx - 1 < agents.Count) {
+			if (!agents[idx - 1].IsLocallyOwned)
+				SetTarget(agents[idx - 1]);
+		}
+
+		// Camera fixed view adjust
+		float scrollDelta = Input.mouseScrollDelta.y * ConfigMgr.ScrollSensitivity;
+		if (!InputMapper.Current.FocusStateFilterPass(eFocusState.FPS_CommunicationDialog) &&
+		    Mathf.Abs(scrollDelta) > 0f) {
+			if (InputHelper.OnlyModifies(KeyCode.LeftShift, KeyCode.RightShift)) {
+				// adjust pitch
+				if (_freecam) SpectateUI.Instance?.WarnFreecamNoAdjustPitch();
+				else ConfigMgr.CameraPitchAngleDeg += 0.5f * scrollDelta;
+			} else if (InputHelper.OnlyModifies(KeyCode.LeftControl, KeyCode.RightControl)) {
+				// adjust center vertical offset
+				ConfigMgr.CameraOrbitVerticalOffset += 0.05f * scrollDelta;
+			} else {
+				// adjust distance
+				ConfigMgr.CameraDistance -= 0.05f * scrollDelta;
+			}
+		}
+	}
+
 	void UpdateCamPos() {
+		// TODO: Allow free look
+		// TODO: Use spherecast for better clipping avoidance
 		if (!SelfReady || !TargetReady) {
 			Logger.Error("SpectateCam: UpdateCull failed - target or self not ready");
 			return;
 		}
 
+		if (!Util.GoodEnough(_yaw, _yawTarget)) {
+			_yaw = Mathf.LerpAngle(_yaw, _yawTarget, Time.deltaTime * CameraLerpSpeed);
+			float yawDiff = _yawTarget - _yaw;
+			_yaw = Mathf.Repeat(_yaw, 360f);
+			_yawTarget = _yaw + yawDiff;
+		} else {
+			_yaw = _yawTarget;
+		}
+
+		if (!Util.GoodEnough(_pitch, _pitchTarget)) {
+			_pitch = Mathf.LerpAngle(_pitch, _pitchTarget, Time.deltaTime * CameraLerpSpeed);
+		} else {
+			_pitch = _pitchTarget;
+		}
+
+		Vector3 forward = _target!.Agent.Forward.normalized;
+		if (_freecam) {
+			Quaternion yawRot = Quaternion.Euler(0f, _yaw, 0f);
+			forward = yawRot * Vector3.forward;
+		}
+
 		// calculated desired view direction
-		Vector3 dir = _target!.Agent.Forward;
-		dir -= _pitchAdjustOffset;
+		float pitchRad = Mathf.Deg2Rad * (_freecam ? _pitch : ConfigMgr.CameraPitchAngleDeg);
+		Vector3 dir = forward + Vector3.up * Mathf.Tan(pitchRad);
 		dir.Normalize();
 
 		// raycast to avoid clipping into walls
-		Vector3 orbitCenter = _target!.Agent.m_eyePosition + _orbitCenterOffset;
-		Vector3 eyePos = orbitCenter - dir * _distanceFromEye;
-		if (Physics.Raycast(orbitCenter, -dir, out var hit, _distanceFromEye, LayerManager.MASK_WORLD)) {
+		Vector3 orbitCenter = _target!.Agent.m_eyePosition + ConfigMgr.CameraOrbitVerticalOffset * Vector3.up;
+		Vector3 eyePos = orbitCenter - dir * ConfigMgr.CameraDistance;
+		if (Physics.Raycast(orbitCenter, -dir, out var hit, ConfigMgr.CameraDistance, LayerManager.MASK_WORLD)) {
 			eyePos = hit.m_Point + dir * 0.1f;
 		}
 
 		_self!.FPSCamera!.OverridePositionAndRotation(eyePos, Quaternion.LookRotation(dir));
-	}
-
-	void ProcessInput() {
-		float scrollDelta = Input.mouseScrollDelta.y * _scrollSensitivity;
-		if (Mathf.Abs(scrollDelta) > 0f) {
-			if (InputHelper.OnlyModifies(KeyCode.LeftShift, KeyCode.RightShift)) {
-				// adjust top down
-				// TODO: this is for testing optimal angle only, final version should use mouse delta instead
-				_pitchAdjustOffset.y += 0.05f * scrollDelta;
-			} else if (InputHelper.OnlyModifies(KeyCode.LeftControl, KeyCode.RightControl)) {
-				// adjust center vertical offset
-				_orbitCenterOffset.y += 0.05f * scrollDelta;
-			} else {
-				// adjust distance
-				_distanceFromEye -= 0.05f * scrollDelta;
-			}
-		}
 	}
 
 	void UpdateCull() {
@@ -200,7 +284,65 @@ public class SpectateCam : MonoBehaviour {
 			_self.Agent.m_movingCuller.SetCurrentNode(_target.Agent.CourseNode.m_cullNode);
 	}
 
+	void OnFollow2Free() {
+		if (!TargetReady) {
+			Logger.Error("SpectateCam: OnTransitionToFreecam failed - target not ready");
+			return;
+		}
+
+		UpdateYawPitchWithFollowView(false);
+	}
+
+	void OnFree2Follow() {
+		if (!TargetReady) {
+			Logger.Error("SpectateCam: OnTransitionToFollow failed - target not ready");
+			return;
+		}
+
+		UpdateYawPitchWithFollowView(true);
+	}
+
+	void DoTransitionToFollowInFree() {
+		// TODO: for auto transition to follow view in freecam mode
+	}
+
+	// WARNING: should not be called without check TargetReady
+	void UpdateYawPitchWithFollowView(bool instant) {
+		SetYaw(Vector3.Angle(Vector3.forward, _target!.Agent.Forward), instant);
+		SetPitch(ConfigMgr.CameraPitchAngleDeg, instant);
+	}
+
+	void AdjustPitch(float deltaPitch, bool instant = false) {
+		SetPitch(_pitchTarget + deltaPitch, instant);
+	}
+
+	void AdjustYaw(float deltaYaw, bool instant = false) {
+		SetYaw(_yawTarget + deltaYaw, instant);
+	}
+
+	void SetPitch(float pitch, bool instant = false) {
+		pitch = Mathf.Clamp(pitch, -89f, 89f);
+		_pitchTarget = pitch;
+		if (instant) _pitch = pitch;
+	}
+
+	void SetYaw(float yaw, bool instant = false) {
+		_yawTarget = yaw;
+		if (instant) _yaw = yaw;
+	}
+
 	void RevertCull() {
-		// TODO:
+		if (!SelfReady) {
+			Logger.Error("SpectateCam: RevertCull failed - self is not ready");
+			return;
+		}
+
+		Vector3 targetCullPosition = _self!.Agent.Position;
+		if (Physics.Raycast(targetCullPosition, Vector3.down, out var hit, 64f, LayerManager.MASK_WORLD))
+			targetCullPosition = hit.m_Point;
+
+		_self.Agent.m_movingCuller.UpdatePosition(_self.Agent.m_dimensionIndex, targetCullPosition);
+		if (_self.Agent.m_movingCuller.CurrentNode != _self.Agent.CourseNode.m_cullNode)
+			_self.Agent.m_movingCuller.SetCurrentNode(_self.Agent.CourseNode.m_cullNode);
 	}
 }
