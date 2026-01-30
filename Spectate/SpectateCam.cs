@@ -20,6 +20,7 @@ public class SpectateCam : MonoBehaviour {
 	private bool _freecam = ConfigMgr.DefaultFreecamView;
 	private bool _freecamFollow = ConfigMgr.AutoTransitionToFollowView;
 	private float _freeLookReturnTimer = 0f;
+	public bool Freecam => _freecam;
 
 	private float _pitch = ConfigMgr.CameraPitchAngleDeg;
 	private float _yaw = 0f;
@@ -258,7 +259,7 @@ public class SpectateCam : MonoBehaviour {
 	}
 
 	void UpdateCamPos() {
-		// TODO: Use spherecast for better clipping avoidance
+		// TODO: Perhaps spherecast for better clipping avoidance
 		if (!SelfReady || !TargetReady) {
 			Logger.Error("SpectateCam: UpdateCull failed - target or self not ready");
 			return;
@@ -336,6 +337,7 @@ public class SpectateCam : MonoBehaviour {
 			return;
 		}
 
+		SpectateUI.Instance?.UpdateMenu(_freecam);
 		UpdateYawPitchWithFollowView(true);
 	}
 
@@ -345,6 +347,7 @@ public class SpectateCam : MonoBehaviour {
 			return;
 		}
 
+		SpectateUI.Instance?.UpdateMenu(_freecam);
 		UpdateYawPitchWithFollowView(true);
 	}
 
