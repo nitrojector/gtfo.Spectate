@@ -154,6 +154,8 @@ public class SpectateCam : MonoBehaviour {
 		_self.FPHolder?.gameObject.SetActive(active);
 		GuiManager.CrosshairLayer?.m_circleCrosshair?.transform.parent.gameObject.SetActive(active);
 
+		// TODO: When we disable spectate, hand is invisible.
+
 		var fpsCamera = _self.FPSCamera;
 		if (fpsCamera != null) {
 			fpsCamera.MouseLookEnabled = active;
