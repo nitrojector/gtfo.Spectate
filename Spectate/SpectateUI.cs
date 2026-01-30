@@ -1,10 +1,11 @@
 ﻿using Spectate.Config;
 using TMPro;
 using UnityEngine;
-using Object = System.Object;
 
 namespace Spectate;
 
+// TODO: BUG: UI doesn't scale correctly across different resolutions / aspect ratios
+// perhaps test resolutions? 1080p
 public class SpectateUI : MonoBehaviour {
 	public static SpectateUI? Instance { get; private set; }
 
@@ -150,7 +151,7 @@ public class SpectateUI : MonoBehaviour {
 	}
 
 	private void UpdatePlayerText() {
-		string playerName = SpectateCam.Instance?.Target?.Agent.PlayerName ?? "<#FFDE21>Unknown</color>";
+		string playerName = SpectateCam.Instance?.Target?.Agent.InteractionName ?? "<#FFDE21>Unknown</color>";
 		string spectateText = $"<#{_specTargetTextColor}>Spectating\n<size=36>{playerName}</size></color>";
 		UpdateText(_specTargetTmp, spectateText);
 	}

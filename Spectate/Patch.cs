@@ -1,6 +1,8 @@
 ﻿using HarmonyLib;
 using Player;
+using SNetwork;
 using Spectate.Config;
+using UnityEngine;
 
 namespace Spectate;
 
@@ -13,6 +15,41 @@ public class Patch {
 	[HarmonyPostfix]
 	public static void GS_ReadyToStopElevatorRide_Enter(GS_ReadyToStopElevatorRide __instance) {
 		SpectateCam.Instance?.Load();
+	}
+
+	[HarmonyPatch(
+		typeof(PlayerSync),
+		nameof(PlayerSync.SendLocomotion)
+	)]
+	[HarmonyPrefix]
+	public static bool PlayerSync_SendLocomotion(PlayerSync __instance, PlayerLocomotion.PLOC_State state, Vector3 pos,
+		ref Vector3 lookDir, float velFwd, float velRight) {
+#if DEBUG
+		if (!__instance.m_agent.IsLocallyOwned) return true;
+#endif
+		if (SpectateCam.Instance?.Active ?? false) {
+			lookDir = SpectateCam.Instance.LastCamDir;
+		}
+
+		return true;
+	}
+
+	[HarmonyPatch(
+		typeof(RundownManager),
+		nameof(RundownManager.EndGameSession)
+	)]
+	[HarmonyPrefix]
+	private static void EndGameSession() {
+		SpectateCam.Instance?.Unload();
+	}
+
+	[HarmonyPatch(
+		typeof(SNet_SessionHub),
+		nameof(SNet_SessionHub.LeaveHub)
+	)]
+	[HarmonyPrefix]
+	private static void LeaveHub() {
+		SpectateCam.Instance?.Unload();
 	}
 
 	[HarmonyPatch(

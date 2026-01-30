@@ -1,4 +1,6 @@
-﻿using Player;
+﻿using System.Runtime.CompilerServices;
+using Player;
+using SNetwork;
 using UnityEngine;
 using Spectate.Config;
 using Quaternion = UnityEngine.Quaternion;
@@ -17,10 +19,14 @@ public class SpectateCam : MonoBehaviour {
 
 	public event Action? OnActive;
 
+	private int _lastTargetPlayerIdx = -1;
+
 	private bool _freecam = ConfigMgr.DefaultFreecamView;
 	private bool _freecamFollow = ConfigMgr.AutoTransitionToFollowView;
 	private float _freeLookReturnTimer = 0f;
 	public bool Freecam => _freecam;
+
+	public Vector3 LastCamDir = Vector3.forward;
 
 	private float _pitch = ConfigMgr.CameraPitchAngleDeg;
 	private float _yaw = 0f;
@@ -62,7 +68,7 @@ public class SpectateCam : MonoBehaviour {
 	public bool Load() {
 		PlayerAgent localAgent = PlayerManager.GetLocalPlayerAgent();
 		if (localAgent == null) {
-			Logger.Error("SpectateCam: Failed to load - local player agent is null.");
+			Logger.Error("SpectateCam: Failed to load - local player agent is null");
 			return false;
 		}
 
@@ -71,19 +77,29 @@ public class SpectateCam : MonoBehaviour {
 	}
 
 	public bool Unload() {
+		Active = false;
 		_self = null;
 		_target = null;
 		return true;
 	}
 
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public void SetTarget(PlayerAgent agent) {
 		_target = new SpectateTarget(agent);
 	}
 
 	public bool Attach() {
-		if (!SelfReady && !Load()) return false;
-		if (!TargetReady && !TrySetAnyNonLocalTarget())
-			return false; // TODO: TrySet is for testing only // combine with UI to switch
+		if (!SelfReady && !Load()) {
+			Logger.Error("SpectateCam: Attach failed - self not ready and cannot be loaded");
+			return false;
+		}
+
+		if (!TargetReady && !TrySetAnyNonLocalTarget()) {
+			Logger.Warn("SpectateCam: Attach failed - no valid target available");
+			return false;
+		}
+
+		LastCamDir = _self!.FPSCamera!.Forward;
 
 		SetRelatedActive(false);
 		UpdateCull();
@@ -93,7 +109,12 @@ public class SpectateCam : MonoBehaviour {
 	}
 
 	public bool Detach() {
-		if (!SelfReady) return false;
+		if (!SelfReady && !Load()) {
+			Logger.Error("SpectateCam: Detach failed - self not ready and cannot be loaded");
+			Logger.Info("SpectateCam: Detach falling back to Unload");
+			Unload();
+			return false;
+		}
 
 		SetRelatedActive(true);
 		RevertCull();
@@ -118,16 +139,17 @@ public class SpectateCam : MonoBehaviour {
 	}
 
 	void SetRelatedActive(bool active) {
-		// TODO: let locomotion run for a bit? so that when player is mid jump while switching back, there is no lerping
 		// TODO: transition to/from certain UIs reset the state of some elements (e.g. crosshair), we want them to stay disabled
 		// Patch FocusStateManager.ChangeState ?
-		if (!SelfReady || !TargetReady) {
-			Logger.Error("SpectateCam: SetRelatedActive failed - target or self not ready");
+		if (!SelfReady) {
+			Logger.Error("SpectateCam: SetRelatedActive failed - self not ready");
 			return;
 		}
 
 		_self!.SetRigActive(active);
-		_self.Locomotion.enabled = active;
+		// NOTE: we don't want to disable Locomotion, we are
+		// _self.Locomotion.enabled = active;
+		_self.Agent.DeadDebugMode = !active;
 		_self.Inventory.enabled = active;
 		_self.FPHolder?.gameObject.SetActive(active);
 		GuiManager.CrosshairLayer?.m_circleCrosshair?.transform.parent.gameObject.SetActive(active);
@@ -177,18 +199,6 @@ public class SpectateCam : MonoBehaviour {
 		}
 	}
 
-	// TESTING purpose only
-	bool TrySetAnyNonLocalTarget() {
-		foreach (var agent in PlayerManager.PlayerAgentsInLevel) {
-			if (!agent.IsLocallyOwned) {
-				SetTarget(agent);
-				return true;
-			}
-		}
-
-		return false;
-	}
-
 	void ProcessInput() {
 		if (!InputMapper.Current.FocusStateFilterPass(eFocusState.FPS))
 			return;
@@ -197,9 +207,9 @@ public class SpectateCam : MonoBehaviour {
 		bool allowKeySwitch = ConfigMgr.DevEnables(eDevOpts.AllowSpectatingAnytime) || (SelfReady && _self!.IsDowned);
 		if (allowKeySwitch && Input.GetKeyDown(KeyCode.V)) {
 			if (Active) {
-				if (!Detach()) Logger.Error("Failed to detach SpecCam.");
+				if (!Detach()) Logger.Warn("SpectateCam: Failed to detach SpecCam");
 			} else {
-				if (!Attach()) Logger.Error("Failed to attach SpecCam.");
+				if (!Attach()) Logger.Warn("SpectateCam: Failed to attach SpecCam");
 			}
 		}
 
@@ -227,12 +237,16 @@ public class SpectateCam : MonoBehaviour {
 			}
 		}
 
-		int idx = InputHelper.GetAlphaNumKeyDown();
-		var agents = PlayerManager.PlayerAgentsInLevel;
-		if (idx > 0 && idx - 1 < agents.Count) {
-			if (!agents[idx - 1].IsLocallyOwned)
-				SetTarget(agents[idx - 1]);
+		if (Input.GetKeyDown(KeyCode.Mouse0)) {
+			NextTarget();
 		}
+
+		if (Input.GetKeyDown(KeyCode.Mouse1)) {
+			PreviousTarget();
+		}
+
+		int idx = InputHelper.GetAlphaNumKeyDown();
+		if (idx > 0) TrySetTargetByIdx(idx - 1);
 
 		// Camera fixed view adjust
 		float scrollDelta = Input.mouseScrollDelta.y * ConfigMgr.ScrollSensitivity;
@@ -241,7 +255,7 @@ public class SpectateCam : MonoBehaviour {
 			if (InputHelper.OnlyModifies(KeyCode.LeftShift, KeyCode.RightShift)) {
 				// adjust pitch
 				if (_freecam) SpectateUI.Instance?.WarnFreecamNoAdjustPitch();
-				else ConfigMgr.CameraPitchAngleDeg += 0.5f * scrollDelta;
+				else ConfigMgr.CameraPitchAngleDeg -= 0.5f * scrollDelta;
 			} else if (InputHelper.OnlyModifies(KeyCode.LeftControl, KeyCode.RightControl)) {
 				// adjust center vertical offset
 				ConfigMgr.CameraOrbitVerticalOffset = Mathf.Clamp(
@@ -331,6 +345,63 @@ public class SpectateCam : MonoBehaviour {
 			_self.Agent.m_movingCuller.SetCurrentNode(_target.Agent.CourseNode.m_cullNode);
 	}
 
+	bool TrySetAnyNonLocalTarget() {
+		var players = SNet.Slots?.SlottedPlayers;
+		if (players == null || players.Count == 0) return false;
+
+		_lastTargetPlayerIdx = 0;
+		for (int i = 0; i < players.Count; i++) {
+			if (!players[i].IsLocal) {
+				SetTarget(players[i].PlayerAgent.Cast<PlayerAgent>());
+				_lastTargetPlayerIdx = i;
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	void NextTarget() {
+		int limit = SNet.Slots?.SlottedPlayers?.Count ?? -1;
+		if (limit <= 0) return;
+
+		for (int offset = 1; offset <= limit; offset++) {
+			int tryIdx = (_lastTargetPlayerIdx + offset) % limit;
+			if (TrySetTargetByIdx(tryIdx)) {
+				_lastTargetPlayerIdx = tryIdx;
+				return;
+			}
+		}
+	}
+
+	void PreviousTarget() {
+		int limit = SNet.Slots?.SlottedPlayers?.Count ?? -1;
+		if (limit <= 0) return;
+
+		for (int offset = 1; offset <= limit; offset++) {
+			int tryIdx = (_lastTargetPlayerIdx - offset + limit) % limit;
+			if (TrySetTargetByIdx(tryIdx)) {
+				_lastTargetPlayerIdx = tryIdx;
+				return;
+			}
+		}
+	}
+
+	bool TrySetTargetByIdx(int playerIdx) {
+		var players = SNet.Slots?.SlottedPlayers;
+		if (players == null || players.Count == 0) return false;
+
+		if (playerIdx > 0 && playerIdx < players.Count) {
+			if (!players[playerIdx].IsLocal) {
+				SetTarget(players[playerIdx].PlayerAgent.Cast<PlayerAgent>());
+				_lastTargetPlayerIdx = playerIdx;
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 	void OnFollow2Free() {
 		if (!TargetReady) {
 			Logger.Error("SpectateCam: OnTransitionToFreecam failed - target not ready");
@@ -357,20 +428,24 @@ public class SpectateCam : MonoBehaviour {
 		SetPitch(ConfigMgr.CameraPitchAngleDeg, instant);
 	}
 
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	void AdjustPitch(float deltaPitch, bool instant = false) {
 		SetPitch(_pitchTarget + deltaPitch, instant);
 	}
 
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	void AdjustYaw(float deltaYaw, bool instant = false) {
 		SetYaw(_yawTarget + deltaYaw, instant);
 	}
 
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	void SetPitch(float pitch, bool instant = false) {
 		pitch = Mathf.Clamp(pitch, PitchAngleDegMin, PitchAngleDegMax);
 		_pitchTarget = pitch;
 		if (instant) _pitch = pitch;
 	}
 
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	void SetYaw(float yaw, bool instant = false) {
 		_yawTarget = yaw;
 		if (instant) _yaw = yaw;

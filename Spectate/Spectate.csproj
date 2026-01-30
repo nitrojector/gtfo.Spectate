@@ -27,6 +27,7 @@
     </Target>
 
     <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+        <DefineConstants>DEBUG</DefineConstants>
         <DebugType>embedded</DebugType>
         <Optimize>false</Optimize>
     </PropertyGroup>
