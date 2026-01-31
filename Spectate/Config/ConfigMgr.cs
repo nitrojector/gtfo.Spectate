@@ -3,11 +3,11 @@ using BepInEx.Configuration;
 
 namespace Spectate.Config;
 
-// TODO: Implement value clamping
-// TODO: Implement dev options
 internal static class ConfigMgr {
 	private static ConfigFile _conf;
 	private static bool _configDirty = false;
+
+	private static FileSystemWatcher? _configWatcher;
 
 	private static readonly Dictionary<string, eDevOpts> _devOptsStr2Enum = new() {
 		["--any"] = eDevOpts.AllowSpectatingAnytime,
@@ -85,9 +85,24 @@ internal static class ConfigMgr {
 	}
 
 	static ConfigMgr() {
-		string cfgPath = Path.Combine(Paths.ConfigPath, $"{Plugin.NAME}.cfg");
+		string cfgFileName = $"{Plugin.NAME}.cfg";
+		string cfgPath = Path.Combine(Paths.ConfigPath, cfgFileName);
 		Logger.Info($"cfgPath = {cfgPath}");
 		_conf = new ConfigFile(cfgPath, true);
+
+		_configWatcher = new FileSystemWatcher(Paths.ConfigPath, cfgFileName) {
+			NotifyFilter = NotifyFilters.LastWrite,
+			EnableRaisingEvents = true
+		};
+		_configWatcher.Changed += async (_, _) => {
+			_configWatcher.EnableRaisingEvents = false;
+			await Task.Delay(500);
+			Logger.Debug("Reloading config file due to external change...");
+			_conf.Reload();
+			await Task.Delay(500);
+			_configWatcher.EnableRaisingEvents = true;
+		};
+
 
 		string sectionHeader;
 		int section = 1;

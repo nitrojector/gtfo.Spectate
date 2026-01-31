@@ -4,8 +4,6 @@ using UnityEngine;
 
 namespace Spectate;
 
-// TODO: BUG: UI doesn't scale correctly across different resolutions / aspect ratios
-// perhaps test resolutions? 1080p
 public class SpectateUI : MonoBehaviour {
 	public static SpectateUI? Instance { get; private set; }
 
@@ -15,18 +13,31 @@ public class SpectateUI : MonoBehaviour {
 
 	private bool _freecamPrev = ConfigMgr.DefaultFreecamView;
 
-	private TextMeshPro? _specTargetTmp;
+	private const float MenuCenterOffsetX = 300f;
+	private const float MenuLeftPadding = 50f;
+	private const float MenuElementWidth = MenuCenterOffsetX - MenuLeftPadding;
+	private const float MenuRightKeybindSpace = 5f;
+
 	private readonly string _specTargetTextColor = "FFFFFF";
+	private readonly string _stateHighlightColor = "04B065";
+
+	private TextMeshPro? _specTargetTmp;
 
 	private GameObject? _menuObj;
 	private TextMeshPro? _menuTitleTmp;
-	private TextMeshPro? _menuOptionsTmp;
-	private TextMeshPro? _menuKeybindsTmp;
+	private TextMeshPro? _menuViewModeTmp;
+
+	private const int MaxMenuItems = 10;
+	private const float MenuItemSpacing = 27.0f;
+	private const float MenuOptionHeight = 22.0f;
+	private const float MenuKeybindHeight = 16.0f;
+
+	private List<ValueTuple<TextMeshPro?, TextMeshPro?>> _menuItemsTmp = new(MaxMenuItems); // (option, keybind)
 	private SpriteRenderer? _menuBackground;
 
-	private string _menuTitleStr = "";
-	private string _menuOptionsStr = "";
-	private string _menuKeybindsStr = "";
+	private const string _menuTitleStr = "SPECTATE";
+	private string _menuViewModeStr = "";
+	private List<ValueTuple<string, string>> _menuItemsStr = new(); // (option, keybind)
 
 	private readonly Dictionary<eSpectateMenuItem, ValueTuple<string, string>> _menuItems = new() {
 		[eSpectateMenuItem.ShowMenu] = ("Show Menu", "\\"),
@@ -45,7 +56,7 @@ public class SpectateUI : MonoBehaviour {
 
 	private void Awake() {
 		if (Instance != null && Instance != this) {
-			Destroy(this.gameObject);
+			Destroy(gameObject);
 		} else {
 			Instance = this;
 		}
@@ -60,10 +71,11 @@ public class SpectateUI : MonoBehaviour {
 		if (_specTargetTmp != null) Destroy(_specTargetTmp.gameObject);
 
 		_specTargetTmp = CreateTMPFrom(pstatus.m_healthText, $"{Plugin.GUID}_TargetText");
-		_specTargetTmp.rectTransform.SetParent(pstatus.transform.parent); // set parent to MovementRoot
+		_specTargetTmp.rectTransform.SetParent(pstatus.transform.parent, false); // set parent to MovementRoot
 		_specTargetTmp.rectTransform.anchorMin = new Vector2(0.5f, 1.0f);
 		_specTargetTmp.rectTransform.anchorMax = new Vector2(0.5f, 1.0f);
 		_specTargetTmp.rectTransform.anchoredPosition3D = new Vector3(0f, -200f, 0f);
+		_specTargetTmp.rectTransform.sizeDelta = new Vector2(300f, 100f);
 		_specTargetTmp.alignment = TextAlignmentOptions.Center;
 		_specTargetTmp.gameObject.SetActive(false);
 
@@ -71,41 +83,55 @@ public class SpectateUI : MonoBehaviour {
 
 		_menuObj = new GameObject($"{Plugin.GUID}_SpectateMenu");
 		RectTransform menuRt = _menuObj.AddComponent<RectTransform>();
-		menuRt.SetParent(pstatus.transform.parent); // set parent to MovementRoot
+		menuRt.SetParent(pstatus.transform.parent, false); // set parent to MovementRoot
+		menuRt.localScale = Vector3.one;
 		menuRt.anchorMin = new Vector2(0.0f, 0.5f);
 		menuRt.anchorMax = new Vector2(0.0f, 0.5f);
-		menuRt.anchoredPosition3D = new Vector3(300f, 0f, 0f);
+		menuRt.pivot = new Vector2(0.5f, 0.5f);
+		menuRt.anchoredPosition3D = new Vector3(MenuCenterOffsetX, 0f, 0f);
 
 		_menuTitleTmp = CreateTMPFrom(pstatus.m_healthText, $"{Plugin.GUID}_MenuTitle");
-		_menuTitleTmp.rectTransform.SetParent(_menuObj.transform);
+		_menuTitleTmp.rectTransform.SetParent(_menuObj.transform, false);
 		_menuTitleTmp.rectTransform.pivot = new Vector2(1.0f, 0.0f);
-		_menuTitleTmp.rectTransform.anchoredPosition3D = new Vector3(0f, 13f, 0f);
-		_menuTitleTmp.autoSizeTextContainer = true;
-		_menuTitleTmp.alignment = TextAlignmentOptions.BottomRight;
-		_menuTitleTmp.fontSize = 50;
+		_menuTitleTmp.rectTransform.anchoredPosition3D = new Vector3(0f, 55f, 0f);
+		_menuTitleTmp.rectTransform.sizeDelta = new Vector2(MenuElementWidth, 45.0f);
+		_menuTitleTmp.alignment = TextAlignmentOptions.Right;
 
-		_menuOptionsTmp = CreateTMPFrom(pstatus.m_healthText, $"{Plugin.GUID}_MenuOptions");
-		_menuOptionsTmp.rectTransform.SetParent(_menuObj.transform);
-		_menuOptionsTmp.rectTransform.pivot = new Vector2(1.0f, 1.0f);
-		_menuOptionsTmp.rectTransform.anchoredPosition3D = new Vector3(0f, 0f, 0f);
-		_menuOptionsTmp.alignment = TextAlignmentOptions.TopRight;
-		_menuOptionsTmp.autoSizeTextContainer = true;
-		_menuOptionsTmp.fontSize = 25;
+		_menuViewModeTmp = CreateTMPFrom(pstatus.m_healthText, $"{Plugin.GUID}_ViewMode");
+		_menuViewModeTmp.rectTransform.SetParent(_menuObj.transform, false);
+		_menuViewModeTmp.rectTransform.pivot = new Vector2(1.0f, 0.0f);
+		_menuViewModeTmp.rectTransform.anchoredPosition3D = new Vector3(0f, 13f, 0f);
+		_menuViewModeTmp.rectTransform.sizeDelta = new Vector2(MenuElementWidth, 40.0f);
+		_menuViewModeTmp.alignment = TextAlignmentOptions.Right;
 
-		_menuKeybindsTmp = CreateTMPFrom(pstatus.m_healthText, $"{Plugin.GUID}_MenuKeybinds");
-		_menuKeybindsTmp.rectTransform.SetParent(_menuObj.transform);
-		_menuKeybindsTmp.rectTransform.pivot = new Vector2(0.0f, 1.0f);
-		_menuKeybindsTmp.rectTransform.anchoredPosition3D = new Vector3(1f, 0f, 0f);
-		_menuKeybindsTmp.alignment = TextAlignmentOptions.TopLeft;
-		_menuKeybindsTmp.autoSizeTextContainer = true;
-		_menuKeybindsTmp.fontSize = 25;
+		for (int i = 0; i < MaxMenuItems; i++) {
+			var optionTmp = CreateTMPFrom(pstatus.m_healthText, $"{Plugin.GUID}_MenuOption_{i}");
+			var keybindTmp = CreateTMPFrom(pstatus.m_healthText, $"{Plugin.GUID}_MenuKeybind_{i}");
+
+			optionTmp.rectTransform.SetParent(_menuObj.transform, false);
+			optionTmp.rectTransform.pivot = new Vector2(1.0f, 0.5f);
+			optionTmp.rectTransform.sizeDelta = new Vector2(MenuElementWidth, MenuOptionHeight);
+			optionTmp.rectTransform.anchoredPosition3D =
+				new Vector3(0f, -((i + 0.5f) * MenuItemSpacing), 0f);
+			optionTmp.alignment = TextAlignmentOptions.Right;
+
+			keybindTmp.rectTransform.SetParent(_menuObj.transform, false);
+			keybindTmp.rectTransform.pivot = new Vector2(0.0f, 0.5f);
+			keybindTmp.rectTransform.sizeDelta = new Vector2(MenuElementWidth, MenuKeybindHeight);
+			keybindTmp.rectTransform.anchoredPosition3D =
+				new Vector3(MenuRightKeybindSpace, -((i + 0.5f) * MenuItemSpacing), 0f);
+			keybindTmp.alignment = TextAlignmentOptions.Left;
+
+			_menuItemsTmp.Add(new ValueTuple<TextMeshPro?, TextMeshPro?>(optionTmp, keybindTmp));
+		}
 
 		UpdateMenu();
 
 		var bgTrans = pstatus.transform.parent.Find("PUI_CommunicationMenu(Clone)/Root/Backround");
 		if (bgTrans == null) {
 			Logger.Warn(
-				$"SpectateUI: Could not find background transform in CommunicationMenu!, using \"{pstatus.transform.parent.name}\"");
+				$"SpectateUI: Could not find background transform in CommunicationMenu!, " +
+				$"using \"{pstatus.transform.parent.name}\"");
 			return true;
 		}
 
@@ -117,6 +143,7 @@ public class SpectateUI : MonoBehaviour {
 		bgRt.SetParent(_menuObj.transform);
 		bgRt.anchoredPosition3D = new Vector3(0f, -40f, 0f);
 
+
 		return true;
 	}
 
@@ -124,11 +151,14 @@ public class SpectateUI : MonoBehaviour {
 		TextMeshPro tmp = Instantiate(from);
 		tmp.name = name;
 		tmp.color = new(1.0f, 1.0f, 1.0f, 0.8f);
-		tmp.enableAutoSizing = false;
+		tmp.enableAutoSizing = true;
+		tmp.autoSizeTextContainer = false;
 		tmp.enableWordWrapping = false;
-		tmp.overflowMode = TextOverflowModes.Overflow;
+		tmp.overflowMode = TextOverflowModes.Ellipsis;
 		tmp.margin = Vector4.zero;
 		tmp.fontSize = 26;
+		tmp.fontSizeMin = 0;
+		tmp.fontSizeMax = 69;
 		tmp.rectTransform.anchorMin = new Vector2(0.5f, 0.5f);
 		tmp.rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
 		tmp.rectTransform.pivot = new Vector2(0.5f, 0.5f);
@@ -143,11 +173,23 @@ public class SpectateUI : MonoBehaviour {
 			return;
 		}
 
-		if (!CheckOrCreateTMP()) return; // ensure TMP is valid // TODO: performance?
+		if (!CheckOrCreateTMP()) return; // ensure TMP is valid
 
 		ProcessInput();
+		UpdatePlayerStatus(SpectateCam.Instance.Target);
 		UpdatePlayerText();
 		SetUIActive(true);
+	}
+
+	public void UpdatePlayerStatus(SpectateTarget? target) {
+		if (target == null || target.Agent == null) {
+			Logger.Error("SpectateUI: Could not update player status text: no target!");
+			return;
+		}
+
+		PUI_LocalPlayerStatus? pstatus = GuiManager.PlayerLayer?.m_playerStatus;
+		pstatus?.UpdateHealth(target.Health);
+		pstatus?.UpdateInfection(target.Infection, 0.0f);
 	}
 
 	private void UpdatePlayerText() {
@@ -199,35 +241,47 @@ public class SpectateUI : MonoBehaviour {
 	}
 
 	void ClearMenu() {
-		_menuTitleStr = "";
-		_menuOptionsStr = "<allcaps>";
-		_menuKeybindsStr = "<color=orange>";
+		_menuViewModeStr = "";
+		_menuItemsStr.Clear();
 	}
 
 	void AddMenuItem(eSpectateMenuItem item) {
-		if (!_menuItems.ContainsKey(item)) return;
-		var (itemText, keybindText) = _menuItems[item];
-		_menuOptionsStr += $"{itemText}\n";
-		_menuKeybindsStr += $" <size=20>[ {keybindText} ]</size>\n";
+		if (_menuItems.TryGetValue(item, out var val)) {
+			_menuItemsStr.Add(val);
+		} else {
+			Logger.Warn("SpectateUI: Tried to add unknown menu item!");
+		}
 	}
 
 	void UpdateMenuTitle(bool freecam) {
-		string freeTxt = freecam ? "<#18935EFF>FREE-LOOK</color>" : "<#FFFFFF60>FREE-LOOK</color>";
-		string followTxt = !freecam ? "<#18935EFF>FOLLOW</color>" : "<#FFFFFF60>FOLLOW</color>";
-		_menuTitleStr = $"SPECTATE\n<size=30>{freeTxt} / {followTxt}</size>";
+		string freeTxt = freecam ? $"<#{_stateHighlightColor}FF>FREE-LOOK</color>" : "<#FFFFFF60>FREE-LOOK</color>";
+		string followTxt = !freecam ? $"<#{_stateHighlightColor}FF>FOLLOW</color>" : "<#FFFFFF60>FOLLOW</color>";
+		_menuViewModeStr = $"{freeTxt} / {followTxt}";
 	}
 
 	void FlushMenu() {
-		_menuOptionsStr += "</allcaps>";
-		_menuKeybindsStr += "</color>";
 		UpdateText(_menuTitleTmp, _menuTitleStr);
-		UpdateText(_menuOptionsTmp, _menuOptionsStr);
-		UpdateText(_menuKeybindsTmp, _menuKeybindsStr);
+		UpdateText(_menuViewModeTmp, _menuViewModeStr);
+		int menuItemCount = _menuItemsStr.Count;
+		for (int i = 0; i < MaxMenuItems; i++) {
+			var (optionTmp, keybindTmp) = _menuItemsTmp[i];
+
+			if (i < menuItemCount) {
+				var (optionStr, keybindStr) = _menuItemsStr[i];
+				UpdateText(optionTmp, $"<allcaps>{optionStr}</allcaps>");
+				UpdateText(keybindTmp, $"<color=orange>[{keybindStr}]</color>");
+				Util.SetObjActiveIfChanged(optionTmp, true);
+				Util.SetObjActiveIfChanged(keybindTmp, true);
+			} else {
+				Util.SetObjActiveIfChanged(optionTmp, false);
+				Util.SetObjActiveIfChanged(keybindTmp, false);
+			}
+		}
 	}
 
 	void SetUIActive(bool active) {
 		if (_wasUIActive == active) return;
-		Util.SetObjActiveIfChanged(_specTargetTmp, active);
+		// Util.SetObjActiveIfChanged(_specTargetTmp, active);
 		Util.SetObjActiveIfChanged(_menuObj, active);
 		_wasUIActive = active;
 	}
@@ -248,6 +302,6 @@ public class SpectateUI : MonoBehaviour {
 	}
 
 	public void WarnFreecamNoAdjustPitch() {
-		// TODO:
+		// TODO: implement warning UI
 	}
 }

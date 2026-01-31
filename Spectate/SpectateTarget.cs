@@ -25,6 +25,8 @@ public class SpectateTarget {
 	public Dam_PlayerDamageBase Damage => Agent.Damage;
 	public float Health => Damage.Health / Damage.HealthMax;
 	public float HealthPercent => Health * 100f;
+	public float Infection => Damage.Infection;
+	public float InfectionPercent => Infection * 100f;
 
 	public PlayerInventoryBase Inventory => Agent.Inventory;
 	public InventorySlot ActiveItemSlot => Inventory.WieldedSlot;

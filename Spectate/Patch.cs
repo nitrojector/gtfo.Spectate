@@ -18,6 +18,19 @@ public class Patch {
 	}
 
 	[HarmonyPatch(
+		typeof(PlayerAgent),
+		nameof(PlayerAgent.GetDetectionMod)
+	)]
+	[HarmonyPrefix]
+	public static bool PlayerAgent_GetDetectionMod(PlayerAgent __instance, ref Vector3 dir, float distance) {
+		if (SpectateCam.Instance?.Active ?? false) {
+			dir = SpectateCam.Instance.LastCamDir;
+		}
+
+		return true;
+	}
+
+	[HarmonyPatch(
 		typeof(PlayerSync),
 		nameof(PlayerSync.SendLocomotion)
 	)]

@@ -17,6 +17,7 @@ public class Plugin : BasePlugin {
 	public event Action? OnManagersSetup;
 	public static GameObject? PluginObject;
 
+
 	public override void Load() {
 		Logger.Setup();
 		Logger.Info($"{NAME} [{GUID} @ {VERSION}]");

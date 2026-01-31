@@ -101,7 +101,8 @@ public class SpectateCam : MonoBehaviour {
 
 		LastCamDir = _self!.FPSCamera!.Forward;
 
-		SetRelatedActive(false);
+		GuiManager.CrosshairLayer.ShowPrecisionDot();
+		SetRelatedActive(true);
 		UpdateCull();
 		SetActive(true);
 		Logger.Debug("Attach");
@@ -116,7 +117,9 @@ public class SpectateCam : MonoBehaviour {
 			return false;
 		}
 
-		SetRelatedActive(true);
+		GuiManager.CrosshairLayer.ShowSpreadCircle(_self!.FPHolder?.WieldedItem.HipFireCrosshairSize ?? 40.0f);
+		SpectateUI.Instance?.UpdatePlayerStatus(_self!);
+		SetRelatedActive(false);
 		RevertCull();
 		SetActive(false);
 		Logger.Debug("Detach");
@@ -138,7 +141,7 @@ public class SpectateCam : MonoBehaviour {
 		}
 	}
 
-	void SetRelatedActive(bool active) {
+	void SetRelatedActive(bool spectateActive) {
 		// TODO: transition to/from certain UIs reset the state of some elements (e.g. crosshair), we want them to stay disabled
 		// Patch FocusStateManager.ChangeState ?
 		if (!SelfReady) {
@@ -146,21 +149,22 @@ public class SpectateCam : MonoBehaviour {
 			return;
 		}
 
-		_self!.SetRigActive(active);
+		_self!.SetRigActive(!spectateActive);
 		// NOTE: we don't want to disable Locomotion, we are
 		// _self.Locomotion.enabled = active;
-		_self.Agent.DeadDebugMode = !active;
-		_self.Inventory.enabled = active;
-		_self.FPHolder?.gameObject.SetActive(active);
-		GuiManager.CrosshairLayer?.m_circleCrosshair?.transform.parent.gameObject.SetActive(active);
+		_self.Agent.DeadDebugMode = spectateActive;
+		_self.Inventory.enabled = !spectateActive;
+		_self.FPHolder?.gameObject.SetActive(!spectateActive);
+		// NOTE: we choose to change the style of crosshair instead of disabling it
+		// GuiManager.CrosshairLayer?.m_circleCrosshair?.transform.parent.gameObject.SetActive(active);
 
 		// TODO: When we disable spectate, hand is invisible.
 
 		var fpsCamera = _self.FPSCamera;
 		if (fpsCamera != null) {
-			fpsCamera.MouseLookEnabled = active;
-			fpsCamera.PlayerAgentRotationEnabled = active;
-			fpsCamera.PlayerMoveEnabled = active;
+			fpsCamera.MouseLookEnabled = !spectateActive;
+			fpsCamera.PlayerAgentRotationEnabled = !spectateActive;
+			fpsCamera.PlayerMoveEnabled = !spectateActive;
 		}
 	}
 
@@ -236,6 +240,26 @@ public class SpectateCam : MonoBehaviour {
 			if (ConfigMgr.AutoTransitionToFollowView) {
 				_freecamFollow = false;
 				_freeLookReturnTimer = ConfigMgr.AutoTransitionDelay;
+			}
+		}
+
+		// control yaw pitch with arrow keys
+		if (_freecam) {
+			// adjust free can with arrow keys
+			if (Input.GetKey(KeyCode.UpArrow)) {
+				AdjustPitch(ConfigMgr.FreecamSensitivity);
+			}
+
+			if (Input.GetKey(KeyCode.DownArrow)) {
+				AdjustPitch(-ConfigMgr.FreecamSensitivity);
+			}
+
+			if (Input.GetKey(KeyCode.LeftArrow)) {
+				AdjustYaw(-ConfigMgr.FreecamSensitivity);
+			}
+
+			if (Input.GetKey(KeyCode.RightArrow)) {
+				AdjustYaw(ConfigMgr.FreecamSensitivity);
 			}
 		}
 
