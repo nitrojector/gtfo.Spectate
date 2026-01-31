@@ -132,9 +132,9 @@ internal static class ConfigMgr {
 		_autoTransitionDelay = _conf.Bind(
 			sectionHeader,
 			"Auto Transition Delay",
-			5.0f,
-			"delay after no mouse input in seconds before automatically transitioning to temporary follow view (min: 0.0)");
-		_autoTransitionDelay.AddRule(ConfigEntryRule.Min, 0.0f);
+			3.0f,
+			"delay after no mouse input in seconds before automatically transitioning to temporary follow view (min: 0.2)");
+		_autoTransitionDelay.AddRule(ConfigEntryRule.Min, 0.2f);
 
 		sectionHeader = $"({section++}) Sensitivity";
 

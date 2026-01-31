@@ -1,3 +1,7 @@
+# v1.0.3
+
+- Fixed a bug where auto transition to temporary follow view in Freecam mode does not trigger sometimes.
+
 # v1.0.2
 
 - Fixed a bug where health animations play and stack when switching between spectated players

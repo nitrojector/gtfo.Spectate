@@ -137,7 +137,6 @@ public class SpectateCam : MonoBehaviour {
 			_yaw = 0f;
 			_pitch = ConfigMgr.CameraPitchAngleDeg;
 			_freeLookReturnTimer = 0f;
-			_freecamFollow = false;
 		}
 	}
 
@@ -200,7 +199,7 @@ public class SpectateCam : MonoBehaviour {
 		if (!Active)
 			return;
 
-		if (ConfigMgr.AutoTransitionToFollowView && _freeLookReturnTimer > 0.0f) {
+		if (ConfigMgr.AutoTransitionToFollowView && _freeLookReturnTimer >= 0.0f) {
 			_freeLookReturnTimer -= Time.deltaTime;
 		}
 	}
@@ -308,7 +307,7 @@ public class SpectateCam : MonoBehaviour {
 		if (ConfigMgr.AutoTransitionToFollowView && _freecam) {
 			if (_freecamFollow) {
 				UpdateYawPitchWithFollowView(false);
-			} else if (_freeLookReturnTimer < 0.0f) {
+			} else if (_freeLookReturnTimer < 0.001f) {
 				_freecamFollow = true;
 				UpdateYawPitchWithFollowView(false);
 			}
