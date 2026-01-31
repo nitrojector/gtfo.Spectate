@@ -8,4 +8,6 @@
 
 <p align="center">Spectate your teammates</p>
 
+<p align="center">For feeback and issues, DM or message <code>@uwufood</code> on the GTFO Modding Discord Server</p>
+
 </div>
