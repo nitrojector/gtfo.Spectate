@@ -99,7 +99,9 @@ internal static class ConfigMgr {
 			await Task.Delay(500);
 			Logger.Debug("Reloading config file due to external change...");
 			_conf.Reload();
-			await Task.Delay(500);
+			await Task.Delay(250);
+			Process();
+			await Task.Delay(250);
 			_configWatcher.EnableRaisingEvents = true;
 		};
 
