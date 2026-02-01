@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Spectate;
 
-public class SpectateTarget {
+public class AgentTarget {
 	public readonly PlayerAgent Agent;
 
 	public Transform Transform => Agent.transform;
@@ -33,15 +33,15 @@ public class SpectateTarget {
 
 	public AIG_CourseNode CourseNode => Agent.CourseNode;
 
-	public SpectateTarget(PlayerAgent agent) {
+	public AgentTarget(PlayerAgent agent) {
 		Agent = agent;
 	}
 
 	public void SetRigActive(bool active) {
-		Util.SetObjActiveIfChanged(Agent.PlayerSyncModel, active);
+		Util.SetTargetActiveIfDiff(Agent.PlayerSyncModel.gameObject, active);
 	}
 
-	public static bool operator ==(SpectateTarget? a, SpectateTarget? b) {
+	public static bool operator ==(AgentTarget? a, AgentTarget? b) {
 		if (ReferenceEquals(a, b))
 			return true;
 		if (ReferenceEquals(a, null))
@@ -51,12 +51,12 @@ public class SpectateTarget {
 		return a.Agent == b.Agent;
 	}
 
-	public static bool operator !=(SpectateTarget? a, SpectateTarget? b) {
+	public static bool operator !=(AgentTarget? a, AgentTarget? b) {
 		return !(a == b);
 	}
 
 	public override bool Equals(object? other) {
-		return other is SpectateTarget target && this == target;
+		return other is AgentTarget target && this == target;
 	}
 
 	public override int GetHashCode() {

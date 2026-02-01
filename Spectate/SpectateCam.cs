@@ -47,10 +47,11 @@ public class SpectateCam : MonoBehaviour {
 	public const float PitchAngleDegMin = -89f;
 	public const float PitchAngleDegMax = 89f;
 
-	private SpectateTarget? _self = null;
-	private SpectateTarget? _target = null;
+	private AgentTarget? _self = null;
+	private AgentTarget? _target = null;
 
-	public SpectateTarget? Target => _target;
+	public AgentTarget? Self => _self;
+	public AgentTarget? Target => _target;
 
 	public SpectateCam(IntPtr ptr) : base(ptr) {
 	}
@@ -75,7 +76,7 @@ public class SpectateCam : MonoBehaviour {
 #if DEBUG
 		Logger.Debug("SpectateCam: Load");
 #endif
-		_self = new SpectateTarget(localAgent);
+		_self = new AgentTarget(localAgent);
 		return _self.FPSCamera != null;
 	}
 
@@ -92,7 +93,7 @@ public class SpectateCam : MonoBehaviour {
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public void SetTarget(PlayerAgent agent) {
-		_target = new SpectateTarget(agent);
+		_target = new AgentTarget(agent);
 	}
 
 	public bool Attach() {
@@ -110,6 +111,7 @@ public class SpectateCam : MonoBehaviour {
 		LastCamDir = _self!.FPSCamera!.Forward;
 
 		GuiManager.CrosshairLayer.ShowPrecisionDot();
+		SpectateUI.Instance?.UpdateForAttach();
 		SetRelatedActive(true);
 		UpdateCull();
 		SetActive(true);
@@ -126,8 +128,8 @@ public class SpectateCam : MonoBehaviour {
 			return false;
 		}
 
-		GuiManager.CrosshairLayer.ShowSpreadCircle(_self!.FPHolder?.WieldedItem.HipFireCrosshairSize ?? 40.0f);
-		SpectateUI.Instance?.UpdatePlayerStatus(_self!);
+		GuiManager.CrosshairLayer?.ShowSpreadCircle(_self!.FPHolder?.WieldedItem?.HipFireCrosshairSize ?? 40.0f);
+		SpectateUI.Instance?.UpdateForDetach();
 		SetRelatedActive(false);
 		RevertCull();
 		SetActive(false);
@@ -163,11 +165,11 @@ public class SpectateCam : MonoBehaviour {
 		_self.Agent.DeadDebugMode = spectateActive;
 		_self.Inventory.enabled = !spectateActive;
 		_self.FPHolder?.gameObject.SetActive(!spectateActive);
-		_self.FPHolder?.FPSArms?.SetVisible(!spectateActive);
 		// NOTE: we choose to change the style of crosshair instead of disabling it
 		// GuiManager.CrosshairLayer?.m_circleCrosshair?.transform.parent.gameObject.SetActive(active);
 
 		// TODO: When we disable spectate, hand is invisible.
+		_self.FPHolder?.FPSArms?.SetVisible(!spectateActive);
 
 		var fpsCamera = _self.FPSCamera;
 		if (fpsCamera != null) {
@@ -377,8 +379,14 @@ public class SpectateCam : MonoBehaviour {
 		CameraManager.CullingDirection = _self!.FPSCamera!.Forward;
 
 		_self.Agent.m_movingCuller.UpdatePosition(_self.Agent.m_dimensionIndex, targetCullPosition);
-		if (_self.Agent.m_movingCuller.CurrentNode != _target.Agent.CourseNode.m_cullNode)
-			_self.Agent.m_movingCuller.SetCurrentNode(_target.Agent.CourseNode.m_cullNode);
+		var selfNode = _self.Agent.CourseNode?.m_cullNode;
+		var targetNode = _target.Agent.CourseNode?.m_cullNode;
+		if (selfNode != null && targetNode != null && selfNode != targetNode) {
+			_self.Agent.m_movingCuller.SetCurrentNode(targetNode);
+		} else {
+			Logger.Warn(
+				"SpectateCam: UpdateCull - unable to sync cull nodes between self and target (one or both are null)");
+		}
 	}
 
 	bool TrySetAnyNonLocalTarget() {
@@ -427,7 +435,7 @@ public class SpectateCam : MonoBehaviour {
 		var players = SNet.Slots?.SlottedPlayers;
 		if (players == null || players.Count == 0) return false;
 
-		if (playerIdx > 0 && playerIdx < players.Count) {
+		if (playerIdx >= 0 && playerIdx < players.Count) {
 			if (!players[playerIdx].IsLocal) {
 				SetTarget(players[playerIdx].PlayerAgent.Cast<PlayerAgent>());
 				_lastTargetPlayerIdx = playerIdx;
@@ -444,8 +452,7 @@ public class SpectateCam : MonoBehaviour {
 			return;
 		}
 
-		SpectateUI.Instance?.UpdateMenu(_freecam);
-		UpdateYawPitchWithFollowView(true);
+		// UpdateYawPitchWithFollowView(true);
 	}
 
 	void OnFree2Follow() {
@@ -454,7 +461,6 @@ public class SpectateCam : MonoBehaviour {
 			return;
 		}
 
-		SpectateUI.Instance?.UpdateMenu(_freecam);
 		UpdateYawPitchWithFollowView(true);
 	}
 
