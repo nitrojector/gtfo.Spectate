@@ -1,4 +1,4 @@
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using Player;
 using SNetwork;
 using UnityEngine;
@@ -163,6 +163,7 @@ public class SpectateCam : MonoBehaviour {
 		_self.Agent.DeadDebugMode = spectateActive;
 		_self.Inventory.enabled = !spectateActive;
 		_self.FPHolder?.gameObject.SetActive(!spectateActive);
+		_self.FPHolder?.FPSArms?.SetVisible(!spectateActive);
 		// NOTE: we choose to change the style of crosshair instead of disabling it
 		// GuiManager.CrosshairLayer?.m_circleCrosshair?.transform.parent.gameObject.SetActive(active);
 
