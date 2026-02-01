@@ -99,7 +99,7 @@ public class Patch {
 	public static void PLOC_Downed_Exit(PLOC_Downed __instance) {
 		if (!__instance.m_owner.IsLocallyOwned || SpectateCam.Instance == null) return;
 
-		if (!ConfigMgr.DevEnables(eDevOpts.AllowSpectatingAnytime) && SpectateCam.Instance.Active) {
+		if (SpectateCam.Instance.Active) {
 			SpectateCam.Instance.Detach();
 		}
 	}

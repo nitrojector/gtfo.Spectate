@@ -1,4 +1,4 @@
-﻿using System.Runtime.CompilerServices;
+using System.Runtime.CompilerServices;
 using Player;
 using SNetwork;
 using UnityEngine;
@@ -72,6 +72,9 @@ public class SpectateCam : MonoBehaviour {
 			return false;
 		}
 
+#if DEBUG
+		Logger.Debug("SpectateCam: Load");
+#endif
 		_self = new SpectateTarget(localAgent);
 		return _self.FPSCamera != null;
 	}
@@ -80,6 +83,10 @@ public class SpectateCam : MonoBehaviour {
 		Active = false;
 		_self = null;
 		_target = null;
+
+#if DEBUG
+		Logger.Debug("SpectateCam: Unload");
+#endif
 		return true;
 	}
 
@@ -89,6 +96,7 @@ public class SpectateCam : MonoBehaviour {
 	}
 
 	public bool Attach() {
+		if (Active) return true;
 		if (!SelfReady && !Load()) {
 			Logger.Error("SpectateCam: Attach failed - self not ready and cannot be loaded");
 			return false;
@@ -110,6 +118,7 @@ public class SpectateCam : MonoBehaviour {
 	}
 
 	public bool Detach() {
+		if (!Active) return true;
 		if (!SelfReady && !Load()) {
 			Logger.Error("SpectateCam: Detach failed - self not ready and cannot be loaded");
 			Logger.Info("SpectateCam: Detach falling back to Unload");
@@ -305,10 +314,11 @@ public class SpectateCam : MonoBehaviour {
 		}
 
 		if (ConfigMgr.AutoTransitionToFollowView && _freecam) {
-			if (_freecamFollow) {
-				UpdateYawPitchWithFollowView(false);
-			} else if (_freeLookReturnTimer < 0.001f) {
+			if (_freeLookReturnTimer < 0.001f) {
 				_freecamFollow = true;
+			}
+
+			if (_freecamFollow) {
 				UpdateYawPitchWithFollowView(false);
 			}
 		}
