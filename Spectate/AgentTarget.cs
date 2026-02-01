@@ -28,10 +28,10 @@ public class AgentTarget {
 	public float Infection => Damage.Infection;
 	public float InfectionPercent => Infection * 100f;
 
-	public PlayerInventoryBase Inventory => Agent.Inventory;
-	public InventorySlot ActiveItemSlot => Inventory.WieldedSlot;
+	public PlayerInventoryBase? Inventory => Agent.Inventory;
+	public InventorySlot? ActiveItemSlot => Inventory?.WieldedSlot;
 
-	public AIG_CourseNode CourseNode => Agent.CourseNode;
+	public AIG_CourseNode? CourseNode => Agent.CourseNode;
 
 	public AgentTarget(PlayerAgent agent) {
 		Agent = agent;

@@ -381,14 +381,44 @@ public class SpectateCam : MonoBehaviour {
 		CameraManager.CullingDirection = _self!.FPSCamera!.Forward;
 
 		_self.Agent.m_movingCuller.UpdatePosition(_self.Agent.m_dimensionIndex, targetCullPosition);
-		var selfNode = _self.Agent.CourseNode?.m_cullNode;
-		var targetNode = _target.Agent.CourseNode?.m_cullNode;
-		if (selfNode != null && targetNode != null && selfNode != targetNode) {
-			_self.Agent.m_movingCuller.SetCurrentNode(targetNode);
+		var curCullNode = _self.Agent.m_movingCuller.CurrentNode;
+		var targetNode = _target.CourseNode?.m_cullNode;
+		if (targetNode != null) {
+			if (curCullNode != targetNode) {
+				_self.Agent.m_movingCuller.SetCurrentNode(targetNode);
+			}
 		} else {
-			Logger.Warn(
-				"SpectateCam: UpdateCull - unable to sync cull nodes between self and target (one or both are null)");
+			Logger.Warn("SpectateCam: UpdateCull - failed to sync cull nodes self or target node is null");
 		}
+	}
+
+	private void RevertCull() {
+		if (!SelfReady) {
+			Logger.Error("SpectateCam: RevertCull failed - self is not ready");
+			return;
+		}
+
+		Vector3 targetCullPosition = _self!.Agent.Position;
+		if (Physics.Raycast(targetCullPosition, Vector3.down, out var hit, 64f, LayerManager.MASK_WORLD))
+			targetCullPosition = hit.m_Point;
+
+		CameraManager.CullingPosition = targetCullPosition;
+		CameraManager.CullingDirection = _self!.FPSCamera!.Forward;
+
+		_self.Agent.m_movingCuller.UpdatePosition(_self.Agent.m_dimensionIndex, targetCullPosition);
+		var curCullNode = _self.Agent.m_movingCuller.CurrentNode;
+		var targetNode = _self.CourseNode?.m_cullNode;
+		if (targetNode != null) {
+			if (curCullNode != targetNode) {
+				_self.Agent.m_movingCuller.SetCurrentNode(targetNode);
+			}
+		} else {
+			Logger.Warn("SpectateCam: RevertCull - failed to sync cull nodes self or target node is null");
+		}
+	}
+
+	private void OnApplicationQuit() {
+		ConfigMgr.WriteConfigIfDirty();
 	}
 
 	bool TrySetAnyNonLocalTarget() {
@@ -493,24 +523,5 @@ public class SpectateCam : MonoBehaviour {
 	private void SetYaw(float yaw, bool instant = false) {
 		_yawTarget = yaw;
 		if (instant) _yaw = yaw;
-	}
-
-	private void RevertCull() {
-		if (!SelfReady) {
-			Logger.Error("SpectateCam: RevertCull failed - self is not ready");
-			return;
-		}
-
-		Vector3 targetCullPosition = _self!.Agent.Position;
-		if (Physics.Raycast(targetCullPosition, Vector3.down, out var hit, 64f, LayerManager.MASK_WORLD))
-			targetCullPosition = hit.m_Point;
-
-		_self.Agent.m_movingCuller.UpdatePosition(_self.Agent.m_dimensionIndex, targetCullPosition);
-		if (_self.Agent.m_movingCuller.CurrentNode != _self.Agent.CourseNode.m_cullNode)
-			_self.Agent.m_movingCuller.SetCurrentNode(_self.Agent.CourseNode.m_cullNode);
-	}
-
-	private void OnApplicationQuit() {
-		ConfigMgr.WriteConfigIfDirty();
 	}
 }
