@@ -251,7 +251,10 @@ public class SpectateCam : MonoBehaviour {
 			}
 		}
 
-		// TODO: Toggle for freecam auto-transition to follow
+		if (_freecam && Input.GetKeyDown(KeyCode.T)) {
+			ConfigMgr.AutoTransitionToFollowView = !ConfigMgr.AutoTransitionToFollowView;
+			SpectateUI.Instance?.MarkUIDirty();
+		}
 
 		Vector2 mouseDelta = InputHelper.GetMouseDelta();
 		if (_freecam && mouseDelta != Vector2.zero) {
@@ -285,11 +288,11 @@ public class SpectateCam : MonoBehaviour {
 		}
 
 		if (Input.GetKeyDown(KeyCode.Mouse0)) {
-			NextTarget();
+			TrySetNextTarget();
 		}
 
 		if (Input.GetKeyDown(KeyCode.Mouse1)) {
-			PreviousTarget();
+			TrySetPreviousTarget();
 		}
 
 		int idx = InputHelper.GetAlphaNumKeyDown();
@@ -320,6 +323,8 @@ public class SpectateCam : MonoBehaviour {
 	}
 
 	private void UpdateCamPos() {
+		// TODO: option to disable lerping when switching players
+		//   make in config
 		if (!SelfReady || !TargetReady) {
 			Logger.Error("SpectateCam: UpdateCull failed - target or self not ready");
 			return;
@@ -338,9 +343,7 @@ public class SpectateCam : MonoBehaviour {
 		// TODO: perhaps just use UpdateYawPitchWithFollowView(false); for follow as well.
 		//  This would smooth follow view which may be desirable.
 
-		var eyeTmp = _target!.Agent.m_eyePosition;
-		_eyeXZTarget = new Vector3(eyeTmp.x, 0f, eyeTmp.z);
-		_eyeYTarget = eyeTmp.y + ConfigMgr.CameraOrbitVerticalOffset;
+		SetEye(GetTargetOrbitCenter());
 
 		Vector3 orbitCenter = _eyeXZ + Vector3.up * _eyeY;
 
@@ -438,9 +441,7 @@ public class SpectateCam : MonoBehaviour {
 
 		_lastTargetPlayerIdx = 0;
 		for (int i = 0; i < players.Count; i++) {
-			if (!players[i].IsLocal) {
-				SetTarget(players[i].PlayerAgent.Cast<PlayerAgent>());
-				_lastTargetPlayerIdx = i;
+			if (TrySetTargetByIdx(i)) {
 				return true;
 			}
 		}
@@ -448,30 +449,32 @@ public class SpectateCam : MonoBehaviour {
 		return false;
 	}
 
-	private void NextTarget() {
+	private bool TrySetNextTarget() {
 		int limit = SNet.Slots?.SlottedPlayers?.Count ?? -1;
-		if (limit <= 0) return;
+		if (limit <= 0) return false;
 
 		for (int offset = 1; offset <= limit; offset++) {
 			int tryIdx = (_lastTargetPlayerIdx + offset) % limit;
 			if (TrySetTargetByIdx(tryIdx)) {
-				_lastTargetPlayerIdx = tryIdx;
-				return;
+				return true;
 			}
 		}
+
+		return false;
 	}
 
-	private void PreviousTarget() {
+	private bool TrySetPreviousTarget() {
 		int limit = SNet.Slots?.SlottedPlayers?.Count ?? -1;
-		if (limit <= 0) return;
+		if (limit <= 0) return false;
 
 		for (int offset = 1; offset <= limit; offset++) {
 			int tryIdx = (_lastTargetPlayerIdx - offset + limit) % limit;
 			if (TrySetTargetByIdx(tryIdx)) {
-				_lastTargetPlayerIdx = tryIdx;
-				return;
+				return true;
 			}
 		}
+
+		return false;
 	}
 
 	private bool TrySetTargetByIdx(int playerIdx) {
@@ -481,6 +484,11 @@ public class SpectateCam : MonoBehaviour {
 		if (playerIdx >= 0 && playerIdx < players.Count) {
 			if (!players[playerIdx].IsLocal) {
 				SetTarget(players[playerIdx].PlayerAgent.Cast<PlayerAgent>());
+				if ((ConfigMgr.NoPosLerpOnSwitchTarget && playerIdx != _lastTargetPlayerIdx) ||
+				    !_freecam) {
+					SetEye(GetTargetOrbitCenter(), true);
+				}
+
 				_lastTargetPlayerIdx = playerIdx;
 				return true;
 			}
@@ -489,13 +497,19 @@ public class SpectateCam : MonoBehaviour {
 		return false;
 	}
 
+	private Vector3 GetTargetOrbitCenter() {
+		var eyeTmp = _target?.Agent.m_eyePosition ?? Vector3.zero;
+		eyeTmp.y += ConfigMgr.CameraOrbitVerticalOffset;
+		return eyeTmp;
+	}
+
 	private void OnFollow2Free() {
 		if (!TargetReady) {
 			Logger.Error("SpectateCam: OnTransitionToFreecam failed - target not ready");
 			return;
 		}
 
-		// UpdateYawPitchWithFollowView(true);
+		SpectateUI.Instance?.MarkUIDirty();
 	}
 
 	private void OnFree2Follow() {
@@ -505,6 +519,7 @@ public class SpectateCam : MonoBehaviour {
 		}
 
 		UpdateYawPitchWithFollowView(true);
+		SpectateUI.Instance?.MarkUIDirty();
 	}
 
 	// WARNING: should not be called without check TargetReady
@@ -534,5 +549,24 @@ public class SpectateCam : MonoBehaviour {
 	private void SetYaw(float yaw, bool instant = false) {
 		_yawTarget = yaw;
 		if (instant) _yaw = yaw;
+	}
+
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	private void SetEyeXZ(Vector3 eyeXZ, bool instant = false) {
+		eyeXZ.y = 0f;
+		_eyeXZTarget = eyeXZ;
+		if (instant) _eyeXZ = eyeXZ;
+	}
+
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	private void SetEyeY(float eyeY, bool instant = false) {
+		_eyeYTarget = eyeY;
+		if (instant) _eyeY = eyeY;
+	}
+
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	private void SetEye(Vector3 pos, bool instant = false) {
+		SetEyeXZ(pos, instant);
+		SetEyeY(pos.y, instant);
 	}
 }

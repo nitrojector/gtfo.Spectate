@@ -15,6 +15,11 @@ public class SpectateUI : MonoBehaviour {
 	private bool _wasUIActive = false;
 
 	/// <summary>
+	/// Whether the UI needs to be refreshed
+	/// </summary>
+	private bool _isUIDirty = true;
+
+	/// <summary>
 	/// The current state/context of the UI
 	/// </summary>
 	private eSpectateUIState _uiState = eSpectateUIState.FPNotDowned;
@@ -33,11 +38,6 @@ public class SpectateUI : MonoBehaviour {
 	/// The UI state that was last rendered
 	/// </summary>
 	private eSpectateUIState _uiStateRendered = eSpectateUIState.ShowMenu;
-
-	/// <summary>
-	/// The previous freecam state that was last rendered
-	/// </summary>
-	private bool _freecamPrev = ConfigMgr.DefaultFreecamView;
 
 	/// <summary>
 	/// List of root UI GameObjects that can be rendered.
@@ -119,6 +119,8 @@ public class SpectateUI : MonoBehaviour {
 		[eSpectateMenuItem.EnterSpectate] = ("Enter Spectate", "V"),
 		[eSpectateMenuItem.ExitSpectate] = ("Exit Spectate", "V"),
 		[eSpectateMenuItem.ToggleFreecam] = ("Toggle Free-Look", "F"),
+		[eSpectateMenuItem.EnableFreecamAutoTransition] = ("Enable Auto-Follow", "T"),
+		[eSpectateMenuItem.DisableFreecamAutoTransition] = ("Disable Auto-Follow", "T"),
 		[eSpectateMenuItem.SwitchPlayer] = ("Switch Player", "LMB / RMB"),
 		[eSpectateMenuItem.SelectPlayer] = ("Select Player", "1 - 8"),
 		[eSpectateMenuItem.AdjustDistance] = ("Camera Distance", "Scroll"),
@@ -282,8 +284,7 @@ public class SpectateUI : MonoBehaviour {
 		if (SpectateCam.Instance?.Active ?? false)
 			UpdatePlayerStatusUI(SpectateCam.Instance.Target);
 		SetUIActive(true);
-		if (UIState != _uiStateRendered ||
-		    (SpectateCam.Instance?.Freecam ?? false) != _freecamPrev) {
+		if (_isUIDirty || UIState != _uiStateRendered) {
 			RefreshUI();
 		}
 	}
@@ -375,6 +376,13 @@ public class SpectateUI : MonoBehaviour {
 	}
 
 	/// <summary>
+	/// Mark the UI as dirty, forcing a refresh on next update.
+	/// </summary>
+	public void MarkUIDirty() {
+		_isUIDirty = true;
+	}
+
+	/// <summary>
 	/// Refresh the UI based on the current state.
 	/// Infers freecam state from SpectateCam.
 	/// </summary>
@@ -386,8 +394,8 @@ public class SpectateUI : MonoBehaviour {
 	/// </summary>
 	/// <param name="freecam">whether freecam is currently active</param>
 	private void RefreshUI(bool freecam) {
+		_isUIDirty = false;
 		_uiStateRendered = _uiState;
-		_freecamPrev = freecam;
 
 		ClearUI();
 
@@ -398,11 +406,21 @@ public class SpectateUI : MonoBehaviour {
 				AddMenuItem(eSpectateMenuItem.ExitSpectate);
 				AddMenuItem(eSpectateMenuItem.HideMenu);
 				AddMenuItem(eSpectateMenuItem.ToggleFreecam);
+
 				AddMenuItem(eSpectateMenuItem.SwitchPlayer);
 				AddMenuItem(eSpectateMenuItem.SelectPlayer);
 				AddMenuItem(eSpectateMenuItem.AdjustDistance);
 				AddMenuItem(eSpectateMenuItem.AdjustOrbitCenterHeight);
-				if (!freecam) AddMenuItem(eSpectateMenuItem.AdjustFollowPitch);
+				if (freecam) {
+					if (ConfigMgr.AutoTransitionToFollowView) {
+						AddMenuItem(eSpectateMenuItem.DisableFreecamAutoTransition);
+					} else {
+						AddMenuItem(eSpectateMenuItem.EnableFreecamAutoTransition);
+					}
+				} else {
+					AddMenuItem(eSpectateMenuItem.AdjustFollowPitch);
+				}
+
 				break;
 			case eSpectateUIState.HideMenu:
 				EnableUI(eSpectateUIComp.Title);

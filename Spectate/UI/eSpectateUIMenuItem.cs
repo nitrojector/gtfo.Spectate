@@ -6,6 +6,8 @@ public enum eSpectateMenuItem {
 	EnterSpectate,
 	ExitSpectate,
 	ToggleFreecam,
+	EnableFreecamAutoTransition,
+	DisableFreecamAutoTransition,
 	SwitchPlayer,
 	SelectPlayer,
 	AdjustDistance,
