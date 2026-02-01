@@ -3,7 +3,7 @@ using Spectate.Config;
 using TMPro;
 using UnityEngine;
 
-namespace Spectate;
+namespace Spectate.UI;
 
 public class SpectateUI : MonoBehaviour {
 	public static SpectateUI? Instance { get; private set; }

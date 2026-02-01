@@ -1,4 +1,4 @@
-﻿namespace Spectate;
+﻿namespace Spectate.UI;
 
 public enum eSpectateMenuItem {
 	HideMenu,

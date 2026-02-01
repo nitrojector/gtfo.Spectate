@@ -3,6 +3,7 @@ using Player;
 using SNetwork;
 using UnityEngine;
 using Spectate.Config;
+using Spectate.UI;
 using Quaternion = UnityEngine.Quaternion;
 using Vector2 = UnityEngine.Vector2;
 using Vector3 = UnityEngine.Vector3;

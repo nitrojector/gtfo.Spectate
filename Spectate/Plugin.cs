@@ -5,6 +5,7 @@ using HarmonyLib;
 using Il2CppInterop.Runtime.Injection;
 using UnityEngine;
 using Spectate.Config;
+using Spectate.UI;
 
 namespace Spectate;
 
