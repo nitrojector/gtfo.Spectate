@@ -1,4 +1,5 @@
-﻿using Spectate.Config;
+﻿using System.Runtime.CompilerServices;
+using Spectate.Config;
 using TMPro;
 using UnityEngine;
 
@@ -7,42 +8,116 @@ namespace Spectate;
 public class SpectateUI : MonoBehaviour {
 	public static SpectateUI? Instance { get; private set; }
 
+	// === UI Core States ===
+	/// <summary>
+	/// Whether the UI was active in the last update
+	/// </summary>
 	private bool _wasUIActive = false;
-	private eSpectateUIState _uiState = eSpectateUIState.HideMenu;
-	private eSpectateUIState _uiStatePrev = eSpectateUIState.ShowMenu;
 
+	/// <summary>
+	/// The current state/context of the UI
+	/// </summary>
+	private eSpectateUIState _uiState = eSpectateUIState.FPNotDowned;
+
+	/// <summary>
+	/// The current state/context of the UI
+	/// </summary>
+	public eSpectateUIState UIState => _uiState;
+
+	/// <summary>
+	/// The previous state/context of the UI
+	/// </summary>
+	private eSpectateUIState _uiStatePrev = eSpectateUIState.FPNotDowned;
+
+	/// <summary>
+	/// The UI state that was last rendered
+	/// </summary>
+	private eSpectateUIState _uiStateRendered = eSpectateUIState.ShowMenu;
+
+	/// <summary>
+	/// The previous freecam state that was last rendered
+	/// </summary>
 	private bool _freecamPrev = ConfigMgr.DefaultFreecamView;
 
+	/// <summary>
+	/// List of root UI GameObjects that can be rendered.
+	/// Parents of roots are always external.
+	/// </summary>
+	private readonly List<GameObject> _uiRoots = new();
+
+	/// <summary>
+	/// The state of individual UI components to be rendered on next render.
+	/// </summary>
+	private readonly Dictionary<eSpectateUIComp, bool> _uiCompState = new();
+
+	// === UI Layout Constants ===
+	/// <summary>
+	/// The horizontal offset of the center of the menu
+	/// from the left edge of the screen
+	/// </summary>
 	private const float MenuCenterOffsetX = 300f;
+
+	/// <summary>
+	/// The space between the left edge of the menu and the edge of the screen
+	/// </summary>
 	private const float MenuLeftPadding = 50f;
+
+	/// <summary>
+	/// The width of menu elements
+	/// </summary>
 	private const float MenuElementWidth = MenuCenterOffsetX - MenuLeftPadding;
-	private const float MenuRightKeybindSpace = 5f;
 
-	private readonly string _specTargetTextColor = "FFFFFF";
-	private readonly string _stateHighlightColor = "04B065";
+	/// <summary>
+	/// Spacing between left and right halves of the menu
+	/// </summary>
+	private const float MenuCenterDivideSpacing = 5f;
 
+	/// <summary>
+	/// Maximum number of menu items
+	/// </summary>
+	private const int MaxMenuItems = 10;
+
+	/// <summary>
+	/// The vertical spacing between menu items (centers)
+	/// </summary>
+	private const float MenuItemSpacing = 27.0f;
+
+	/// <summary>
+	/// The height of a menu option item (left)
+	/// </summary>
+	private const float MenuOptionHeight = 22.0f;
+
+	/// <summary>
+	/// The height of a menu keybind item (right)
+	/// </summary>
+	private const float MenuKeybindHeight = 16.0f;
+
+	// === UI Style Constants ===
+	private const string SpecTargetTextColor = "FFFFFF";
+	private const string StateHighlightColor = "04B065";
+
+	// === UI Elements ===
 	private TextMeshPro? _specTargetTmp;
 
+	// --- Menu Elements ---
 	private GameObject? _menuObj;
 	private TextMeshPro? _menuTitleTmp;
 	private TextMeshPro? _menuViewModeTmp;
-
-	private const int MaxMenuItems = 10;
-	private const float MenuItemSpacing = 27.0f;
-	private const float MenuOptionHeight = 22.0f;
-	private const float MenuKeybindHeight = 16.0f;
-
+	private GameObject? _menuListObj;
 	private List<ValueTuple<TextMeshPro?, TextMeshPro?>> _menuItemsTmp = new(MaxMenuItems); // (option, keybind)
 	private SpriteRenderer? _menuBackground;
 
-	private const string _menuTitleStr = "SPECTATE";
+	// === UI Render Data ===
+	private string _specTargetStr = "";
+	private readonly string _menuTitleStr = "SPECTATE";
 	private string _menuViewModeStr = "";
-	private List<ValueTuple<string, string>> _menuItemsStr = new(); // (option, keybind)
+	private readonly List<ValueTuple<string, string>> _menuItemsStr = new(); // (option, keybind)
 
 	private readonly Dictionary<eSpectateMenuItem, ValueTuple<string, string>> _menuItems = new() {
 		[eSpectateMenuItem.ShowMenu] = ("Show Menu", "\\"),
 		[eSpectateMenuItem.HideMenu] = ("Hide Menu", "\\"),
-		[eSpectateMenuItem.ToggleSpectate] = ("Toggle Spectate", "V"),
+		[eSpectateMenuItem.EnterSpectate] = ("Enter Spectate", "V"),
+		[eSpectateMenuItem.ExitSpectate] = ("Exit Spectate", "V"),
 		[eSpectateMenuItem.ToggleFreecam] = ("Toggle Free-Look", "F"),
 		[eSpectateMenuItem.SwitchPlayer] = ("Switch Player", "LMB / RMB"),
 		[eSpectateMenuItem.SelectPlayer] = ("Select Player", "1 - 8"),
@@ -51,6 +126,9 @@ public class SpectateUI : MonoBehaviour {
 		[eSpectateMenuItem.AdjustFollowPitch] = ("Camera Pitch", "Shift + Scroll"),
 	};
 
+	/// <summary>
+	/// IL2CPP ctor
+	/// </summary>
 	public SpectateUI(IntPtr ptr) : base(ptr) {
 	}
 
@@ -62,16 +140,35 @@ public class SpectateUI : MonoBehaviour {
 		}
 	}
 
+	/// <summary>
+	/// Returns whether all TMP elements exist
+	/// </summary>
+	/// <returns>true if needed TMPs are non-null</returns>
+	private bool AllTMPExist() {
+		return _menuObj != null &&
+		       _specTargetTmp != null;
+	}
+
+	/// <summary>
+	/// Checks if necessary TMP elements exist, and creates them if not.
+	/// If partially exist, removes all and recreates.
+	/// </summary>
+	/// <returns>true if TMP already exists or created successfully</returns>
 	bool CheckOrCreateTMP() {
-		if (_specTargetTmp != null && _menuObj != null) return true;
+		if (AllTMPExist()) return true;
+
+		RemoveAllUIRoots();
 
 		PUI_LocalPlayerStatus? pstatus = GuiManager.PlayerLayer?.m_playerStatus;
 		if (pstatus == null) return false;
 
-		if (_specTargetTmp != null) Destroy(_specTargetTmp.gameObject);
+		Transform mvmtRootTrans = pstatus.transform.parent;
+		TextMeshPro refTmp = pstatus.m_healthText;
 
-		_specTargetTmp = CreateTMPFrom(pstatus.m_healthText, $"{Plugin.GUID}_TargetText");
-		_specTargetTmp.rectTransform.SetParent(pstatus.transform.parent, false); // set parent to MovementRoot
+		// Spectate Target Text (floating)
+		_specTargetTmp = CreateTMPFrom(refTmp, $"{Plugin.GUID}_SpectateTarget");
+		RegisterUIRoot(_specTargetTmp.gameObject);
+		_specTargetTmp.rectTransform.SetParent(mvmtRootTrans, false); // set parent to MovementRoot
 		_specTargetTmp.rectTransform.anchorMin = new Vector2(0.5f, 1.0f);
 		_specTargetTmp.rectTransform.anchorMax = new Vector2(0.5f, 1.0f);
 		_specTargetTmp.rectTransform.anchoredPosition3D = new Vector3(0f, -200f, 0f);
@@ -79,59 +176,66 @@ public class SpectateUI : MonoBehaviour {
 		_specTargetTmp.alignment = TextAlignmentOptions.Center;
 		_specTargetTmp.gameObject.SetActive(false);
 
-		if (_menuObj != null) Destroy(_menuObj);
-
+		// Spectate Menu
 		_menuObj = new GameObject($"{Plugin.GUID}_SpectateMenu");
+		RegisterUIRoot(_menuObj);
 		RectTransform menuRt = _menuObj.AddComponent<RectTransform>();
-		menuRt.SetParent(pstatus.transform.parent, false); // set parent to MovementRoot
+		menuRt.SetParent(mvmtRootTrans, false); // set parent to MovementRoot
 		menuRt.localScale = Vector3.one;
 		menuRt.anchorMin = new Vector2(0.0f, 0.5f);
 		menuRt.anchorMax = new Vector2(0.0f, 0.5f);
 		menuRt.pivot = new Vector2(0.5f, 0.5f);
 		menuRt.anchoredPosition3D = new Vector3(MenuCenterOffsetX, 0f, 0f);
 
-		_menuTitleTmp = CreateTMPFrom(pstatus.m_healthText, $"{Plugin.GUID}_MenuTitle");
+		_menuTitleTmp = CreateTMPFrom(refTmp, $"{Plugin.GUID}_MenuTitle");
 		_menuTitleTmp.rectTransform.SetParent(_menuObj.transform, false);
 		_menuTitleTmp.rectTransform.pivot = new Vector2(1.0f, 0.0f);
 		_menuTitleTmp.rectTransform.anchoredPosition3D = new Vector3(0f, 55f, 0f);
 		_menuTitleTmp.rectTransform.sizeDelta = new Vector2(MenuElementWidth, 45.0f);
 		_menuTitleTmp.alignment = TextAlignmentOptions.Right;
 
-		_menuViewModeTmp = CreateTMPFrom(pstatus.m_healthText, $"{Plugin.GUID}_ViewMode");
+		_menuViewModeTmp = CreateTMPFrom(refTmp, $"{Plugin.GUID}_ViewMode");
 		_menuViewModeTmp.rectTransform.SetParent(_menuObj.transform, false);
 		_menuViewModeTmp.rectTransform.pivot = new Vector2(1.0f, 0.0f);
 		_menuViewModeTmp.rectTransform.anchoredPosition3D = new Vector3(0f, 13f, 0f);
 		_menuViewModeTmp.rectTransform.sizeDelta = new Vector2(MenuElementWidth, 40.0f);
 		_menuViewModeTmp.alignment = TextAlignmentOptions.Right;
 
-		for (int i = 0; i < MaxMenuItems; i++) {
-			var optionTmp = CreateTMPFrom(pstatus.m_healthText, $"{Plugin.GUID}_MenuOption_{i}");
-			var keybindTmp = CreateTMPFrom(pstatus.m_healthText, $"{Plugin.GUID}_MenuKeybind_{i}");
+		_menuListObj = new GameObject($"{Plugin.GUID}_SpectateMenuList");
+		RectTransform menuListRt = _menuListObj.AddComponent<RectTransform>();
+		menuListRt.SetParent(menuRt, false); // set parent to MovementRoot
+		menuListRt.localScale = Vector3.one;
+		menuListRt.anchorMin = new Vector2(0.5f, 0.5f);
+		menuListRt.anchorMax = new Vector2(0.5f, 0.5f);
+		menuListRt.pivot = new Vector2(0.5f, 0.5f);
+		menuListRt.anchoredPosition3D = Vector3.zero;
 
-			optionTmp.rectTransform.SetParent(_menuObj.transform, false);
+		for (int i = 0; i < MaxMenuItems; i++) {
+			var optionTmp = CreateTMPFrom(refTmp, $"{Plugin.GUID}_MenuOption_{i}");
+			var keybindTmp = CreateTMPFrom(refTmp, $"{Plugin.GUID}_MenuKeybind_{i}");
+
+			optionTmp.rectTransform.SetParent(menuListRt, false);
 			optionTmp.rectTransform.pivot = new Vector2(1.0f, 0.5f);
 			optionTmp.rectTransform.sizeDelta = new Vector2(MenuElementWidth, MenuOptionHeight);
 			optionTmp.rectTransform.anchoredPosition3D =
 				new Vector3(0f, -((i + 0.5f) * MenuItemSpacing), 0f);
 			optionTmp.alignment = TextAlignmentOptions.Right;
 
-			keybindTmp.rectTransform.SetParent(_menuObj.transform, false);
+			keybindTmp.rectTransform.SetParent(menuListRt, false);
 			keybindTmp.rectTransform.pivot = new Vector2(0.0f, 0.5f);
 			keybindTmp.rectTransform.sizeDelta = new Vector2(MenuElementWidth, MenuKeybindHeight);
 			keybindTmp.rectTransform.anchoredPosition3D =
-				new Vector3(MenuRightKeybindSpace, -((i + 0.5f) * MenuItemSpacing), 0f);
+				new Vector3(MenuCenterDivideSpacing, -((i + 0.5f) * MenuItemSpacing), 0f);
 			keybindTmp.alignment = TextAlignmentOptions.Left;
 
 			_menuItemsTmp.Add(new ValueTuple<TextMeshPro?, TextMeshPro?>(optionTmp, keybindTmp));
 		}
 
-		UpdateMenu();
+		RefreshUI();
 
-		var bgTrans = pstatus.transform.parent.Find("PUI_CommunicationMenu(Clone)/Root/Backround");
+		var bgTrans = mvmtRootTrans.Find("PUI_CommunicationMenu(Clone)/Root/Backround");
 		if (bgTrans == null) {
-			Logger.Warn(
-				$"SpectateUI: Could not find background transform in CommunicationMenu!, " +
-				$"using \"{pstatus.transform.parent.name}\"");
+			Logger.Warn($"SpectateUI: Can't find bg transform in CommunicationMenu! Using \"{mvmtRootTrans.name}\"");
 			return true;
 		}
 
@@ -142,7 +246,6 @@ public class SpectateUI : MonoBehaviour {
 		var bgRt = bgObjClone.GetComponent<RectTransform>();
 		bgRt.SetParent(_menuObj.transform);
 		bgRt.anchoredPosition3D = new Vector3(0f, -40f, 0f);
-
 
 		return true;
 	}
@@ -166,22 +269,57 @@ public class SpectateUI : MonoBehaviour {
 	}
 
 	private void Update() {
-		if ((!SpectateCam.Instance?.Active ?? true) ||
-		    !SpectateCam.Instance.TargetReady) {
+		bool canSpectate = (SpectateCam.Instance?.Self?.IsDowned ?? false)
+		                   || ConfigMgr.DevEnables(eDevOpts.AllowSpectatingAnytime);
+		if (!canSpectate) {
 			SetUIActive(false);
-
 			return;
 		}
 
 		if (!CheckOrCreateTMP()) return; // ensure TMP is valid
 
 		ProcessInput();
-		UpdatePlayerStatus(SpectateCam.Instance.Target);
-		UpdatePlayerText();
+		if (SpectateCam.Instance?.Active ?? false)
+			UpdatePlayerStatusUI(SpectateCam.Instance.Target);
 		SetUIActive(true);
+		if (UIState != _uiStateRendered ||
+		    (SpectateCam.Instance?.Freecam ?? false) != _freecamPrev) {
+			RefreshUI();
+		}
 	}
 
-	public void UpdatePlayerStatus(SpectateTarget? target) {
+	public void UpdateForAttach() {
+		if (_uiStatePrev == eSpectateUIState.HideMenu || _uiStatePrev == eSpectateUIState.ShowMenu) {
+			SetUIState(_uiStatePrev);
+		} else {
+			SetUIState(eSpectateUIState.HideMenu);
+		}
+	}
+
+	public void UpdateForDetach() {
+		bool isDowned = SpectateCam.Instance?.Self?.IsDowned ?? false;
+		SetUIState(isDowned ? eSpectateUIState.FPDowned : eSpectateUIState.FPNotDowned);
+		UpdatePlayerStatusUI(SpectateCam.Instance?.Self);
+	}
+
+	void ProcessInput() {
+		if (!InputMapper.Current.FocusStateFilterPass(eFocusState.FPS)) return;
+
+		if (Input.GetKeyDown(KeyCode.Backslash)) {
+			switch (UIState) {
+				case eSpectateUIState.ShowMenu:
+					SetUIState(eSpectateUIState.HideMenu);
+					break;
+				case eSpectateUIState.HideMenu:
+					SetUIState(eSpectateUIState.ShowMenu);
+					break;
+			}
+		}
+	}
+
+	// === UI Update Methods (implementation specific) ===
+	// These methods should (only) be called in UpdateUI or its helpers.
+	public void UpdatePlayerStatusUI(AgentTarget? target) {
 		if (target == null || target.Agent == null) {
 			Logger.Error("SpectateUI: Could not update player status text: no target!");
 			return;
@@ -192,25 +330,73 @@ public class SpectateUI : MonoBehaviour {
 		pstatus?.UpdateInfection(target.Infection, 0.0f);
 	}
 
-	private void UpdatePlayerText() {
-		string playerName = SpectateCam.Instance?.Target?.Agent.InteractionName ?? "<#FFDE21>Unknown</color>";
-		string spectateText = $"<#{_specTargetTextColor}>Spectating\n<size=36>{playerName}</size></color>";
-		UpdateText(_specTargetTmp, spectateText);
+	private void AddMenuItem(eSpectateMenuItem item, bool enableUI = true) {
+		if (_menuItemsStr.Count >= MaxMenuItems) {
+			Logger.Warn($"SpectateUI: AddMenuItem ({item.ToString()}) but menu is full!");
+			return;
+		}
+
+		if (_menuItems.TryGetValue(item, out var val)) {
+			_menuItemsStr.Add(val);
+		} else {
+			Logger.Warn("SpectateUI: Tried to add unknown menu item!");
+		}
+
+		if (enableUI) {
+			EnableUI(eSpectateUIComp.Menu);
+		}
 	}
 
-	public void UpdateMenu() => UpdateMenu(SpectateCam.Instance?.Freecam ?? false);
+	private void UpdateViewMode(bool freecam, bool enableUI = true) {
+		string freeTxt = freecam ? $"<#{StateHighlightColor}FF>FREE-LOOK</color>" : "<#FFFFFF60>FREE-LOOK</color>";
+		string followTxt = !freecam ? $"<#{StateHighlightColor}FF>FOLLOW</color>" : "<#FFFFFF60>FOLLOW</color>";
+		_menuViewModeStr = $"{freeTxt} / {followTxt}";
+		if (enableUI) {
+			EnableUI(eSpectateUIComp.ViewMode);
+		}
+	}
 
-	public void UpdateMenu(bool freecam) {
+	private void UpdateSpectateTargetText(bool enableUI = true) {
+		string playerName = SpectateCam.Instance?.Target?.Agent.InteractionName ?? "<#FFDE21>Unknown</color>";
+		_specTargetStr = $"<#{SpecTargetTextColor}>Spectating\n<size=36>{playerName}</size></color>";
+		if (enableUI) {
+			EnableUI(eSpectateUIComp.SpectateTarget);
+		}
+	}
+
+	// === UI Management ===
+	/// <summary>
+	/// Sets the current UI state only. Does not update the UI.
+	/// </summary>
+	/// <param name="state"></param>
+	public void SetUIState(eSpectateUIState state) {
 		_uiStatePrev = _uiState;
+		_uiState = state;
+	}
+
+	/// <summary>
+	/// Refresh the UI based on the current state.
+	/// Infers freecam state from SpectateCam.
+	/// </summary>
+	private void RefreshUI() => RefreshUI(SpectateCam.Instance?.Freecam ?? false);
+
+	/// <summary>
+	/// Updates the UI based on specified state.
+	/// Renders necessary components and data.
+	/// </summary>
+	/// <param name="freecam">whether freecam is currently active</param>
+	private void RefreshUI(bool freecam) {
+		_uiStateRendered = _uiState;
 		_freecamPrev = freecam;
 
-		ClearMenu();
-		UpdateMenuTitle(freecam);
+		ClearUI();
 
 		switch (_uiState) {
 			case eSpectateUIState.ShowMenu:
+				EnableUI(eSpectateUIComp.Title);
+				UpdateViewMode(freecam);
+				AddMenuItem(eSpectateMenuItem.ExitSpectate);
 				AddMenuItem(eSpectateMenuItem.HideMenu);
-				AddMenuItem(eSpectateMenuItem.ToggleSpectate);
 				AddMenuItem(eSpectateMenuItem.ToggleFreecam);
 				AddMenuItem(eSpectateMenuItem.SwitchPlayer);
 				AddMenuItem(eSpectateMenuItem.SelectPlayer);
@@ -219,74 +405,139 @@ public class SpectateUI : MonoBehaviour {
 				if (!freecam) AddMenuItem(eSpectateMenuItem.AdjustFollowPitch);
 				break;
 			case eSpectateUIState.HideMenu:
+				EnableUI(eSpectateUIComp.Title);
+				UpdateViewMode(freecam);
+				AddMenuItem(eSpectateMenuItem.ExitSpectate);
 				AddMenuItem(eSpectateMenuItem.ShowMenu);
+				break;
+			case eSpectateUIState.FPDowned:
+			case eSpectateUIState.FPNotDowned:
+				AddMenuItem(eSpectateMenuItem.EnterSpectate);
 				break;
 		}
 
-		FlushMenu();
+		RenderUI();
 	}
 
-	void ProcessInput() {
-		if (!InputMapper.Current.FocusStateFilterPass(eFocusState.FPS)) return;
-
-		if (Input.GetKeyDown(KeyCode.Backslash)) {
-			if (_uiState == eSpectateUIState.ShowMenu) {
-				_uiState = eSpectateUIState.HideMenu;
-			} else {
-				_uiState = eSpectateUIState.ShowMenu;
-			}
-
-			UpdateMenu();
-		}
-	}
-
-	void ClearMenu() {
+	/// <summary>
+	/// Clears all UI render content caches and
+	/// disables all UI components for next render.
+	/// </summary>
+	private void ClearUI() {
 		_menuViewModeStr = "";
 		_menuItemsStr.Clear();
-	}
 
-	void AddMenuItem(eSpectateMenuItem item) {
-		if (_menuItems.TryGetValue(item, out var val)) {
-			_menuItemsStr.Add(val);
-		} else {
-			Logger.Warn("SpectateUI: Tried to add unknown menu item!");
+		// Clear menu item states (to display)
+		foreach (var e in Enum.GetValues<eSpectateUIComp>()) {
+			_uiCompState[e] = false;
 		}
 	}
 
-	void UpdateMenuTitle(bool freecam) {
-		string freeTxt = freecam ? $"<#{_stateHighlightColor}FF>FREE-LOOK</color>" : "<#FFFFFF60>FREE-LOOK</color>";
-		string followTxt = !freecam ? $"<#{_stateHighlightColor}FF>FOLLOW</color>" : "<#FFFFFF60>FOLLOW</color>";
-		_menuViewModeStr = $"{freeTxt} / {followTxt}";
+	/// <summary>
+	/// Removes all registered UI roots.
+	/// This should destroy all UI elements created by this manager.
+	/// </summary>
+	private void RemoveAllUIRoots() {
+		foreach (var root in _uiRoots) {
+			Destroy(root);
+		}
+
+		_specTargetTmp = null;
+		_menuObj = null;
+		_menuTitleTmp = null;
+		_menuViewModeTmp = null;
+		_menuListObj = null;
+		_menuBackground = null;
+
+		_menuItemsTmp.Clear();
+		_uiRoots.Clear();
 	}
 
-	void FlushMenu() {
-		UpdateText(_menuTitleTmp, _menuTitleStr);
-		UpdateText(_menuViewModeTmp, _menuViewModeStr);
-		int menuItemCount = _menuItemsStr.Count;
-		for (int i = 0; i < MaxMenuItems; i++) {
-			var (optionTmp, keybindTmp) = _menuItemsTmp[i];
+	/// <summary>
+	/// Registers a UI root GameObject for rendering management.
+	/// Roots should not have a parent who is also managed by this manager.
+	/// </summary>
+	/// <param name="root"></param>
+	private void RegisterUIRoot(GameObject root) {
+		if (!_uiRoots.Contains(root)) {
+			_uiRoots.Add(root);
+		}
+	}
 
-			if (i < menuItemCount) {
-				var (optionStr, keybindStr) = _menuItemsStr[i];
-				UpdateText(optionTmp, $"<allcaps>{optionStr}</allcaps>");
-				UpdateText(keybindTmp, $"<color=orange>[{keybindStr}]</color>");
-				Util.SetObjActiveIfChanged(optionTmp, true);
-				Util.SetObjActiveIfChanged(keybindTmp, true);
-			} else {
-				Util.SetObjActiveIfChanged(optionTmp, false);
-				Util.SetObjActiveIfChanged(keybindTmp, false);
+	/// <summary>
+	/// Enables a specific UI component for rendering on next render.
+	/// </summary>
+	/// <param name="comp"></param>
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	private void EnableUI(eSpectateUIComp comp) {
+		_uiCompState[comp] = true;
+	}
+
+	/// <summary>
+	/// Renders the UI based on the current component states and render data.
+	/// </summary>
+	private void RenderUI() {
+		foreach (var (comp, state) in _uiCompState) {
+			switch (comp) {
+				case eSpectateUIComp.SpectateTarget:
+					if (state) {
+						UpdateText(_specTargetTmp, _specTargetStr);
+					}
+
+					Util.SetTargetActiveIfDiff(_specTargetTmp, state);
+					break;
+
+				case eSpectateUIComp.Title:
+					if (state) {
+						UpdateText(_menuTitleTmp, _menuTitleStr);
+					}
+
+					Util.SetTargetActiveIfDiff(_menuTitleTmp, state);
+					break;
+
+				case eSpectateUIComp.ViewMode:
+					if (state) {
+						UpdateText(_menuViewModeTmp, _menuViewModeStr);
+					}
+
+					Util.SetTargetActiveIfDiff(_menuViewModeTmp, state);
+					break;
+
+				case eSpectateUIComp.Menu:
+					if (state) {
+						int menuItemCount = _menuItemsStr.Count;
+						for (int i = 0; i < MaxMenuItems; i++) {
+							var (optionTmp, keybindTmp) = _menuItemsTmp[i];
+
+							if (i < menuItemCount) {
+								var (optionStr, keybindStr) = _menuItemsStr[i];
+								UpdateText(optionTmp, $"<allcaps>{optionStr}</allcaps>");
+								UpdateText(keybindTmp, $"<color=orange>[{keybindStr}]</color>");
+								Util.SetTargetActiveIfDiff(optionTmp, true);
+								Util.SetTargetActiveIfDiff(keybindTmp, true);
+							} else {
+								Util.SetTargetActiveIfDiff(optionTmp, false);
+								Util.SetTargetActiveIfDiff(keybindTmp, false);
+							}
+						}
+					}
+
+					Util.SetTargetActiveIfDiff(_menuListObj, state);
+					break;
 			}
 		}
 	}
 
-	void SetUIActive(bool active) {
+	private void SetUIActive(bool active) {
 		if (_wasUIActive == active) return;
-		// Util.SetObjActiveIfChanged(_specTargetTmp, active);
-		Util.SetObjActiveIfChanged(_menuObj, active);
+		foreach (var root in _uiRoots) {
+			Util.SetTargetActiveIfDiff(root, active);
+		}
+
 		_wasUIActive = active;
 	}
 
-	void UpdateText(TextMeshPro? tmp, string newText) {
+	private void UpdateText(TextMeshPro? tmp, string newText) {
 		if (tmp == null) return;
 		if (tmp.text == newText) return;
 		if (newText != tmp.text) {
@@ -295,7 +546,7 @@ public class SpectateUI : MonoBehaviour {
 		}
 	}
 
-	void ForceTMPUpdate(TextMeshPro tmp) {
+	private void ForceTMPUpdate(TextMeshPro? tmp) {
 		if (tmp == null) return;
 		tmp.SetAllDirty();
 		tmp.ForceMeshUpdate();

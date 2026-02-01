@@ -3,7 +3,8 @@
 public enum eSpectateMenuItem {
 	HideMenu,
 	ShowMenu,
-	ToggleSpectate,
+	EnterSpectate,
+	ExitSpectate,
 	ToggleFreecam,
 	SwitchPlayer,
 	SelectPlayer,

@@ -10,6 +10,8 @@ using Vector3 = UnityEngine.Vector3;
 namespace Spectate;
 
 public class SpectateCam : MonoBehaviour {
+	// TODO: Abrupt change in eye y-position. We should lerp that
+
 	public static SpectateCam? Instance { get; set; }
 
 	public bool SelfReady => _self != null && _self.FPSCamera != null;
@@ -47,10 +49,11 @@ public class SpectateCam : MonoBehaviour {
 	public const float PitchAngleDegMin = -89f;
 	public const float PitchAngleDegMax = 89f;
 
-	private SpectateTarget? _self = null;
-	private SpectateTarget? _target = null;
+	private AgentTarget? _self = null;
+	private AgentTarget? _target = null;
 
-	public SpectateTarget? Target => _target;
+	public AgentTarget? Self => _self;
+	public AgentTarget? Target => _target;
 
 	public SpectateCam(IntPtr ptr) : base(ptr) {
 	}
@@ -75,7 +78,7 @@ public class SpectateCam : MonoBehaviour {
 #if DEBUG
 		Logger.Debug("SpectateCam: Load");
 #endif
-		_self = new SpectateTarget(localAgent);
+		_self = new AgentTarget(localAgent);
 		return _self.FPSCamera != null;
 	}
 
@@ -92,7 +95,7 @@ public class SpectateCam : MonoBehaviour {
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public void SetTarget(PlayerAgent agent) {
-		_target = new SpectateTarget(agent);
+		_target = new AgentTarget(agent);
 	}
 
 	public bool Attach() {
@@ -110,6 +113,7 @@ public class SpectateCam : MonoBehaviour {
 		LastCamDir = _self!.FPSCamera!.Forward;
 
 		GuiManager.CrosshairLayer.ShowPrecisionDot();
+		SpectateUI.Instance?.UpdateForAttach();
 		SetRelatedActive(true);
 		UpdateCull();
 		SetActive(true);
@@ -126,8 +130,8 @@ public class SpectateCam : MonoBehaviour {
 			return false;
 		}
 
-		GuiManager.CrosshairLayer.ShowSpreadCircle(_self!.FPHolder?.WieldedItem.HipFireCrosshairSize ?? 40.0f);
-		SpectateUI.Instance?.UpdatePlayerStatus(_self!);
+		GuiManager.CrosshairLayer?.ShowSpreadCircle(_self!.FPHolder?.WieldedItem?.HipFireCrosshairSize ?? 40.0f);
+		SpectateUI.Instance?.UpdateForDetach();
 		SetRelatedActive(false);
 		RevertCull();
 		SetActive(false);
@@ -135,7 +139,7 @@ public class SpectateCam : MonoBehaviour {
 		return true;
 	}
 
-	void SetActive(bool active) {
+	private void SetActive(bool active) {
 		if (active && !_wasActive) {
 			OnActive?.Invoke();
 		}
@@ -149,7 +153,7 @@ public class SpectateCam : MonoBehaviour {
 		}
 	}
 
-	void SetRelatedActive(bool spectateActive) {
+	private void SetRelatedActive(bool spectateActive) {
 		// TODO: transition to/from certain UIs reset the state of some elements (e.g. crosshair), we want them to stay disabled
 		// Patch FocusStateManager.ChangeState ?
 		if (!SelfReady) {
@@ -163,11 +167,11 @@ public class SpectateCam : MonoBehaviour {
 		_self.Agent.DeadDebugMode = spectateActive;
 		_self.Inventory.enabled = !spectateActive;
 		_self.FPHolder?.gameObject.SetActive(!spectateActive);
-		_self.FPHolder?.FPSArms?.SetVisible(!spectateActive);
 		// NOTE: we choose to change the style of crosshair instead of disabling it
 		// GuiManager.CrosshairLayer?.m_circleCrosshair?.transform.parent.gameObject.SetActive(active);
 
 		// TODO: When we disable spectate, hand is invisible.
+		_self.FPHolder?.FPSArms?.SetVisible(!spectateActive);
 
 		var fpsCamera = _self.FPSCamera;
 		if (fpsCamera != null) {
@@ -214,7 +218,7 @@ public class SpectateCam : MonoBehaviour {
 		}
 	}
 
-	void ProcessInput() {
+	private void ProcessInput() {
 		if (!InputMapper.Current.FocusStateFilterPass(eFocusState.FPS))
 			return;
 
@@ -307,7 +311,7 @@ public class SpectateCam : MonoBehaviour {
 		}
 	}
 
-	void UpdateCamPos() {
+	private void UpdateCamPos() {
 		// TODO: Perhaps spherecast for better clipping avoidance
 		if (!SelfReady || !TargetReady) {
 			Logger.Error("SpectateCam: UpdateCull failed - target or self not ready");
@@ -346,7 +350,7 @@ public class SpectateCam : MonoBehaviour {
 		_self!.FPSCamera!.OverridePositionAndRotation(eyePos, Quaternion.LookRotation(dir));
 	}
 
-	void UpdateYawPitch() {
+	private void UpdateYawPitch() {
 		if (!Util.GoodEnoughDeg(_yaw, _yawTarget)) {
 			_yaw = Mathf.LerpAngle(_yaw, _yawTarget, Time.deltaTime * ConfigMgr.FreecamLerpGain);
 			float yawDiff = _yawTarget - _yaw;
@@ -363,7 +367,7 @@ public class SpectateCam : MonoBehaviour {
 		}
 	}
 
-	void UpdateCull() {
+	private void UpdateCull() {
 		if (!SelfReady || !TargetReady) {
 			Logger.Error("SpectateCam: UpdateCull failed - target or self not ready");
 			return;
@@ -377,8 +381,44 @@ public class SpectateCam : MonoBehaviour {
 		CameraManager.CullingDirection = _self!.FPSCamera!.Forward;
 
 		_self.Agent.m_movingCuller.UpdatePosition(_self.Agent.m_dimensionIndex, targetCullPosition);
-		if (_self.Agent.m_movingCuller.CurrentNode != _target.Agent.CourseNode.m_cullNode)
-			_self.Agent.m_movingCuller.SetCurrentNode(_target.Agent.CourseNode.m_cullNode);
+		var curCullNode = _self.Agent.m_movingCuller.CurrentNode;
+		var targetNode = _target.CourseNode?.m_cullNode;
+		if (targetNode != null) {
+			if (curCullNode != targetNode) {
+				_self.Agent.m_movingCuller.SetCurrentNode(targetNode);
+			}
+		} else {
+			Logger.Warn("SpectateCam: UpdateCull - failed to sync cull nodes self or target node is null");
+		}
+	}
+
+	private void RevertCull() {
+		if (!SelfReady) {
+			Logger.Error("SpectateCam: RevertCull failed - self is not ready");
+			return;
+		}
+
+		Vector3 targetCullPosition = _self!.Agent.Position;
+		if (Physics.Raycast(targetCullPosition, Vector3.down, out var hit, 64f, LayerManager.MASK_WORLD))
+			targetCullPosition = hit.m_Point;
+
+		CameraManager.CullingPosition = targetCullPosition;
+		CameraManager.CullingDirection = _self!.FPSCamera!.Forward;
+
+		_self.Agent.m_movingCuller.UpdatePosition(_self.Agent.m_dimensionIndex, targetCullPosition);
+		var curCullNode = _self.Agent.m_movingCuller.CurrentNode;
+		var targetNode = _self.CourseNode?.m_cullNode;
+		if (targetNode != null) {
+			if (curCullNode != targetNode) {
+				_self.Agent.m_movingCuller.SetCurrentNode(targetNode);
+			}
+		} else {
+			Logger.Warn("SpectateCam: RevertCull - failed to sync cull nodes self or target node is null");
+		}
+	}
+
+	private void OnApplicationQuit() {
+		ConfigMgr.WriteConfigIfDirty();
 	}
 
 	bool TrySetAnyNonLocalTarget() {
@@ -397,7 +437,7 @@ public class SpectateCam : MonoBehaviour {
 		return false;
 	}
 
-	void NextTarget() {
+	private void NextTarget() {
 		int limit = SNet.Slots?.SlottedPlayers?.Count ?? -1;
 		if (limit <= 0) return;
 
@@ -410,7 +450,7 @@ public class SpectateCam : MonoBehaviour {
 		}
 	}
 
-	void PreviousTarget() {
+	private void PreviousTarget() {
 		int limit = SNet.Slots?.SlottedPlayers?.Count ?? -1;
 		if (limit <= 0) return;
 
@@ -423,11 +463,11 @@ public class SpectateCam : MonoBehaviour {
 		}
 	}
 
-	bool TrySetTargetByIdx(int playerIdx) {
+	private bool TrySetTargetByIdx(int playerIdx) {
 		var players = SNet.Slots?.SlottedPlayers;
 		if (players == null || players.Count == 0) return false;
 
-		if (playerIdx > 0 && playerIdx < players.Count) {
+		if (playerIdx >= 0 && playerIdx < players.Count) {
 			if (!players[playerIdx].IsLocal) {
 				SetTarget(players[playerIdx].PlayerAgent.Cast<PlayerAgent>());
 				_lastTargetPlayerIdx = playerIdx;
@@ -438,71 +478,50 @@ public class SpectateCam : MonoBehaviour {
 		return false;
 	}
 
-	void OnFollow2Free() {
+	private void OnFollow2Free() {
 		if (!TargetReady) {
 			Logger.Error("SpectateCam: OnTransitionToFreecam failed - target not ready");
 			return;
 		}
 
-		SpectateUI.Instance?.UpdateMenu(_freecam);
-		UpdateYawPitchWithFollowView(true);
+		// UpdateYawPitchWithFollowView(true);
 	}
 
-	void OnFree2Follow() {
+	private void OnFree2Follow() {
 		if (!TargetReady) {
 			Logger.Error("SpectateCam: OnTransitionToFollow failed - target not ready");
 			return;
 		}
 
-		SpectateUI.Instance?.UpdateMenu(_freecam);
 		UpdateYawPitchWithFollowView(true);
 	}
 
 	// WARNING: should not be called without check TargetReady
-	void UpdateYawPitchWithFollowView(bool instant) {
+	private void UpdateYawPitchWithFollowView(bool instant) {
 		SetYaw(Vector3.SignedAngle(Vector3.forward, _target!.Agent.Forward, Vector3.up), instant);
 		SetPitch(ConfigMgr.CameraPitchAngleDeg, instant);
 	}
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	void AdjustPitch(float deltaPitch, bool instant = false) {
+	private void AdjustPitch(float deltaPitch, bool instant = false) {
 		SetPitch(_pitchTarget + deltaPitch, instant);
 	}
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	void AdjustYaw(float deltaYaw, bool instant = false) {
+	private void AdjustYaw(float deltaYaw, bool instant = false) {
 		SetYaw(_yawTarget + deltaYaw, instant);
 	}
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	void SetPitch(float pitch, bool instant = false) {
+	private void SetPitch(float pitch, bool instant = false) {
 		pitch = Mathf.Clamp(pitch, PitchAngleDegMin, PitchAngleDegMax);
 		_pitchTarget = pitch;
 		if (instant) _pitch = pitch;
 	}
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	void SetYaw(float yaw, bool instant = false) {
+	private void SetYaw(float yaw, bool instant = false) {
 		_yawTarget = yaw;
 		if (instant) _yaw = yaw;
-	}
-
-	void RevertCull() {
-		if (!SelfReady) {
-			Logger.Error("SpectateCam: RevertCull failed - self is not ready");
-			return;
-		}
-
-		Vector3 targetCullPosition = _self!.Agent.Position;
-		if (Physics.Raycast(targetCullPosition, Vector3.down, out var hit, 64f, LayerManager.MASK_WORLD))
-			targetCullPosition = hit.m_Point;
-
-		_self.Agent.m_movingCuller.UpdatePosition(_self.Agent.m_dimensionIndex, targetCullPosition);
-		if (_self.Agent.m_movingCuller.CurrentNode != _self.Agent.CourseNode.m_cullNode)
-			_self.Agent.m_movingCuller.SetCurrentNode(_self.Agent.CourseNode.m_cullNode);
-	}
-
-	private void OnApplicationQuit() {
-		ConfigMgr.WriteConfigIfDirty();
 	}
 }

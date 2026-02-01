@@ -114,7 +114,7 @@ internal static class ConfigMgr {
 		_switchOnDeath = _conf.Bind(
 			sectionHeader,
 			"Switch On Death",
-			true,
+			false,
 			"automatically switch to spectate upon death");
 
 		_defaultFreecamView = _conf.Bind(

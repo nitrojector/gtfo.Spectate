@@ -13,17 +13,17 @@ public static class Util {
 		return Mathf.Abs(a - b) < eps;
 	}
 
-	public static void SetObjActiveIfChanged(GameObject? obj, bool active) {
+	public static void SetTargetActiveIfDiff(GameObject? obj, bool active) {
 		if (obj == null) return;
 		if (obj.activeSelf != active) {
 			obj.SetActive(active);
 		}
 	}
 
-	public static void SetObjActiveIfChanged(Component? comp, bool active) {
-		if (comp == null) return;
-		if (comp.gameObject.activeSelf != active) {
-			comp.gameObject.SetActive(active);
+	public static void SetTargetActiveIfDiff(Behaviour? beh, bool active) {
+		if (beh == null) return;
+		if (beh.enabled != active) {
+			beh.enabled = active;
 		}
 	}
 }
