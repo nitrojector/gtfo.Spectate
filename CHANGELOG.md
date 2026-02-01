@@ -8,6 +8,8 @@
 # v1.1.0
 
 - Rewrote UI management to support more behaviors.
+  - Auto spectate on down is now false by default.
+  - Text now shows the option to spectate when in FPS downed state.
 - Fixed a bug where cull nodes are not checked against null when detaching camera.
 
 # v1.0.3
