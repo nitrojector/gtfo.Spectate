@@ -245,7 +245,7 @@ public class SpectateUI : MonoBehaviour {
 		_menuBackground.sortingOrder = -20;
 		var bgRt = bgObjClone.GetComponent<RectTransform>();
 		bgRt.SetParent(_menuObj.transform);
-		bgRt.anchoredPosition3D = new Vector3(0f, -40f, 0f);
+		bgRt.anchoredPosition3D = new Vector3(-25f, -55f, 0f);
 
 		return true;
 	}

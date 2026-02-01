@@ -10,8 +10,6 @@ using Vector3 = UnityEngine.Vector3;
 namespace Spectate;
 
 public class SpectateCam : MonoBehaviour {
-	// TODO: Abrupt change in eye y-position. We should lerp that
-
 	public static SpectateCam? Instance { get; set; }
 
 	public bool SelfReady => _self != null && _self.FPSCamera != null;
@@ -34,7 +32,13 @@ public class SpectateCam : MonoBehaviour {
 	private float _yaw = 0f;
 	private float _pitchTarget = ConfigMgr.CameraPitchAngleDeg;
 	private float _yawTarget = 0f;
+	private float _eyeY = 0f;
+	private float _eyeYTarget = 0f;
+	private Vector3 _eyeXZ = Vector3.zero;
+	private Vector3 _eyeXZTarget = Vector3.zero;
 
+	public const float DefaultCameraYPositionLerpGain = 11.0f;
+	public const float DefaultCameraXZPositionLerpGain = 15.0f;
 	public const float DefaultCameraLerpGain = 6f;
 	public const float DefaultOrbitCenterVerticalOffset = 0.325f;
 	public const float DefaultPitchAngleDeg = -18.75f;
@@ -42,12 +46,13 @@ public class SpectateCam : MonoBehaviour {
 	public const float DefaultScrollSensitivity = 0.5f;
 	public const float DefaultFreecamSensitivity = 1.0f;
 
-	public const float OrbitCenterVerticalOffsetMin = -5.0f;
+	public const float OrbitCenterVerticalOffsetMin = -1.0f;
 	public const float OrbitCenterVerticalOffsetMax = 5.0f;
 	public const float DistanceMin = 0.1f;
 	public const float DistanceMax = 5.0f;
 	public const float PitchAngleDegMin = -89f;
 	public const float PitchAngleDegMax = 89f;
+
 
 	private AgentTarget? _self = null;
 	private AgentTarget? _target = null;
@@ -162,15 +167,18 @@ public class SpectateCam : MonoBehaviour {
 		}
 
 		_self!.SetRigActive(!spectateActive);
+
 		// NOTE: we don't want to disable Locomotion, we are
 		// _self.Locomotion.enabled = active;
 		_self.Agent.DeadDebugMode = spectateActive;
-		_self.Inventory.enabled = !spectateActive;
-		_self.FPHolder?.gameObject.SetActive(!spectateActive);
-		// NOTE: we choose to change the style of crosshair instead of disabling it
+		Util.SetTargetActiveIfDiff(_self.Inventory, !spectateActive);
+		Util.SetTargetActiveIfDiff(_self.Inventory?.m_flashlight.gameObject, !spectateActive);
+		Util.SetTargetActiveIfDiff(_self.FPHolder?.gameObject, !spectateActive);
+
+		// NOTE: we choose to change the style of crosshair instead of disabling it, in Attach/Detach
 		// GuiManager.CrosshairLayer?.m_circleCrosshair?.transform.parent.gameObject.SetActive(active);
 
-		// TODO: When we disable spectate, hand is invisible.
+		// TODO: When we disable spectate, hand is invisible sometimes.
 		_self.FPHolder?.FPSArms?.SetVisible(!spectateActive);
 
 		var fpsCamera = _self.FPSCamera;
@@ -193,10 +201,7 @@ public class SpectateCam : MonoBehaviour {
 				return;
 			}
 
-			if (_freecam) {
-				UpdateYawPitch();
-			}
-
+			UpdateLerp(_freecam);
 			UpdateCamPos();
 			UpdateCull();
 		}
@@ -244,6 +249,8 @@ public class SpectateCam : MonoBehaviour {
 				OnFollow2Free();
 			}
 		}
+
+		// TODO: Toggle for freecam auto-transition to follow
 
 		Vector2 mouseDelta = InputHelper.GetMouseDelta();
 		if (_freecam && mouseDelta != Vector2.zero) {
@@ -312,7 +319,6 @@ public class SpectateCam : MonoBehaviour {
 	}
 
 	private void UpdateCamPos() {
-		// TODO: Perhaps spherecast for better clipping avoidance
 		if (!SelfReady || !TargetReady) {
 			Logger.Error("SpectateCam: UpdateCull failed - target or self not ready");
 			return;
@@ -328,6 +334,15 @@ public class SpectateCam : MonoBehaviour {
 			}
 		}
 
+		// TODO: perhaps just use UpdateYawPitchWithFollowView(false); for follow as well.
+		//  This would smooth follow view which may be desirable.
+
+		var eyeTmp = _target!.Agent.m_eyePosition;
+		_eyeXZTarget = new Vector3(eyeTmp.x, 0f, eyeTmp.z);
+		_eyeYTarget = eyeTmp.y + ConfigMgr.CameraOrbitVerticalOffset;
+
+		Vector3 orbitCenter = _eyeXZ + Vector3.up * _eyeY;
+
 		Vector3 forward = _target!.Agent.Forward.normalized;
 		if (_freecam) {
 			Quaternion yawRot = Quaternion.Euler(0f, _yaw, 0f);
@@ -340,31 +355,26 @@ public class SpectateCam : MonoBehaviour {
 		dir.Normalize();
 
 		// raycast to avoid clipping into walls
-		Vector3 orbitCenter = _target!.Agent.m_eyePosition + ConfigMgr.CameraOrbitVerticalOffset * Vector3.up;
 		Vector3 eyePos = orbitCenter - dir * ConfigMgr.CameraDistance;
 		if (Physics.Raycast(orbitCenter, -dir, out var hit, ConfigMgr.CameraDistance, LayerManager.MASK_WORLD)) {
 			eyePos = hit.m_Point + dir * 0.1f;
 		}
 
-		// TODO: perhaps lerp this to avoid jitter on high ping?
 		_self!.FPSCamera!.OverridePositionAndRotation(eyePos, Quaternion.LookRotation(dir));
 	}
 
-	private void UpdateYawPitch() {
-		if (!Util.GoodEnoughDeg(_yaw, _yawTarget)) {
-			_yaw = Mathf.LerpAngle(_yaw, _yawTarget, Time.deltaTime * ConfigMgr.FreecamLerpGain);
-			float yawDiff = _yawTarget - _yaw;
-			_yaw = Mathf.Repeat(_yaw, 360f);
-			_yawTarget = _yaw + yawDiff;
-		} else {
-			_yaw = _yawTarget;
-		}
+	private void UpdateLerp(bool freecamEnabled) {
+		_eyeXZ = Vector3.Lerp(_eyeXZ, _eyeXZTarget, Time.deltaTime * ConfigMgr.CameraXZLerpGain);
+		_eyeY = Mathf.Lerp(_eyeY, _eyeYTarget, Time.deltaTime * ConfigMgr.CameraYLerpGain);
 
-		if (!Util.GoodEnoughDeg(_pitch, _pitchTarget)) {
-			_pitch = Mathf.LerpAngle(_pitch, _pitchTarget, Time.deltaTime * ConfigMgr.FreecamLerpGain);
-		} else {
-			_pitch = _pitchTarget;
-		}
+		if (!freecamEnabled) return;
+
+		_yaw = Mathf.LerpAngle(_yaw, _yawTarget, Time.deltaTime * ConfigMgr.FreecamLerpGain);
+		float yawDiff = _yawTarget - _yaw;
+		_yaw = Mathf.Repeat(_yaw, 360f);
+		_yawTarget = _yaw + yawDiff;
+
+		_pitch = Mathf.LerpAngle(_pitch, _pitchTarget, Time.deltaTime * ConfigMgr.FreecamLerpGain);
 	}
 
 	private void UpdateCull() {

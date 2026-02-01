@@ -35,9 +35,13 @@ internal static class ConfigMgr {
 	private static ConfigEntryExtended<float> _scrollSensitivity;
 	private static ConfigEntryExtended<float> _freecamSensitivity;
 	private static ConfigEntryExtended<float> _freecamLerpGain;
+	private static ConfigEntryExtended<float> _cameraXZLerpGain;
+	private static ConfigEntryExtended<float> _cameraYLerpGain;
 	public static float ScrollSensitivity => _scrollSensitivity.Value;
 	public static float FreecamSensitivity => _freecamSensitivity.Value;
 	public static float FreecamLerpGain => _freecamLerpGain.Value;
+	public static float CameraXZLerpGain => _cameraXZLerpGain.Value;
+	public static float CameraYLerpGain => _cameraYLerpGain.Value;
 
 	// Camera
 	private static ConfigEntryExtended<float> _cameraDistance;
@@ -113,19 +117,19 @@ internal static class ConfigMgr {
 
 		_switchOnDeath = _conf.Bind(
 			sectionHeader,
-			"Switch On Death",
+			"Switch on Death",
 			false,
 			"automatically switch to spectate upon death");
 
 		_defaultFreecamView = _conf.Bind(
 			sectionHeader,
 			"Default to Free-Look View",
-			false,
+			true,
 			"start game sessions with free-look enabled by default");
 
 		_autoTransitionToFollowView = _conf.Bind(
 			sectionHeader,
-			"Auto Transition To Temporary Follow View",
+			"Auto Transition to Temporary Follow View",
 			true,
 			"automatically transition to temporary follow view after idling in free-look");
 
@@ -158,6 +162,20 @@ internal static class ConfigMgr {
 			SpectateCam.DefaultCameraLerpGain,
 			"rate at which camera snaps to target: higher is snappier, lower is smoother (min: 1.0)");
 		_freecamLerpGain.AddRule(ConfigEntryRule.Min, 1.0f);
+
+		_cameraXZLerpGain = _conf.Bind(
+			sectionHeader,
+			"Camera XZ-Position Smoothing Rate",
+			SpectateCam.DefaultCameraXZPositionLerpGain,
+			"rate at which camera horizontal position snaps to target: higher is snappier, lower is smoother (min: 7.0)");
+		_cameraXZLerpGain.AddRule(ConfigEntryRule.Min, 7.0f);
+
+		_cameraYLerpGain = _conf.Bind(
+			sectionHeader,
+			"Camera Y-Position Smoothing Rate",
+			SpectateCam.DefaultCameraYPositionLerpGain,
+			"rate at which camera vertical position snaps to target: higher is snappier, lower is smoother (min: 7.0)");
+		_cameraYLerpGain.AddRule(ConfigEntryRule.Min, 7.0f);
 
 		sectionHeader = $"({section++}) Camera Settings <SYNCED>";
 

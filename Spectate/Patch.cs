@@ -8,7 +8,7 @@ namespace Spectate;
 
 [HarmonyPatch]
 public class Patch {
-	// TODO: When players go down, the camera FOV shrinks, if players don't switch to spectate immediately, the FOV remains small.
+	// TODO: Sometimes camera FOV shrinks?, the FOV remains small.
 	// 	 Need to find where the FOV is changed and patch it to prevent changes while spectating.
 
 	[HarmonyPatch(
