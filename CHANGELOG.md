@@ -1,7 +1,7 @@
 # v1.1.1
 
 - Add player position smoothing as well as config options to adjust the smoothing rate.
-- Fixed a bug where player helmet flashlight is still show when spectating.
+- Fixed a bug where player helmet flashlight is still shown when spectating.
 - Adjust some configuration value defaults and limits.
 - Adjust positioning of UI shadow for better visibility.
 
