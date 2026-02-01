@@ -10,6 +10,8 @@ using Vector3 = UnityEngine.Vector3;
 namespace Spectate;
 
 public class SpectateCam : MonoBehaviour {
+	// TODO: Abrupt change in eye y-position. We should lerp that
+
 	public static SpectateCam? Instance { get; set; }
 
 	public bool SelfReady => _self != null && _self.FPSCamera != null;
@@ -137,7 +139,7 @@ public class SpectateCam : MonoBehaviour {
 		return true;
 	}
 
-	void SetActive(bool active) {
+	private void SetActive(bool active) {
 		if (active && !_wasActive) {
 			OnActive?.Invoke();
 		}
@@ -151,7 +153,7 @@ public class SpectateCam : MonoBehaviour {
 		}
 	}
 
-	void SetRelatedActive(bool spectateActive) {
+	private void SetRelatedActive(bool spectateActive) {
 		// TODO: transition to/from certain UIs reset the state of some elements (e.g. crosshair), we want them to stay disabled
 		// Patch FocusStateManager.ChangeState ?
 		if (!SelfReady) {
@@ -216,7 +218,7 @@ public class SpectateCam : MonoBehaviour {
 		}
 	}
 
-	void ProcessInput() {
+	private void ProcessInput() {
 		if (!InputMapper.Current.FocusStateFilterPass(eFocusState.FPS))
 			return;
 
@@ -309,7 +311,7 @@ public class SpectateCam : MonoBehaviour {
 		}
 	}
 
-	void UpdateCamPos() {
+	private void UpdateCamPos() {
 		// TODO: Perhaps spherecast for better clipping avoidance
 		if (!SelfReady || !TargetReady) {
 			Logger.Error("SpectateCam: UpdateCull failed - target or self not ready");
@@ -348,7 +350,7 @@ public class SpectateCam : MonoBehaviour {
 		_self!.FPSCamera!.OverridePositionAndRotation(eyePos, Quaternion.LookRotation(dir));
 	}
 
-	void UpdateYawPitch() {
+	private void UpdateYawPitch() {
 		if (!Util.GoodEnoughDeg(_yaw, _yawTarget)) {
 			_yaw = Mathf.LerpAngle(_yaw, _yawTarget, Time.deltaTime * ConfigMgr.FreecamLerpGain);
 			float yawDiff = _yawTarget - _yaw;
@@ -365,7 +367,7 @@ public class SpectateCam : MonoBehaviour {
 		}
 	}
 
-	void UpdateCull() {
+	private void UpdateCull() {
 		if (!SelfReady || !TargetReady) {
 			Logger.Error("SpectateCam: UpdateCull failed - target or self not ready");
 			return;
@@ -405,7 +407,7 @@ public class SpectateCam : MonoBehaviour {
 		return false;
 	}
 
-	void NextTarget() {
+	private void NextTarget() {
 		int limit = SNet.Slots?.SlottedPlayers?.Count ?? -1;
 		if (limit <= 0) return;
 
@@ -418,7 +420,7 @@ public class SpectateCam : MonoBehaviour {
 		}
 	}
 
-	void PreviousTarget() {
+	private void PreviousTarget() {
 		int limit = SNet.Slots?.SlottedPlayers?.Count ?? -1;
 		if (limit <= 0) return;
 
@@ -431,7 +433,7 @@ public class SpectateCam : MonoBehaviour {
 		}
 	}
 
-	bool TrySetTargetByIdx(int playerIdx) {
+	private bool TrySetTargetByIdx(int playerIdx) {
 		var players = SNet.Slots?.SlottedPlayers;
 		if (players == null || players.Count == 0) return false;
 
@@ -446,7 +448,7 @@ public class SpectateCam : MonoBehaviour {
 		return false;
 	}
 
-	void OnFollow2Free() {
+	private void OnFollow2Free() {
 		if (!TargetReady) {
 			Logger.Error("SpectateCam: OnTransitionToFreecam failed - target not ready");
 			return;
@@ -455,7 +457,7 @@ public class SpectateCam : MonoBehaviour {
 		// UpdateYawPitchWithFollowView(true);
 	}
 
-	void OnFree2Follow() {
+	private void OnFree2Follow() {
 		if (!TargetReady) {
 			Logger.Error("SpectateCam: OnTransitionToFollow failed - target not ready");
 			return;
@@ -465,35 +467,35 @@ public class SpectateCam : MonoBehaviour {
 	}
 
 	// WARNING: should not be called without check TargetReady
-	void UpdateYawPitchWithFollowView(bool instant) {
+	private void UpdateYawPitchWithFollowView(bool instant) {
 		SetYaw(Vector3.SignedAngle(Vector3.forward, _target!.Agent.Forward, Vector3.up), instant);
 		SetPitch(ConfigMgr.CameraPitchAngleDeg, instant);
 	}
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	void AdjustPitch(float deltaPitch, bool instant = false) {
+	private void AdjustPitch(float deltaPitch, bool instant = false) {
 		SetPitch(_pitchTarget + deltaPitch, instant);
 	}
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	void AdjustYaw(float deltaYaw, bool instant = false) {
+	private void AdjustYaw(float deltaYaw, bool instant = false) {
 		SetYaw(_yawTarget + deltaYaw, instant);
 	}
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	void SetPitch(float pitch, bool instant = false) {
+	private void SetPitch(float pitch, bool instant = false) {
 		pitch = Mathf.Clamp(pitch, PitchAngleDegMin, PitchAngleDegMax);
 		_pitchTarget = pitch;
 		if (instant) _pitch = pitch;
 	}
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	void SetYaw(float yaw, bool instant = false) {
+	private void SetYaw(float yaw, bool instant = false) {
 		_yawTarget = yaw;
 		if (instant) _yaw = yaw;
 	}
 
-	void RevertCull() {
+	private void RevertCull() {
 		if (!SelfReady) {
 			Logger.Error("SpectateCam: RevertCull failed - self is not ready");
 			return;

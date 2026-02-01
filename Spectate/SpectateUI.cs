@@ -330,7 +330,7 @@ public class SpectateUI : MonoBehaviour {
 		pstatus?.UpdateInfection(target.Infection, 0.0f);
 	}
 
-	void AddMenuItem(eSpectateMenuItem item, bool enableUI = true) {
+	private void AddMenuItem(eSpectateMenuItem item, bool enableUI = true) {
 		if (_menuItemsStr.Count >= MaxMenuItems) {
 			Logger.Warn($"SpectateUI: AddMenuItem ({item.ToString()}) but menu is full!");
 			return;
@@ -347,7 +347,7 @@ public class SpectateUI : MonoBehaviour {
 		}
 	}
 
-	void UpdateViewMode(bool freecam, bool enableUI = true) {
+	private void UpdateViewMode(bool freecam, bool enableUI = true) {
 		string freeTxt = freecam ? $"<#{StateHighlightColor}FF>FREE-LOOK</color>" : "<#FFFFFF60>FREE-LOOK</color>";
 		string followTxt = !freecam ? $"<#{StateHighlightColor}FF>FOLLOW</color>" : "<#FFFFFF60>FOLLOW</color>";
 		_menuViewModeStr = $"{freeTxt} / {followTxt}";
@@ -528,7 +528,7 @@ public class SpectateUI : MonoBehaviour {
 		}
 	}
 
-	void SetUIActive(bool active) {
+	private void SetUIActive(bool active) {
 		if (_wasUIActive == active) return;
 		foreach (var root in _uiRoots) {
 			Util.SetTargetActiveIfDiff(root, active);
@@ -537,7 +537,7 @@ public class SpectateUI : MonoBehaviour {
 		_wasUIActive = active;
 	}
 
-	void UpdateText(TextMeshPro? tmp, string newText) {
+	private void UpdateText(TextMeshPro? tmp, string newText) {
 		if (tmp == null) return;
 		if (tmp.text == newText) return;
 		if (newText != tmp.text) {
@@ -546,7 +546,7 @@ public class SpectateUI : MonoBehaviour {
 		}
 	}
 
-	void ForceTMPUpdate(TextMeshPro? tmp) {
+	private void ForceTMPUpdate(TextMeshPro? tmp) {
 		if (tmp == null) return;
 		tmp.SetAllDirty();
 		tmp.ForceMeshUpdate();
