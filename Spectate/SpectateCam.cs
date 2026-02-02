@@ -1,4 +1,4 @@
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using Player;
 using SNetwork;
 using UnityEngine;
@@ -37,6 +37,8 @@ public class SpectateCam : MonoBehaviour {
 	private float _eyeYTarget = 0f;
 	private Vector3 _eyeXZ = Vector3.zero;
 	private Vector3 _eyeXZTarget = Vector3.zero;
+	private Vector3 _eyePosComputed = Vector3.zero;
+	public Vector3 CameraPos => Active ? _eyePosComputed : _self?.FPSCamera?.Position ?? Vector3.zero;
 
 	public const float DefaultCameraYPositionLerpGain = 11.0f;
 	public const float DefaultCameraXZPositionLerpGain = 15.0f;
@@ -360,12 +362,12 @@ public class SpectateCam : MonoBehaviour {
 		dir.Normalize();
 
 		// raycast to avoid clipping into walls
-		Vector3 eyePos = orbitCenter - dir * ConfigMgr.CameraDistance;
+		_eyePosComputed = orbitCenter - dir * ConfigMgr.CameraDistance;
 		if (Physics.Raycast(orbitCenter, -dir, out var hit, ConfigMgr.CameraDistance, LayerManager.MASK_WORLD)) {
-			eyePos = hit.m_Point + dir * 0.1f;
+			_eyePosComputed = hit.m_Point + dir * 0.1f;
 		}
 
-		_self!.FPSCamera!.OverridePositionAndRotation(eyePos, Quaternion.LookRotation(dir));
+		_self!.FPSCamera!.OverridePositionAndRotation(_eyePosComputed, Quaternion.LookRotation(dir));
 	}
 
 	private void UpdateLerp(bool freecamEnabled) {

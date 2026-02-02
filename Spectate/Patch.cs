@@ -21,6 +21,20 @@ public class Patch {
 	}
 
 	[HarmonyPatch(
+		typeof(LocalPlayerAgent),
+		"get_CamPos"
+	)]
+	[HarmonyPrefix]
+	public static bool PlayerAgent_get_CamPos(ref Vector3 __result) {
+		if (SpectateCam.Instance?.Active ?? false) {
+			__result = SpectateCam.Instance.CameraPos;
+			return false;
+		}
+
+		return true;
+	}
+
+	[HarmonyPatch(
 		typeof(RundownManager),
 		nameof(RundownManager.EndGameSession)
 	)]
