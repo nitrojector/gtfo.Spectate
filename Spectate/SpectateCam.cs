@@ -1,4 +1,4 @@
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using Player;
 using SNetwork;
 using UnityEngine;
@@ -60,7 +60,16 @@ public class SpectateCam : MonoBehaviour {
 	private AgentTarget? _self = null;
 	private AgentTarget? _target = null;
 
-	public AgentTarget? Self => _self;
+	public AgentTarget? Self {
+		get {
+			if (_self == null) {
+				_self = new AgentTarget(PlayerManager.GetLocalPlayerAgent());
+			}
+
+			return _self;
+		}
+	}
+
 	public AgentTarget? Target => _target;
 
 	public SpectateCam(IntPtr ptr) : base(ptr) {
@@ -211,6 +220,13 @@ public class SpectateCam : MonoBehaviour {
 
 	private void UpdateTransitions() {
 		if (!SelfReady) {
+			return;
+		}
+
+		// TODO: NOTE: This might not be necessary.. more so a sanity check. Let's say there are 0
+		//   meaningful performance impacts
+		if (Active && !_self!.IsDowned && !ConfigMgr.DevEnables(eDevOpts.AllowSpectatingAnytime)) {
+			Detach();
 			return;
 		}
 

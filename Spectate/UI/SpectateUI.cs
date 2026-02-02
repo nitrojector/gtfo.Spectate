@@ -151,6 +151,54 @@ public class SpectateUI : MonoBehaviour {
 		       _specTargetTmp != null;
 	}
 
+	private void Update() {
+		bool canSpectate = (SpectateCam.Instance?.Self != null && SpectateCam.Instance.Self.IsDowned)
+		                   || ConfigMgr.DevEnables(eDevOpts.AllowSpectatingAnytime);
+		if (!canSpectate) {
+			SetUIActive(false);
+			return;
+		}
+
+		if (!CheckOrCreateTMP()) return; // ensure TMP is valid
+
+		ProcessInput();
+		if (SpectateCam.Instance?.Active ?? false)
+			UpdatePlayerStatusUI(SpectateCam.Instance.Target);
+		SetUIActive(true);
+		if (_isUIDirty || UIState != _uiStateRendered) {
+			RefreshUI();
+		}
+	}
+
+	public void UpdateForAttach() {
+		if (_uiStatePrev == eSpectateUIState.HideMenu || _uiStatePrev == eSpectateUIState.ShowMenu) {
+			SetUIState(_uiStatePrev);
+		} else {
+			SetUIState(eSpectateUIState.HideMenu);
+		}
+	}
+
+	public void UpdateForDetach() {
+		bool isDowned = SpectateCam.Instance?.Self?.IsDowned ?? false;
+		SetUIState(isDowned ? eSpectateUIState.FPDowned : eSpectateUIState.FPNotDowned);
+		UpdatePlayerStatusUI(SpectateCam.Instance?.Self);
+	}
+
+	void ProcessInput() {
+		if (!InputMapper.Current.FocusStateFilterPass(eFocusState.FPS)) return;
+
+		if (Input.GetKeyDown(KeyCode.Backslash)) {
+			switch (UIState) {
+				case eSpectateUIState.ShowMenu:
+					SetUIState(eSpectateUIState.HideMenu);
+					break;
+				case eSpectateUIState.HideMenu:
+					SetUIState(eSpectateUIState.ShowMenu);
+					break;
+			}
+		}
+	}
+
 	/// <summary>
 	/// Checks if necessary TMP elements exist, and creates them if not.
 	/// If partially exist, removes all and recreates.
@@ -268,54 +316,6 @@ public class SpectateUI : MonoBehaviour {
 		tmp.rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
 		tmp.rectTransform.pivot = new Vector2(0.5f, 0.5f);
 		return tmp;
-	}
-
-	private void Update() {
-		bool canSpectate = (SpectateCam.Instance?.Self?.IsDowned ?? false)
-		                   || ConfigMgr.DevEnables(eDevOpts.AllowSpectatingAnytime);
-		if (!canSpectate) {
-			SetUIActive(false);
-			return;
-		}
-
-		if (!CheckOrCreateTMP()) return; // ensure TMP is valid
-
-		ProcessInput();
-		if (SpectateCam.Instance?.Active ?? false)
-			UpdatePlayerStatusUI(SpectateCam.Instance.Target);
-		SetUIActive(true);
-		if (_isUIDirty || UIState != _uiStateRendered) {
-			RefreshUI();
-		}
-	}
-
-	public void UpdateForAttach() {
-		if (_uiStatePrev == eSpectateUIState.HideMenu || _uiStatePrev == eSpectateUIState.ShowMenu) {
-			SetUIState(_uiStatePrev);
-		} else {
-			SetUIState(eSpectateUIState.HideMenu);
-		}
-	}
-
-	public void UpdateForDetach() {
-		bool isDowned = SpectateCam.Instance?.Self?.IsDowned ?? false;
-		SetUIState(isDowned ? eSpectateUIState.FPDowned : eSpectateUIState.FPNotDowned);
-		UpdatePlayerStatusUI(SpectateCam.Instance?.Self);
-	}
-
-	void ProcessInput() {
-		if (!InputMapper.Current.FocusStateFilterPass(eFocusState.FPS)) return;
-
-		if (Input.GetKeyDown(KeyCode.Backslash)) {
-			switch (UIState) {
-				case eSpectateUIState.ShowMenu:
-					SetUIState(eSpectateUIState.HideMenu);
-					break;
-				case eSpectateUIState.HideMenu:
-					SetUIState(eSpectateUIState.ShowMenu);
-					break;
-			}
-		}
 	}
 
 	// === UI Update Methods (implementation specific) ===

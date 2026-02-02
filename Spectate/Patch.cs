@@ -25,6 +25,8 @@ public class Patch {
 		"get_CamPos"
 	)]
 	[HarmonyPrefix]
+	// NOTE: Player pings uses LocalPlayerAgent.CamPos for ray cast origin,
+	//   but our method of updating FPSCamera position isn't reflected in CamPos.
 	public static bool PlayerAgent_get_CamPos(ref Vector3 __result) {
 		if (SpectateCam.Instance?.Active ?? false) {
 			__result = SpectateCam.Instance.CameraPos;
