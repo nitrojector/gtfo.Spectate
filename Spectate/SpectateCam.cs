@@ -1,4 +1,4 @@
-﻿using System.Runtime.CompilerServices;
+using System.Runtime.CompilerServices;
 using Player;
 using SNetwork;
 using UnityEngine;
@@ -179,8 +179,7 @@ public class SpectateCam : MonoBehaviour {
 		// NOTE: we choose to change the style of crosshair instead of disabling it, in Attach/Detach
 		// GuiManager.CrosshairLayer?.m_circleCrosshair?.transform.parent.gameObject.SetActive(active);
 
-		// TODO: When we disable spectate, hand is invisible sometimes.
-		_self.FPHolder?.FPSArms?.SetVisible(!spectateActive);
+		_self.FPHolder?.FPSArms?.SetVisible(!spectateActive && !_self.IsDowned);
 
 		var fpsCamera = _self.FPSCamera;
 		if (fpsCamera != null) {
