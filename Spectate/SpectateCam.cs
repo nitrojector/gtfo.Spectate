@@ -1,4 +1,4 @@
-﻿using System.Runtime.CompilerServices;
+using System.Runtime.CompilerServices;
 using Player;
 using SNetwork;
 using UnityEngine;
@@ -401,11 +401,11 @@ public class SpectateCam : MonoBehaviour {
 		var curCullNode = _self.Agent.m_movingCuller.CurrentNode;
 		var targetNode = _target.CourseNode?.m_cullNode;
 		if (targetNode != null) {
-			if (curCullNode != targetNode) {
+			if (curCullNode.Pointer != targetNode.Pointer) {
 				_self.Agent.m_movingCuller.SetCurrentNode(targetNode);
 			}
 		} else {
-			Logger.Warn("SpectateCam: UpdateCull - failed to sync cull nodes self or target node is null");
+			Logger.Warn("SpectateCam: UpdateCull - failed to sync cull nodes, target node is null");
 		}
 	}
 
@@ -426,7 +426,10 @@ public class SpectateCam : MonoBehaviour {
 		var curCullNode = _self.Agent.m_movingCuller.CurrentNode;
 		var targetNode = _self.CourseNode?.m_cullNode;
 		if (targetNode != null) {
-			if (curCullNode != targetNode) {
+#if DEBUG
+			Logger.Debug($"RevertCull reverting to \"{targetNode.CourseNode.Name}\"");
+#endif
+			if (curCullNode?.Pointer != targetNode?.Pointer) {
 				_self.Agent.m_movingCuller.SetCurrentNode(targetNode);
 			}
 		} else {
