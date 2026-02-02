@@ -1,3 +1,7 @@
+# v1.2.1
+
+- Fixed a bug where checkpoints would break spectate.
+
 # v1.2.0
 
 - Added a keybind `T` to toggle auto transition to temporary follow view in Freecam mode. Note that changes in game to this option will be reflected in the config.
