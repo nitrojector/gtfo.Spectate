@@ -340,8 +340,10 @@ public class SpectateCam : MonoBehaviour {
 			}
 		}
 
-		// TODO: perhaps just use UpdateYawPitchWithFollowView(false); for follow as well.
+		// OLD: perhaps just use UpdateYawPitchWithFollowView(false); for follow as well.
 		//  This would smooth follow view which may be desirable.
+		// NOTE: we are not doing this because the snappiness might be desired for follow.
+		//   if not, users can just use auto-follow in freecam mode.
 
 		SetEye(GetTargetOrbitCenter());
 
