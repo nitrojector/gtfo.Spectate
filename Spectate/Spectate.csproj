@@ -62,6 +62,12 @@
         <Reference Include="$(BepInEx)\interop\*.dll" Private="false"/>
         <Reference Remove="$(BepInEx)\interop\netstandard.dll"/>
     </ItemGroup>
+
+    <!-- External Dependencies -->
+    <ItemGroup>
+        <Reference Include="$(BepInEx)\plugins\AuriRex-TheArchive_Core\TheArchive.Core.dll" Private="false"/>
+    </ItemGroup>
+
     <ItemGroup>
         <Compile Remove="obj\**"/>
         <Compile Remove="pkg\**"/>
