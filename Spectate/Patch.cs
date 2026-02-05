@@ -110,13 +110,28 @@ public class Patch {
 		}
 	}
 
+	// NOTE: This method is superseded by Dam_PlayerDamageLocal_OnRevive,
+	//   since it happens the instant the player is revived.
+	// [HarmonyPatch(
+	// 	typeof(PLOC_Downed),
+	// 	nameof(PLOC_Downed.Exit)
+	// )]
+	// [HarmonyPostfix]
+	// public static void PLOC_Downed_Exit(PLOC_Downed __instance) {
+	// 	if (!__instance.m_owner.IsLocallyOwned || SpectateCam.Instance == null) return;
+	//
+	// 	if (SpectateCam.Instance.Active) {
+	// 		SpectateCam.Instance.Detach();
+	// 	}
+	// }
+
 	[HarmonyPatch(
-		typeof(PLOC_Downed),
-		nameof(PLOC_Downed.Exit)
+		typeof(Dam_PlayerDamageLocal),
+		nameof(Dam_PlayerDamageLocal.OnRevive)
 	)]
 	[HarmonyPostfix]
-	public static void PLOC_Downed_Exit(PLOC_Downed __instance) {
-		if (!__instance.m_owner.IsLocallyOwned || SpectateCam.Instance == null) return;
+	public static void Dam_PlayerDamageLocal_OnRevive(Dam_PlayerDamageLocal __instance) {
+		if (SpectateCam.Instance == null) return;
 
 		if (SpectateCam.Instance.Active) {
 			SpectateCam.Instance.Detach();
