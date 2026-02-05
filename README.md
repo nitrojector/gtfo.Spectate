@@ -10,6 +10,6 @@
 
 <p align="center"><i>Sensitivities, keybinds, and multiple behaviors are customizable through the config</i></p>
 
-<p align="center">For feedback and issues, DM or message <code>@uwufood</code> on the GTFO Modding Discord Server</p>
+<p align="center">For feedback and issues, DM/message <code>@uwufood</code> or <a href="https://discord.com/channels/782438773690597389/1468851402339258499">the feedback thread</a> on the GTFO Modding Discord Server</p>
 
 </div>
