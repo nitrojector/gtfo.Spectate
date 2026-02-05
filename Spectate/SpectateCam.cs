@@ -56,7 +56,6 @@ public class SpectateCam : MonoBehaviour {
 	public const float PitchAngleDegMin = -89f;
 	public const float PitchAngleDegMax = 89f;
 
-
 	private AgentTarget? _self = null;
 	private AgentTarget? _target = null;
 
@@ -213,7 +212,7 @@ public class SpectateCam : MonoBehaviour {
 			}
 
 			UpdateLerp(_freecam);
-			UpdateCamPos();
+			UpdateCamera();
 			UpdateCull();
 		}
 	}
@@ -339,9 +338,7 @@ public class SpectateCam : MonoBehaviour {
 		}
 	}
 
-	private void UpdateCamPos() {
-		// TODO: option to disable lerping when switching players
-		//   make in config
+	private void UpdateCamera() {
 		if (!SelfReady || !TargetReady) {
 			Logger.Error("SpectateCam: UpdateCull failed - target or self not ready");
 			return;
@@ -384,6 +381,7 @@ public class SpectateCam : MonoBehaviour {
 		}
 
 		_self!.FPSCamera!.OverridePositionAndRotation(_eyePosComputed, Quaternion.LookRotation(dir));
+		_self!.FPSCamera!.OverrideFieldOfView(CellSettingsManager.GetIntValue(eCellSettingID.Video_WorldFOV));
 	}
 
 	private void UpdateLerp(bool freecamEnabled) {
