@@ -1,5 +1,7 @@
 ﻿using BepInEx;
 using BepInEx.Configuration;
+using Spectate.UI;
+using UnityEngine;
 
 namespace Spectate.Config;
 
@@ -86,6 +88,41 @@ internal static class ConfigMgr {
 		}
 	}
 
+	// Keybinds
+	private static readonly Dictionary<SpectateInputAction, ConfigEntryExtended<KeyCode>> KeybindConfs = new();
+
+	private static readonly Dictionary<SpectateInputAction, KeybindSetting> KeybindSettingConfs = new() {
+		[SpectateInputAction.ToggleSpectate] = new KeybindSetting {
+			Name = "Toggle Spectate",
+			Description = "toggle spectate active/inactive",
+			DefaultKey = KeyCode.V,
+		},
+		[SpectateInputAction.ToggleFreecam] = new KeybindSetting {
+			Name = "Toggle Free-Look View",
+			Description = "toggle free-look spectate view on/off",
+			DefaultKey = KeyCode.F,
+		},
+		[SpectateInputAction.ToggleAutoFollow] = new KeybindSetting {
+			Name = "Toggle Auto Follow View",
+			Description = "toggle automatic transition to temporary follow view on/off",
+			DefaultKey = KeyCode.T,
+		},
+		[SpectateInputAction.ToggleMenu] = new KeybindSetting {
+			Name = "Toggle Spectate Menu",
+			Description = "toggle spectate action menu on/off",
+			DefaultKey = KeyCode.Backslash,
+		},
+	};
+
+	public static KeyCode GetKeybind(SpectateInputAction action) {
+		if (KeybindConfs.TryGetValue(action, out var conf)) {
+			return conf.Value;
+		}
+
+		Logger.Error($"GetKeybind: no config found for action {action}");
+		return KeyCode.None;
+	}
+
 	public static void Process() {
 		Logger.Info($"debug={Debug}");
 		_cameraDistanceCache = CameraDistanceConf.Value;
@@ -98,6 +135,9 @@ internal static class ConfigMgr {
 				_devOptsVal |= optEnum;
 			}
 		}
+
+		// Notify UI of config changes, since keybinds and some settings affect it
+		SpectateUI.Instance?.MarkUIDirty();
 	}
 
 	static ConfigMgr() {
@@ -226,6 +266,16 @@ internal static class ConfigMgr {
 			$"(min: {SpectateCam.PitchAngleDegMin:F2}, max: {SpectateCam.PitchAngleDegMax:F2})");
 		CameraPitchAngleDegConf.AddRule(ConfigEntryRule.Min, SpectateCam.PitchAngleDegMin);
 		CameraPitchAngleDegConf.AddRule(ConfigEntryRule.Max, SpectateCam.PitchAngleDegMax);
+
+		sectionHeader = $"({section++}) Keybinds";
+
+		foreach (var (action, setting) in KeybindSettingConfs) {
+			KeybindConfs[action] = Conf.Bind(
+				sectionHeader,
+				setting.Name,
+				setting.DefaultKey,
+				setting.Description);
+		}
 
 		sectionHeader = "(Z) Dev";
 

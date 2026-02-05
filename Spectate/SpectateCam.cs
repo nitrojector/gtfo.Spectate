@@ -246,7 +246,7 @@ public class SpectateCam : MonoBehaviour {
 
 		// Universal inputs
 		bool allowKeySwitch = ConfigMgr.DevEnables(eDevOpts.AllowSpectatingAnytime) || (SelfReady && _self!.IsDowned);
-		if (allowKeySwitch && Input.GetKeyDown(KeyCode.V)) {
+		if (allowKeySwitch && Input.GetKeyDown(ConfigMgr.GetKeybind(SpectateInputAction.ToggleSpectate))) {
 			if (Active) {
 				if (!Detach()) Logger.Warn("SpectateCam: Failed to detach SpecCam");
 			} else {
@@ -257,7 +257,7 @@ public class SpectateCam : MonoBehaviour {
 		// Active-only inputs
 		if (!Active) return;
 
-		if (Input.GetKeyDown(KeyCode.F)) {
+		if (Input.GetKeyDown(ConfigMgr.GetKeybind(SpectateInputAction.ToggleFreecam))) {
 			if (_freecam) {
 				_freecam = false;
 				OnFree2Follow();
@@ -267,7 +267,7 @@ public class SpectateCam : MonoBehaviour {
 			}
 		}
 
-		if (_freecam && Input.GetKeyDown(KeyCode.T)) {
+		if (_freecam && Input.GetKeyDown(ConfigMgr.GetKeybind(SpectateInputAction.ToggleAutoFollow))) {
 			ConfigMgr.AutoTransitionToFollowView = !ConfigMgr.AutoTransitionToFollowView;
 			SpectateUI.Instance?.MarkUIDirty();
 		}
@@ -529,6 +529,7 @@ public class SpectateCam : MonoBehaviour {
 			return;
 		}
 
+		UpdateYawPitchWithFollowView(true);
 		SpectateUI.Instance?.MarkUIDirty();
 	}
 

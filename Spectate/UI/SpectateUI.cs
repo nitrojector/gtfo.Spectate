@@ -113,19 +113,21 @@ public class SpectateUI : MonoBehaviour {
 	private string _menuViewModeStr = "";
 	private readonly List<ValueTuple<string, string>> _menuItemsStr = new(); // (option, keybind)
 
-	private readonly Dictionary<eSpectateMenuItem, ValueTuple<string, string>> _menuItems = new() {
-		[eSpectateMenuItem.ShowMenu] = ("Show Menu", "\\"),
-		[eSpectateMenuItem.HideMenu] = ("Hide Menu", "\\"),
-		[eSpectateMenuItem.EnterSpectate] = ("Enter Spectate", "V"),
-		[eSpectateMenuItem.ExitSpectate] = ("Exit Spectate", "V"),
-		[eSpectateMenuItem.ToggleFreecam] = ("Toggle Free-Look", "F"),
-		[eSpectateMenuItem.EnableFreecamAutoTransition] = ("Enable Auto-Follow", "T"),
-		[eSpectateMenuItem.DisableFreecamAutoTransition] = ("Disable Auto-Follow", "T"),
-		[eSpectateMenuItem.SwitchPlayer] = ("Switch Player", "LMB / RMB"),
-		[eSpectateMenuItem.SelectPlayer] = ("Select Player", "1 - 8"),
-		[eSpectateMenuItem.AdjustDistance] = ("Camera Distance", "Scroll"),
-		[eSpectateMenuItem.AdjustOrbitCenterHeight] = ("Camera Vertical Offset", "Ctrl + Scroll"),
-		[eSpectateMenuItem.AdjustFollowPitch] = ("Camera Pitch", "Shift + Scroll"),
+	private readonly Dictionary<eSpectateMenuItem, ValueTuple<string, MenuKeybindEntry>> _menuItems = new() {
+		[eSpectateMenuItem.ShowMenu] = ("Show Menu", new(SpectateInputAction.ToggleMenu)),
+		[eSpectateMenuItem.HideMenu] = ("Hide Menu", new(SpectateInputAction.ToggleMenu)),
+		[eSpectateMenuItem.EnterSpectate] = ("Enter Spectate", new(SpectateInputAction.ToggleSpectate)),
+		[eSpectateMenuItem.ExitSpectate] = ("Exit Spectate", new(SpectateInputAction.ToggleSpectate)),
+		[eSpectateMenuItem.ToggleFreecam] = ("Toggle Free-Look", new(SpectateInputAction.ToggleFreecam)),
+		[eSpectateMenuItem.EnableFreecamAutoTransition] =
+			("Enable Auto-Follow", new(SpectateInputAction.ToggleAutoFollow)),
+		[eSpectateMenuItem.DisableFreecamAutoTransition] =
+			("Disable Auto-Follow", new(SpectateInputAction.ToggleAutoFollow)),
+		[eSpectateMenuItem.SwitchPlayer] = ("Switch Player", new("LMB / RMB")),
+		[eSpectateMenuItem.SelectPlayer] = ("Select Player", new("1 - 8")),
+		[eSpectateMenuItem.AdjustDistance] = ("Camera Distance", new("Scroll")),
+		[eSpectateMenuItem.AdjustOrbitCenterHeight] = ("Camera Vertical Offset", new("Ctrl + Scroll")),
+		[eSpectateMenuItem.AdjustFollowPitch] = ("Camera Pitch", new("Shift + Scroll")),
 	};
 
 	/// <summary>
@@ -187,7 +189,7 @@ public class SpectateUI : MonoBehaviour {
 	void ProcessInput() {
 		if (!InputMapper.Current.FocusStateFilterPass(eFocusState.FPS)) return;
 
-		if (Input.GetKeyDown(KeyCode.Backslash)) {
+		if (Input.GetKeyDown(ConfigMgr.GetKeybind(SpectateInputAction.ToggleMenu))) {
 			switch (UIState) {
 				case eSpectateUIState.ShowMenu:
 					SetUIState(eSpectateUIState.HideMenu);
@@ -338,7 +340,7 @@ public class SpectateUI : MonoBehaviour {
 		}
 
 		if (_menuItems.TryGetValue(item, out var val)) {
-			_menuItemsStr.Add(val);
+			_menuItemsStr.Add((val.Item1, val.Item2.ToString()));
 		} else {
 			Logger.Warn("SpectateUI: Tried to add unknown menu item!");
 		}
