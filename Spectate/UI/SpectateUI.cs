@@ -1,4 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
+using Player;
 using Spectate.Config;
 using TMPro;
 using UnityEngine;
@@ -97,6 +98,7 @@ public class SpectateUI : MonoBehaviour {
 	private const string StateHighlightColor = "04B065";
 
 	// === UI Elements ===
+	private NavMarker? _navMarker;
 	private TextMeshPro? _specTargetTmp;
 
 	// --- Menu Elements ---
@@ -142,6 +144,52 @@ public class SpectateUI : MonoBehaviour {
 		} else {
 			Instance = this;
 		}
+	}
+
+	/// <summary>
+	/// Shows a nav marker on the local player to indicate their position while spectating.
+	/// </summary>
+	public void ShowNavMarker() {
+		var localPlayer = PlayerManager.GetLocalPlayerAgent();
+		if (localPlayer == null) {
+			Logger.Warn("SpectateUI: Cannot show nav marker: no local player!");
+			return;
+		}
+
+		if (_navMarker == null) {
+			_navMarker = GuiManager.NavMarkerLayer.PlaceCustomMarker(
+				NavMarkerOption.SignTitleDistance,
+				localPlayer.gameObject, "Spectate LocalPlayer");
+		}
+
+		_navMarker.SetVisible(true);
+		_navMarker.SetIconScale(0.4f);
+		_navMarker.SetTitle(localPlayer.InteractionName);
+		_navMarker.SetAlpha(2.0f);
+		_navMarker.SetSignInfo("<#FFF>YOU</color>");
+
+		/* Player Title Distance style options
+		if (_navMarker == null) {
+			_navMarker = GuiManager.NavMarkerLayer.PlaceCustomMarker(
+				NavMarkerOption.PlayerTitleDistance,
+				localPlayer.gameObject, "Spectate LocalPlayer");
+		}
+
+		_navMarker.SetVisible(true);
+		_navMarker.SetIconScale(0.4f);
+		_navMarker.SetPlayerName(localPlayer.InteractionName);
+		_navMarker.SetTitle("");
+		_navMarker.SetAlpha(1.0f);
+		*/
+	}
+
+	/// <summary>
+	/// Hides the nav marker on the local player.
+	/// Should be called when exiting spectate mode to prevent confusion.
+	/// </summary>
+	public void HideNavMarker() {
+		if (_navMarker != null)
+			_navMarker.SetVisible(false);
 	}
 
 	/// <summary>

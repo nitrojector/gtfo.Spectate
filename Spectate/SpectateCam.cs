@@ -130,6 +130,8 @@ public class SpectateCam : MonoBehaviour {
 
 		GuiManager.CrosshairLayer.ShowPrecisionDot();
 		SpectateUI.Instance?.UpdateForAttach();
+		if (ConfigMgr.ShowLocalPlayerNavMarker)
+			SpectateUI.Instance?.ShowNavMarker();
 		SetRelatedActive(true);
 		UpdateCull();
 		SetActive(true);
@@ -148,6 +150,7 @@ public class SpectateCam : MonoBehaviour {
 
 		GuiManager.CrosshairLayer?.ShowSpreadCircle(_self!.FPHolder?.WieldedItem?.HipFireCrosshairSize ?? 40.0f);
 		SpectateUI.Instance?.UpdateForDetach();
+		SpectateUI.Instance?.HideNavMarker();
 		SetRelatedActive(false);
 		RevertCull();
 		SetActive(false);

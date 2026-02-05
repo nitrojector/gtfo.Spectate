@@ -26,13 +26,18 @@ internal static class ConfigMgr {
 	// Behavior
 	private static readonly ConfigEntryExtended<bool> SwitchOnDeathConf;
 	private static readonly ConfigEntryExtended<bool> DefaultFreecamViewConf;
-	private static readonly ConfigEntryExtended<bool> AutoTransitionToFollowViewConf;
 	private static readonly ConfigEntryExtended<bool> NoPosLerpOnSwitchTargetConf;
 	private static readonly ConfigEntryExtended<bool> ShowPlayerBodyWhenSpectatingConf;
+	private static readonly ConfigEntryExtended<bool> ShowLocalPlayerNavMarkerConf;
+	private static readonly ConfigEntryExtended<bool> AutoTransitionToFollowViewConf;
 	private static readonly ConfigEntryExtended<float> AutoTransitionDelayConf;
 	private static bool _autoTransitionToFollowViewCache = false;
 	public static bool SwitchOnDeath => SwitchOnDeathConf.Value;
 	public static bool DefaultFreecamView => DefaultFreecamViewConf.Value;
+	public static bool NoPosLerpOnSwitchTarget => NoPosLerpOnSwitchTargetConf.Value;
+	public static bool ShowPlayerBodyWhenSpectating => ShowPlayerBodyWhenSpectatingConf.Value;
+	public static bool ShowLocalPlayerNavMarker => ShowLocalPlayerNavMarkerConf.Value;
+	public static float AutoTransitionDelay => AutoTransitionDelayConf.Value;
 
 	public static bool AutoTransitionToFollowView {
 		get => _autoTransitionToFollowViewCache;
@@ -41,10 +46,6 @@ internal static class ConfigMgr {
 			_configDirty = true;
 		}
 	}
-
-	public static bool NoPosLerpOnSwitchTarget => NoPosLerpOnSwitchTargetConf.Value;
-	public static bool ShowPlayerBodyWhenSpectating => ShowPlayerBodyWhenSpectatingConf.Value;
-	public static float AutoTransitionDelay => AutoTransitionDelayConf.Value;
 
 	// Sensitivity
 	private static readonly ConfigEntryExtended<float> ScrollSensitivityConf;
@@ -181,23 +182,29 @@ internal static class ConfigMgr {
 			true,
 			"start game sessions with free-look enabled by default");
 
-		AutoTransitionToFollowViewConf = Conf.Bind(
-			sectionHeader,
-			"Auto Transition to Temporary Follow View",
-			true,
-			"automatically transition to temporary follow view after idling in free-look");
-
 		NoPosLerpOnSwitchTargetConf = Conf.Bind(
 			sectionHeader,
 			"No Position Smoothing on Target Switch",
 			false,
 			"disable camera position smoothing when switching spectate targets in free-look");
 
+		ShowLocalPlayerNavMarkerConf = Conf.Bind(
+			sectionHeader,
+			"Show Local Player Nav Marker when Spectating",
+			true,
+			"show a nav marker to indicate the local player's position when spectating");
+
 		ShowPlayerBodyWhenSpectatingConf = Conf.Bind(
 			sectionHeader,
-			"Show Local Player Body When Spectating",
+			"Show Local Player Body when Spectating",
 			false,
 			"render the local player's body when spectating in third-person views (note: the player body has no head or arms)");
+
+		AutoTransitionToFollowViewConf = Conf.Bind(
+			sectionHeader,
+			"Auto Transition to Temporary Follow View",
+			true,
+			"automatically transition to temporary follow view after idling in free-look");
 
 		AutoTransitionDelayConf = Conf.Bind(
 			sectionHeader,
