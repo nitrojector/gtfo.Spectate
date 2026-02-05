@@ -170,18 +170,17 @@ public class SpectateCam : MonoBehaviour {
 	}
 
 	private void SetRelatedActive(bool spectateActive) {
-		// TODO: transition to/from certain UIs reset the state of some elements (e.g. crosshair), we want them to stay disabled
-		// Patch FocusStateManager.ChangeState ?
 		if (!SelfReady) {
 			Logger.Error("SpectateCam: SetRelatedActive failed - self not ready");
 			return;
 		}
 
-		_self!.SetRigActive(!spectateActive);
+		if (!ConfigMgr.ShowPlayerBodyWhenSpectating)
+			_self!.SetRigActive(!spectateActive);
 
 		// NOTE: we don't want to disable Locomotion, we are
 		// _self.Locomotion.enabled = active;
-		_self.Agent.DeadDebugMode = spectateActive;
+		_self!.Agent.DeadDebugMode = spectateActive;
 		Util.SetTargetActiveIfDiff(_self.Inventory, !spectateActive);
 		Util.SetTargetActiveIfDiff(_self.Inventory?.m_flashlight.gameObject, !spectateActive);
 		Util.SetTargetActiveIfDiff(_self.FPHolder?.gameObject, !spectateActive);

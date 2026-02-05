@@ -28,6 +28,7 @@ internal static class ConfigMgr {
 	private static readonly ConfigEntryExtended<bool> DefaultFreecamViewConf;
 	private static readonly ConfigEntryExtended<bool> AutoTransitionToFollowViewConf;
 	private static readonly ConfigEntryExtended<bool> NoPosLerpOnSwitchTargetConf;
+	private static readonly ConfigEntryExtended<bool> ShowPlayerBodyWhenSpectatingConf;
 	private static readonly ConfigEntryExtended<float> AutoTransitionDelayConf;
 	private static bool _autoTransitionToFollowViewCache = false;
 	public static bool SwitchOnDeath => SwitchOnDeathConf.Value;
@@ -42,6 +43,7 @@ internal static class ConfigMgr {
 	}
 
 	public static bool NoPosLerpOnSwitchTarget => NoPosLerpOnSwitchTargetConf.Value;
+	public static bool ShowPlayerBodyWhenSpectating => ShowPlayerBodyWhenSpectatingConf.Value;
 	public static float AutoTransitionDelay => AutoTransitionDelayConf.Value;
 
 	// Sensitivity
@@ -190,6 +192,12 @@ internal static class ConfigMgr {
 			"No Position Smoothing on Target Switch",
 			false,
 			"disable camera position smoothing when switching spectate targets in free-look");
+
+		ShowPlayerBodyWhenSpectatingConf = Conf.Bind(
+			sectionHeader,
+			"Show Local Player Body When Spectating",
+			false,
+			"render the local player's body when spectating in third-person views (note: the player body has no head or arms)");
 
 		AutoTransitionDelayConf = Conf.Bind(
 			sectionHeader,
