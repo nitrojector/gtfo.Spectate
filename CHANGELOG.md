@@ -1,3 +1,10 @@
+# v1.3.0
+
+- Add the ability to customize certain keybinds in the config file.
+- Fixed a bug where spectate UI will inherit the FOV before the player is downed.
+    - FOV during spectate now respects FOV value defined in game settings and updates dynamically.
+    - e.g. If the player gets downed while ADSing, which has a lower FOV, spectate will have the same narrow FOV.
+
 # v1.2.1
 
 - Fixed a bug where checkpoints would break spectate.
@@ -20,8 +27,8 @@
 # v1.1.0
 
 - Rewrote UI management to support more behaviors.
-  - Auto spectate on down is now false by default.
-  - Text now shows the option to spectate when in FPS downed state.
+    - Auto spectate on down is now false by default.
+    - Text now shows the option to spectate when in FPS downed state.
 - Fixed a bug where cull nodes are not checked against null when detaching camera.
 
 # v1.0.3

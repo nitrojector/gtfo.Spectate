@@ -13,7 +13,7 @@ namespace Spectate;
 public class Plugin : BasePlugin {
 	public const string NAME = "Spectate";
 	public const string GUID = "io.takina.gtfo." + NAME;
-	public const string VERSION = "1.2.1";
+	public const string VERSION = "1.3.0";
 
 	public event Action? OnManagersSetup;
 	public static GameObject? PluginObject;
