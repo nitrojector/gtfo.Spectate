@@ -93,11 +93,17 @@ public class SpectateUI : MonoBehaviour {
 	/// </summary>
 	private const float MenuKeybindHeight = 16.0f;
 
+	/// <summary>
+	/// The offset (localPosition) of the spectate target object align
+	/// </summary>
+	private static readonly Vector3 HeadBeaconAlignOffset = new(0f, 0.3f, 0f);
+
 	// === UI Style Constants ===
 	private const string SpecTargetTextColor = "FFFFFF";
 	private const string StateHighlightColor = "04B065";
 
 	// === UI Elements ===
+	private GameObject? _navMarkerTrackTarget;
 	private NavMarker? _navMarker;
 	private TextMeshPro? _specTargetTmp;
 
@@ -156,12 +162,20 @@ public class SpectateUI : MonoBehaviour {
 			return;
 		}
 
+		if (_navMarkerTrackTarget == null) {
+			var headTrans = localPlayer.PlayerSyncModel.m_nameNavMarkerAlign;
+			_navMarkerTrackTarget = new GameObject($"{Plugin.GUID}_SpectateNavMarkerTrackTarget");
+			_navMarkerTrackTarget.transform.SetParent(headTrans, false);
+			_navMarkerTrackTarget.transform.localPosition = HeadBeaconAlignOffset;
+		}
+
 		if (_navMarker == null) {
 			_navMarker = GuiManager.NavMarkerLayer.PlaceCustomMarker(
 				NavMarkerOption.SignTitleDistance,
-				localPlayer.gameObject, "Spectate LocalPlayer");
+				_navMarkerTrackTarget, "Spectate LocalPlayer");
 		}
 
+		_navMarker.SetTrackingObject(_navMarkerTrackTarget);
 		_navMarker.SetVisible(true);
 		_navMarker.SetIconScale(0.4f);
 		_navMarker.SetTitle(localPlayer.InteractionName);

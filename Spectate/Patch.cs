@@ -3,13 +3,15 @@ using Player;
 using SNetwork;
 using Spectate.Config;
 using UnityEngine;
+using System.Collections;
+using BepInEx.Unity.IL2CPP.Utils.Collections;
 
 namespace Spectate;
 
 [HarmonyPatch]
 public class Patch {
-	// TODO: Sometimes camera FOV shrinks?, the FOV remains small.
-	// 	 Need to find where the FOV is changed and patch it to prevent changes while spectating.
+	public const float PreStop = 1.0f;
+	public const int IntervalStopFrames = 10;
 
 	[HarmonyPatch(
 		typeof(GS_ReadyToStopElevatorRide),
@@ -74,7 +76,7 @@ public class Patch {
 	[HarmonyPrefix]
 	public static bool PlayerAgent_GetDetectionMod(PlayerAgent __instance, ref Vector3 dir, float distance) {
 		if (SpectateCam.Instance?.Active ?? false) {
-			dir = SpectateCam.Instance.LastCamDir;
+			dir = SpectateCam.Instance.DiegeticCamDir;
 		}
 
 		return true;
@@ -91,7 +93,7 @@ public class Patch {
 		if (!__instance.m_agent.IsLocallyOwned) return true;
 #endif
 		if (SpectateCam.Instance?.Active ?? false) {
-			lookDir = SpectateCam.Instance.LastCamDir;
+			lookDir = SpectateCam.Instance.DiegeticCamDir;
 		}
 
 		return true;
@@ -105,9 +107,31 @@ public class Patch {
 	public static void PLOC_Downed_Enter(PLOC_Downed __instance) {
 		if (!__instance.m_owner.IsLocallyOwned || SpectateCam.Instance == null) return;
 
-		if (ConfigMgr.SwitchOnDeath && !SpectateCam.Instance.Active) {
-			SpectateCam.Instance.Attach();
+		// NOTE: We transition player to downed posture FOR REAL
+		//   we hide legs to align with vanilla feel
+		__instance.SyncEnter();
+		if (!SpectateCam.Instance.Active) {
+			var psm = __instance.m_owner.PlayerSyncModel;
+			psm.SetGFXVisible(psm.m_gfxLegs, false, false);
+		} else {
+			// TODO: NOTE: We are doing this half assed solution to force update player rig posture/position
+			__instance.m_owner.StartCoroutine(BumF__kRandomSolutionRoutine().WrapToIl2Cpp());
 		}
+
+		if (ConfigMgr.SwitchOnDeath && !SpectateCam.Instance.Active) {
+			SpectateCam.Instance.TryAttachDelayed(SpectateCam.DownToSpectateDelay);
+		}
+	}
+
+	private static IEnumerator BumF__kRandomSolutionRoutine() {
+		yield return new WaitForSeconds(PreStop);
+
+		SpectateCam.Instance?.SetRelatedActive(false);
+		for (int i = 0; i < IntervalStopFrames; ++i) {
+			yield return new WaitForEndOfFrame();
+		}
+
+		SpectateCam.Instance?.SetRelatedActive(SpectateCam.Instance.Active);
 	}
 
 	// NOTE: This method is superseded by Dam_PlayerDamageLocal_OnRevive,
@@ -131,10 +155,15 @@ public class Patch {
 	)]
 	[HarmonyPostfix]
 	public static void Dam_PlayerDamageLocal_OnRevive(Dam_PlayerDamageLocal __instance) {
-		if (SpectateCam.Instance == null) return;
+		if (!__instance.Owner.IsLocallyOwned || SpectateCam.Instance == null) return;
 
 		if (SpectateCam.Instance.Active) {
 			SpectateCam.Instance.Detach();
 		}
+
+		// NOTE: We revert the downed posture
+		__instance.Owner.Locomotion.Downed.SyncExit();
+		var psm = __instance.Owner.PlayerSyncModel;
+		psm.SetGFXVisible(psm.m_gfxLegs, true, true);
 	}
 }

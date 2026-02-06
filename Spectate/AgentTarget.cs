@@ -1,4 +1,6 @@
 ﻿using AIGraph;
+using BepInEx.Unity.IL2CPP.Utils.Collections;
+using Il2CppInterop.Runtime.InteropTypes.Arrays;
 using Player;
 using SNetwork;
 using UnityEngine;
@@ -17,6 +19,8 @@ public class AgentTarget {
 	public PlayerLocomotion Locomotion => Agent.Locomotion;
 	public PlayerLocomotion.PLOC_State LocomotionStateEnum => Locomotion.m_currentStateEnum;
 	public bool IsDowned => LocomotionStateEnum == PlayerLocomotion.PLOC_State.Downed;
+
+	public PlayerSyncModelData PlayerModel => Agent.PlayerSyncModel;
 
 	public SNet_Player SAgent => Agent.Owner;
 	public bool IsBot => SAgent.IsBot;
@@ -39,6 +43,27 @@ public class AgentTarget {
 
 	public void SetRigActive(bool active) {
 		Util.SetTargetActiveIfDiff(Agent.PlayerSyncModel.gameObject, active);
+	}
+
+	public void SetHostHiddenRigActive(bool active) {
+		var psm = Agent.PlayerSyncModel;
+
+		if (psm.m_gfxHead.Count == 0 || psm.m_gfxArms.Count == 0) {
+			Util.FindAndSortGfxParts(psm.gameObject, out var gfxHead, out var gfxArms, out var gfxTorso,
+				out var gfxLegs);
+			psm.m_gfxHead = gfxHead;
+			psm.m_gfxArms = gfxArms;
+			psm.m_gfxTorso = gfxTorso;
+			psm.m_gfxLegs = gfxLegs;
+		}
+
+		psm.SetHeadVisible(active, active);
+		psm.SetArmsVisible(active, active);
+	}
+
+	public void SetRigLegsActive(bool active) {
+		var psm = Agent.PlayerSyncModel;
+		psm.SetGFXVisible(psm.m_gfxLegs, active, active);
 	}
 
 	public static bool operator ==(AgentTarget? a, AgentTarget? b) {

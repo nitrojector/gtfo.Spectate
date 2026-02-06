@@ -1,4 +1,6 @@
 ﻿using System.Runtime.CompilerServices;
+using System.Collections;
+using BepInEx.Unity.IL2CPP.Utils.Collections;
 using Player;
 using SNetwork;
 using UnityEngine;
@@ -27,7 +29,10 @@ public class SpectateCam : MonoBehaviour {
 	private float _freeLookReturnTimer = 0f;
 	public bool Freecam => _freecam;
 
-	public Vector3 LastCamDir = Vector3.forward;
+	public Vector3 DiegeticCamDir = Vector3.forward;
+	public Vector3 DiegeticPlayerRigScale = Vector3.one;
+
+	public const float DownToSpectateDelay = 1.0f;
 
 	private float _pitch = ConfigMgr.CameraPitchAngleDeg;
 	private float _yaw = 0f;
@@ -114,6 +119,17 @@ public class SpectateCam : MonoBehaviour {
 		_target = new AgentTarget(agent);
 	}
 
+	public void TryAttachDelayed(float delay) {
+		StartCoroutine(TryAttachDelayedCoroutine(delay).WrapToIl2Cpp());
+	}
+
+	private IEnumerator TryAttachDelayedCoroutine(float delay) {
+		yield return new WaitForSeconds(delay);
+		if (!Attach()) {
+			Logger.Warn("SpectateCam: TryAttachDelayed failed to attach after delay");
+		}
+	}
+
 	public bool Attach() {
 		if (Active) return true;
 		if (!SelfReady && !Load()) {
@@ -126,7 +142,9 @@ public class SpectateCam : MonoBehaviour {
 			return false;
 		}
 
-		LastCamDir = _self!.FPSCamera!.Forward;
+		DiegeticCamDir = _self!.FPSCamera!.Forward;
+		DiegeticPlayerRigScale = _self!.PlayerModel.gameObject.transform.localScale;
+		_self!.PlayerModel.gameObject.transform.localScale = Vector3.one;
 
 		GuiManager.CrosshairLayer.ShowPrecisionDot();
 		SpectateUI.Instance?.UpdateForAttach();
@@ -147,6 +165,8 @@ public class SpectateCam : MonoBehaviour {
 			Unload();
 			return false;
 		}
+
+		_self!.PlayerModel.gameObject.transform.localScale = DiegeticPlayerRigScale;
 
 		GuiManager.CrosshairLayer?.ShowSpreadCircle(_self!.FPHolder?.WieldedItem?.HipFireCrosshairSize ?? 40.0f);
 		SpectateUI.Instance?.UpdateForDetach();
@@ -172,14 +192,24 @@ public class SpectateCam : MonoBehaviour {
 		}
 	}
 
-	private void SetRelatedActive(bool spectateActive) {
+	internal void SetRelatedActive(bool spectateActive) {
 		if (!SelfReady) {
 			Logger.Error("SpectateCam: SetRelatedActive failed - self not ready");
 			return;
 		}
 
-		if (!ConfigMgr.ShowPlayerBodyWhenSpectating)
+		if (ConfigMgr.ShowPlayerBodyWhenSpectating) {
+			_self!.SetHostHiddenRigActive(spectateActive);
+			if (!Self!.IsDowned && !spectateActive) {
+				// NOTE: for the case of dev options allowing spectating anytime,
+				//   we want to show legs when not spectating even if not downed.
+				_self.SetRigLegsActive(true);
+			} else {
+				_self.SetRigLegsActive(spectateActive);
+			}
+		} else {
 			_self!.SetRigActive(!spectateActive);
+		}
 
 		// NOTE: we don't want to disable Locomotion, we are
 		// _self.Locomotion.enabled = active;
@@ -197,7 +227,8 @@ public class SpectateCam : MonoBehaviour {
 		if (fpsCamera != null) {
 			fpsCamera.MouseLookEnabled = !spectateActive;
 			fpsCamera.PlayerAgentRotationEnabled = !spectateActive;
-			fpsCamera.PlayerMoveEnabled = !spectateActive;
+			// NOTE: Turned off to let player model update correctly
+			// fpsCamera.PlayerMoveEnabled = !spectateActive;
 		}
 	}
 
@@ -224,7 +255,7 @@ public class SpectateCam : MonoBehaviour {
 			return;
 		}
 
-		// TODO: NOTE: This might not be necessary.. more so a sanity check. Let's say there are 0
+		// NOTE: This might not be necessary.. more so a sanity check. Let's say there are 0
 		//   meaningful performance impacts
 		if (Active && !_self!.IsDowned && !ConfigMgr.DevEnables(eDevOpts.AllowSpectatingAnytime)) {
 			Detach();
@@ -451,10 +482,6 @@ public class SpectateCam : MonoBehaviour {
 		} else {
 			Logger.Warn("SpectateCam: RevertCull - failed to sync cull nodes self or target node is null");
 		}
-	}
-
-	private void OnApplicationQuit() {
-		ConfigMgr.WriteConfigIfDirty();
 	}
 
 	bool TrySetAnyNonLocalTarget() {
