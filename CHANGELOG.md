@@ -1,3 +1,7 @@
+# v1.4.1
+
+- Added a thing :P
+
 # v1.4.0
 
 - Now shows the local player's model in-game (can be disabled in the config).

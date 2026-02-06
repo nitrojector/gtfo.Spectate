@@ -364,7 +364,7 @@ public class SpectateUI : MonoBehaviour {
 		return true;
 	}
 
-	private TextMeshPro CreateTMPFrom(TextMeshPro from, string name) {
+	internal static TextMeshPro CreateTMPFrom(TextMeshPro from, string name) {
 		TextMeshPro tmp = Instantiate(from);
 		tmp.name = name;
 		tmp.color = new(1.0f, 1.0f, 1.0f, 0.8f);

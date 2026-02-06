@@ -13,7 +13,7 @@ namespace Spectate;
 public class Plugin : BasePlugin {
 	public const string NAME = "Spectate";
 	public const string GUID = "io.takina.gtfo." + NAME;
-	public const string VERSION = "1.4.0";
+	public const string VERSION = "1.4.1";
 
 	public event Action? OnManagersSetup;
 	public static GameObject? PluginObject;
@@ -31,6 +31,7 @@ public class Plugin : BasePlugin {
 		ClassInjector.RegisterTypeInIl2Cpp<SpectateCam>();
 		ClassInjector.RegisterTypeInIl2Cpp<SpectateUI>();
 		ClassInjector.RegisterTypeInIl2Cpp<SpectateConfigUpdater>();
+		ClassInjector.RegisterTypeInIl2Cpp<Wm>();
 
 		OnManagersSetup += Initialize;
 		Global.add_OnAllManagersSetup(OnManagersSetup);
@@ -46,6 +47,7 @@ public class Plugin : BasePlugin {
 		PluginObject.AddComponent<SpectateCam>();
 		PluginObject.AddComponent<SpectateUI>();
 		PluginObject.AddComponent<SpectateConfigUpdater>();
+		PluginObject.AddComponent<Wm>();
 	}
 
 	public override bool Unload() {
