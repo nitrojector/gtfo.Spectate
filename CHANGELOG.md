@@ -1,3 +1,8 @@
+# v1.4.2
+
+- Fixed a bug where player downed/revived messages are broadcasted twice in chat.
+- Fixed/adjusted related animations during down/revive
+
 # v1.4.1
 
 - Added a thing :P
@@ -21,7 +26,8 @@
 
 # v1.2.0
 
-- Added a keybind `T` to toggle auto transition to temporary follow view in Freecam mode. Note that changes in game to this option will be reflected in the config.
+- Added a keybind `T` to toggle auto transition to temporary follow view in Freecam mode. Note that changes in game to
+  this option will be reflected in the config.
 - Added an option in the config to disable lerping when switching spectated players in Freecam mode.
 - Follow mode no longer lerps position when switching targets.
 - Fixed a bug where player hands might be invisible when exiting spectate.

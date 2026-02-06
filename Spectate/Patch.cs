@@ -108,8 +108,8 @@ public class Patch {
 		if (!__instance.m_owner.IsLocallyOwned || SpectateCam.Instance == null) return;
 
 		// NOTE: We transition player to downed posture FOR REAL
-		//   we hide legs to align with vanilla feel
-		__instance.SyncEnter();
+		//   hide legs to align with vanilla feel
+		Play_Player_PLOC_Down_Animation(__instance);
 		if (!SpectateCam.Instance.Active) {
 			var psm = __instance.m_owner.PlayerSyncModel;
 			psm.SetGFXVisible(psm.m_gfxLegs, false, false);
@@ -161,9 +161,14 @@ public class Patch {
 			SpectateCam.Instance.Detach();
 		}
 
-		// NOTE: We revert the downed posture
-		__instance.Owner.Locomotion.Downed.SyncExit();
 		var psm = __instance.Owner.PlayerSyncModel;
 		psm.SetGFXVisible(psm.m_gfxLegs, true, true);
+		__instance.Owner.AnimatorBody.Play("Rifle_Movement");
+	}
+
+	public static void Play_Player_PLOC_Down_Animation(PLOC_Downed instance) {
+		instance.m_owner.AnimatorBody.Play("Dead", 1);
+		instance.m_owner.AnimatorArms.SetLayerWeight(7, 0f);
+		instance.m_owner.AnimatorArms.SetLayerWeight(8, 0f);
 	}
 }
