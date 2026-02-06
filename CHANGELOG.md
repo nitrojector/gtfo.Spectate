@@ -1,3 +1,9 @@
+# v1.4.0
+
+- Now shows the local player's model in-game (can be disabled in the config).
+- Add a beacon to mark the local player's position (can be disabled in the config).
+- Players now exit spectate the instant they are revived, rather than until interactable.
+
 # v1.3.0
 
 - Add the ability to customize certain keybinds in the config file.
