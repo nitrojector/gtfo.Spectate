@@ -200,8 +200,8 @@ internal static class ConfigMgr {
 		ShowPlayerBodyWhenSpectatingConf = Conf.Bind(
 			sectionHeader,
 			"Show Local Player Body when Spectating",
-			false,
-			"render the local player's body when spectating in third-person views (note: the player body has no head or arms)");
+			true,
+			"render the local player's body when spectating in third-person views");
 
 		AutoTransitionToFollowViewConf = Conf.Bind(
 			sectionHeader,
@@ -212,7 +212,7 @@ internal static class ConfigMgr {
 		AutoTransitionDelayConf = Conf.Bind(
 			sectionHeader,
 			"Auto Transition Delay",
-			3.0f,
+			2.0f,
 			"delay after no mouse input in seconds before automatically transitioning to temporary follow view (min: 0.2)");
 		AutoTransitionDelayConf.AddRule(ConfigEntryRule.Min, 0.2f);
 
