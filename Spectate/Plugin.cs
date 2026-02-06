@@ -1,4 +1,4 @@
-﻿using BepInEx;
+using BepInEx;
 using BepInEx.Unity.IL2CPP;
 using Globals;
 using HarmonyLib;
@@ -30,6 +30,7 @@ public class Plugin : BasePlugin {
 		// ClassInjector.RegisterTypeInIl2Cpp<SpectateTarget>();
 		ClassInjector.RegisterTypeInIl2Cpp<SpectateCam>();
 		ClassInjector.RegisterTypeInIl2Cpp<SpectateUI>();
+		ClassInjector.RegisterTypeInIl2Cpp<SpectateConfigUpdater>();
 
 		OnManagersSetup += Initialize;
 		Global.add_OnAllManagersSetup(OnManagersSetup);
@@ -44,6 +45,7 @@ public class Plugin : BasePlugin {
 		UnityEngine.Object.DontDestroyOnLoad(PluginObject);
 		PluginObject.AddComponent<SpectateCam>();
 		PluginObject.AddComponent<SpectateUI>();
+		PluginObject.AddComponent<SpectateConfigUpdater>();
 	}
 
 	public override bool Unload() {

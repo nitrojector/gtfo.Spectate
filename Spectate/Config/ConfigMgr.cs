@@ -6,6 +6,8 @@ using UnityEngine;
 namespace Spectate.Config;
 
 internal static class ConfigMgr {
+	public static bool Processed { get; private set; } = false;
+
 	private static readonly ConfigFile Conf;
 	private static bool _configDirty = false;
 
@@ -141,6 +143,7 @@ internal static class ConfigMgr {
 
 		// Notify UI of config changes, since keybinds and some settings affect it
 		SpectateUI.Instance?.MarkUIDirty();
+		Processed = true;
 	}
 
 	static ConfigMgr() {
@@ -308,8 +311,12 @@ internal static class ConfigMgr {
 	}
 
 	internal static void WriteConfigIfDirty() {
-		if (!_configDirty)
+		if (!_configDirty || !Processed)
 			return;
+
+#if DEBUG
+		Logger.Debug("Writing config file due to runtime changes...");
+#endif
 
 		CameraDistanceConf.Value = _cameraDistanceCache;
 		CameraOrbitVerticalOffsetConf.Value = _cameraOrbitVerticalOffsetCache;
