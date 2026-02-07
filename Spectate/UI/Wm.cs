@@ -61,6 +61,7 @@ public class Wm : MonoBehaviour {
 		_tp.enableAutoSizing = true;
 		_tp.overflowMode = TextOverflowModes.Overflow;
 		_tp.alignment = TextAlignmentOptions.Center;
+		_tp.gameObject.SetActive(true);
 		return true;
 	}
 }
