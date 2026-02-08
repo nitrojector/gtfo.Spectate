@@ -37,6 +37,10 @@ public class AgentTarget {
 
 	public AIG_CourseNode? CourseNode => Agent.CourseNode;
 
+	public PlayerBackpack? Backpack => PlayerBackpackManager.GetBackpack(Agent.Owner);
+
+	public PlayerAmmoStorage? AmmoStorage => Backpack?.AmmoStorage;
+
 	public AgentTarget(PlayerAgent agent) {
 		Agent = agent;
 	}

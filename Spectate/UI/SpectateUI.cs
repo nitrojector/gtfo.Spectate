@@ -226,8 +226,11 @@ public class SpectateUI : MonoBehaviour {
 		if (!CheckOrCreateTMP()) return; // ensure TMP is valid
 
 		ProcessInput();
-		if (SpectateCam.Instance?.Active ?? false)
+		if (SpectateCam.Instance?.Active ?? false) {
 			UpdatePlayerStatusUI(SpectateCam.Instance.Target);
+			UpdatePlayerInventoryUI(SpectateCam.Instance.Target);
+		}
+
 		SetUIActive(true);
 		if (_isUIDirty || UIState != _uiStateRendered) {
 			RefreshUI();
@@ -246,6 +249,7 @@ public class SpectateUI : MonoBehaviour {
 		bool isDowned = SpectateCam.Instance?.Self?.IsDowned ?? false;
 		SetUIState(isDowned ? eSpectateUIState.FPDowned : eSpectateUIState.FPNotDowned);
 		UpdatePlayerStatusUI(SpectateCam.Instance?.Self);
+		UpdatePlayerInventoryUI(SpectateCam.Instance?.Self);
 	}
 
 	void ProcessInput() {
@@ -385,7 +389,8 @@ public class SpectateUI : MonoBehaviour {
 	// === UI Update Methods (implementation specific) ===
 	// These methods should (only) be called in UpdateUI or its helpers.
 	public void UpdatePlayerStatusUI(AgentTarget? target) {
-		if (target == null || target.Agent == null) {
+		// TODO: BUG: If any attribute of the local player is updating (e.g. infection), the spectate UI would change
+		if (target == null) {
 			Logger.Error("SpectateUI: Could not update player status text: no target!");
 			return;
 		}
@@ -393,6 +398,39 @@ public class SpectateUI : MonoBehaviour {
 		PUI_LocalPlayerStatus? pstatus = GuiManager.PlayerLayer?.m_playerStatus;
 		pstatus?.UpdateHealth(target.Health);
 		pstatus?.UpdateInfection(target.Infection, 0.0f);
+	}
+
+	public void UpdatePlayerInventoryUI(AgentTarget? target) {
+		if (target == null) {
+			Logger.Error("SpectateUI: Could not update player inventory text: no target!");
+			return;
+		}
+
+		PUI_Inventory pInv = GuiManager.PlayerLayer.Inventory;
+
+		var tBackpack = target.Backpack;
+		var tAmmoStorage = target.AmmoStorage;
+		if (tBackpack == null || tAmmoStorage == null) {
+			Logger.Warn("SpectateUI: Target backpack/ammostorage is null, cannot update inventory UI!");
+			return;
+		}
+
+		foreach (var slot in pInv.m_slotGUIOrder) {
+			if (!tBackpack.TryGetBackpackItem(slot, out var item)) continue;
+			var ammo = tAmmoStorage.GetInventorySlotAmmo(slot);
+
+			string archeName = item.Instance.ArchetypeName;
+			string modelName = item.Instance.PublicName;
+
+			int clip = (int)tAmmoStorage.GetClipAmmoFromSlot(slot);
+			int inPack = ammo.BulletsInPack;
+			float inPackRel = (inPack + clip) * ammo.BulletsToRelConv;
+
+			var guiSlot = pInv.m_inventorySlots[slot];
+			guiSlot.SetArchetypeName(archeName);
+			guiSlot.SetDetailedName(modelName);
+			pInv.SetSlotAmmo(slot, clip, inPack, inPackRel);
+		}
 	}
 
 	private void AddMenuItem(eSpectateMenuItem item, bool enableUI = true) {
