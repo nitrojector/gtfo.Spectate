@@ -10,9 +10,21 @@ namespace Spectate;
 
 [HarmonyPatch]
 public class Patch {
+	/// <summary>
+	/// The delay after player downed before we do a in-game player update (unknown process)
+	/// </summary>
 	public const float PreStop = 1.0f;
+
+	/// <summary>
+	/// The number of frames to wait for the in-game player update post downed
+	/// to correct player rig
+	/// </summary>
 	public const int IntervalStopFrames = 10;
 
+	/// <summary>
+	/// Load spectate instance when ready to stop elevator ride
+	/// </summary>
+	/// <param name="__instance"></param>
 	[HarmonyPatch(
 		typeof(GS_ReadyToStopElevatorRide),
 		nameof(GS_ReadyToStopElevatorRide.Enter)
@@ -22,22 +34,9 @@ public class Patch {
 		SpectateCam.Instance?.Load();
 	}
 
-	[HarmonyPatch(
-		typeof(LocalPlayerAgent),
-		"get_CamPos"
-	)]
-	[HarmonyPrefix]
-	// NOTE: Player pings uses LocalPlayerAgent.CamPos for ray cast origin,
-	//   but our method of updating FPSCamera position isn't reflected in CamPos.
-	public static bool PlayerAgent_get_CamPos(ref Vector3 __result) {
-		if (SpectateCam.Instance?.Active ?? false) {
-			__result = SpectateCam.Instance.CameraPos;
-			return false;
-		}
-
-		return true;
-	}
-
+	/// <summary>
+	/// Unload spectate instance when leaving game
+	/// </summary>
 	[HarmonyPatch(
 		typeof(RundownManager),
 		nameof(RundownManager.EndGameSession)
@@ -47,6 +46,9 @@ public class Patch {
 		SpectateCam.Instance?.Unload();
 	}
 
+	/// <summary>
+	/// Unload spectate instance when leaving game
+	/// </summary>
 	[HarmonyPatch(
 		typeof(SNet_SessionHub),
 		nameof(SNet_SessionHub.LeaveHub)
@@ -56,6 +58,46 @@ public class Patch {
 		SpectateCam.Instance?.Unload();
 	}
 
+	/// <summary>
+	/// Player pings uses LocalPlayerAgent.CamPos for ray cast origin,
+	/// but our method of updating FPSCamera position isn't reflected in CamPos.
+	/// Updates CamPos to match our camera position when spectating,
+	/// so that player pings work as expected.
+	/// </summary>
+	[HarmonyPatch(
+		typeof(LocalPlayerAgent),
+		"get_CamPos"
+	)]
+	[HarmonyPrefix]
+	public static bool PlayerAgent_get_CamPos(ref Vector3 __result) {
+		if (SpectateCam.Instance?.Active ?? false) {
+			__result = SpectateCam.Instance.CameraPos;
+			return false;
+		}
+
+		return true;
+	}
+
+	/// <summary>
+	/// Prevents health GUI updates from local player when spectating
+	/// </summary>
+	[HarmonyPatch(
+		typeof(Dam_PlayerDamageLocal),
+		nameof(Dam_PlayerDamageLocal.UpdateHealthGui)
+	)]
+	[HarmonyPrefix]
+	public static bool Dam_PlayerDamageLocal_UpdateHealthGui(Dam_PlayerDamageLocal __instance) {
+		if (SpectateCam.Instance?.Active ?? false) {
+			return false;
+		}
+
+		return true;
+	}
+
+
+	/// <summary>
+	/// Prevent local player damage animation from playing when spectating
+	/// </summary>
 	[HarmonyPatch(
 		typeof(PUI_LocalPlayerStatus),
 		nameof(PUI_LocalPlayerStatus.SetDamageAnim)
@@ -69,6 +111,10 @@ public class Patch {
 		return true;
 	}
 
+	/// <summary>
+	/// Corrects local player flashlight effective direction when spectating
+	/// </summary>
+	/// <returns></returns>
 	[HarmonyPatch(
 		typeof(PlayerAgent),
 		nameof(PlayerAgent.GetDetectionMod)
@@ -82,6 +128,9 @@ public class Patch {
 		return true;
 	}
 
+	/// <summary>
+	/// Ensure clients receive updates of our real camera direction
+	/// </summary>
 	[HarmonyPatch(
 		typeof(PlayerSync),
 		nameof(PlayerSync.SendLocomotion)
@@ -99,6 +148,10 @@ public class Patch {
 		return true;
 	}
 
+	/// <summary>
+	/// Perform relevant adjustments to local player model when downed.
+	/// Also initiates spectate cam attach if auto attach enabled in config.
+	/// </summary>
 	[HarmonyPatch(
 		typeof(PLOC_Downed),
 		nameof(PLOC_Downed.Enter)
@@ -123,6 +176,13 @@ public class Patch {
 		}
 	}
 
+	/// <summary>
+	/// A pretty bad solution to solve weird player rig attitude transitions
+	/// when attached to spectate cam.
+	/// Not game breaking, just visually out of place.
+	/// This is only possible in dev mode.
+	/// </summary>
+	/// <returns></returns>
 	private static IEnumerator BumF__kRandomSolutionRoutine() {
 		yield return new WaitForSeconds(PreStop);
 
@@ -134,21 +194,9 @@ public class Patch {
 		SpectateCam.Instance?.SetRelatedActive(SpectateCam.Instance.Active);
 	}
 
-	// NOTE: This method is superseded by Dam_PlayerDamageLocal_OnRevive,
-	//   since it happens the instant the player is revived.
-	// [HarmonyPatch(
-	// 	typeof(PLOC_Downed),
-	// 	nameof(PLOC_Downed.Exit)
-	// )]
-	// [HarmonyPostfix]
-	// public static void PLOC_Downed_Exit(PLOC_Downed __instance) {
-	// 	if (!__instance.m_owner.IsLocallyOwned || SpectateCam.Instance == null) return;
-	//
-	// 	if (SpectateCam.Instance.Active) {
-	// 		SpectateCam.Instance.Detach();
-	// 	}
-	// }
-
+	/// <summary>
+	/// Revert changes and detaches spectate cam when player is revived.
+	/// </summary>
 	[HarmonyPatch(
 		typeof(Dam_PlayerDamageLocal),
 		nameof(Dam_PlayerDamageLocal.OnRevive)
@@ -166,6 +214,10 @@ public class Patch {
 		__instance.Owner.AnimatorBody.Play("Rifle_Movement");
 	}
 
+	/// <summary>
+	/// Transitions player to downed animation. Which the game does not do
+	/// on the local player.
+	/// </summary>
 	private static void Play_Player_PLOC_Down_Animation(PLOC_Downed instance) {
 		instance.m_owner.AnimatorBody.Play("Dead", 1);
 		instance.m_owner.AnimatorArms.SetLayerWeight(7, 0f);
