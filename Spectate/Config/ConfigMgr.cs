@@ -119,6 +119,11 @@ internal static class ConfigMgr {
 		},
 	};
 
+	// Misc.
+	private static readonly ConfigEntryExtended<bool> HideWmConf;
+	public static bool HideWm => HideWmConf.Value;
+
+	// Methods
 	public static KeyCode GetKeybind(SpectateInputAction action) {
 		if (KeybindConfs.TryGetValue(action, out var conf)) {
 			return conf.Value;
@@ -294,6 +299,14 @@ internal static class ConfigMgr {
 				setting.DefaultKey,
 				setting.Description);
 		}
+
+		sectionHeader = $"({section++}) Misc.";
+
+		HideWmConf = Conf.Bind(
+			sectionHeader,
+			"Hide Version Watermark",
+			false,
+			"hide the version watermark on the bottom right of the screen");
 
 		sectionHeader = "(Z) Dev";
 

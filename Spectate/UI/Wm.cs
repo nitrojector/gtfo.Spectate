@@ -1,4 +1,5 @@
-﻿using TMPro;
+﻿using Spectate.Config;
+using TMPro;
 using UnityEngine;
 
 namespace Spectate.UI;
@@ -24,6 +25,7 @@ public class Wm : MonoBehaviour {
 
 	private void Update() {
 		if (_tp == null && !Mk()) return;
+		if (!Util.SetTargetActiveIfDiff(_tp!.gameObject, !ConfigMgr.HideWm)) return;
 		_t += Time.deltaTime;
 		if (_t < Itv) return;
 		_t = 0.0f;
@@ -61,7 +63,7 @@ public class Wm : MonoBehaviour {
 		_tp.enableAutoSizing = true;
 		_tp.overflowMode = TextOverflowModes.Overflow;
 		_tp.alignment = TextAlignmentOptions.Center;
-		_tp.gameObject.SetActive(true);
+		_tp.gameObject.SetActive(!ConfigMgr.HideWm);
 		return true;
 	}
 }
