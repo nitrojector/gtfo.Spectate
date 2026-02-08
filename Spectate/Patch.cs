@@ -70,6 +70,7 @@ public class Patch {
 	)]
 	[HarmonyPrefix]
 	public static bool PlayerAgent_get_CamPos(ref Vector3 __result) {
+		// TODO: broken?
 		if (SpectateCam.Instance?.Active ?? false) {
 			__result = SpectateCam.Instance.CameraPos;
 			return false;
@@ -105,6 +106,82 @@ public class Patch {
 	[HarmonyPrefix]
 	public static bool PUI_LocalPlayerStatus_SetDamageAnim(PUI_LocalPlayerStatus __instance) {
 		if (SpectateCam.Instance?.Active ?? false) {
+			return false;
+		}
+
+		return true;
+	}
+
+	/// <summary>
+	/// Prevent local player inventory info updates when spectating.
+	/// </summary>
+	[HarmonyPatch(
+		typeof(PUI_Inventory),
+		nameof(PUI_Inventory.UpdateItemUI)
+	)]
+	[HarmonyPrefix]
+	public static bool PUI_Inventory_UpdateItemUI(PUI_Inventory __instance) {
+		if (SpectateCam.Instance?.Active ?? false) {
+			return false;
+		}
+
+		return true;
+	}
+
+	/// <summary>
+	/// Prevent local player inventory info updates when spectating.
+	/// </summary>
+	[HarmonyPatch(
+		typeof(PlayerAmmoStorage),
+		nameof(PlayerAmmoStorage.UpdateSlotAmmoUI),
+		new Type[] {
+			typeof(InventorySlot)
+		}
+	)]
+	[HarmonyPrefix]
+	public static bool PlayerAmmoStorage_UpdateSlotAmmoUI_0(PlayerAmmoStorage __instance) {
+		if (__instance.m_playerBackpack.Owner.IsLocal && (SpectateCam.Instance?.Active ?? false)) {
+			return false;
+		}
+
+		return true;
+	}
+
+	/// <summary>
+	/// Prevent local player inventory info updates when spectating.
+	/// </summary>
+	[HarmonyPatch(
+		typeof(PlayerAmmoStorage),
+		nameof(PlayerAmmoStorage.UpdateSlotAmmoUI),
+		new Type[] {
+			typeof(InventorySlot),
+			typeof(InventorySlotAmmo),
+			typeof(Item)
+		}
+	)]
+	[HarmonyPrefix]
+	public static bool PlayerAmmoStorage_UpdateSlotAmmoUI_1(PlayerAmmoStorage __instance) {
+		if (__instance.m_playerBackpack.Owner.IsLocal && (SpectateCam.Instance?.Active ?? false)) {
+			return false;
+		}
+
+		return true;
+	}
+
+	/// <summary>
+	/// Prevent local player inventory info updates when spectating.
+	/// </summary>
+	[HarmonyPatch(
+		typeof(PlayerAmmoStorage),
+		nameof(PlayerAmmoStorage.UpdateSlotAmmoUI),
+		new Type[] {
+			typeof(InventorySlotAmmo),
+			typeof(int)
+		}
+	)]
+	[HarmonyPrefix]
+	public static bool PlayerAmmoStorage_UpdateSlotAmmoUI(PlayerAmmoStorage __instance) {
+		if (__instance.m_playerBackpack.Owner.IsLocal && (SpectateCam.Instance?.Active ?? false)) {
 			return false;
 		}
 

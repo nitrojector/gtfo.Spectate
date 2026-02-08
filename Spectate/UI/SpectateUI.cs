@@ -112,7 +112,10 @@ public class SpectateUI : MonoBehaviour {
 	private TextMeshPro? _menuTitleTmp;
 	private TextMeshPro? _menuViewModeTmp;
 	private GameObject? _menuListObj;
-	private List<ValueTuple<TextMeshPro?, TextMeshPro?>> _menuItemsTmp = new(MaxMenuItems); // (option, keybind)
+
+	private readonly List<ValueTuple<TextMeshPro?, TextMeshPro?>>
+		_menuItemsTmp = new(MaxMenuItems); // (option, keybind)
+
 	private SpriteRenderer? _menuBackground;
 
 	// === UI Render Data ===
@@ -181,20 +184,6 @@ public class SpectateUI : MonoBehaviour {
 		_navMarker.SetTitle(localPlayer.InteractionName);
 		_navMarker.SetAlpha(2.0f);
 		_navMarker.SetSignInfo("<#FFF>YOU</color>");
-
-		/* Player Title Distance style options
-		if (_navMarker == null) {
-			_navMarker = GuiManager.NavMarkerLayer.PlaceCustomMarker(
-				NavMarkerOption.PlayerTitleDistance,
-				localPlayer.gameObject, "Spectate LocalPlayer");
-		}
-
-		_navMarker.SetVisible(true);
-		_navMarker.SetIconScale(0.4f);
-		_navMarker.SetPlayerName(localPlayer.InteractionName);
-		_navMarker.SetTitle("");
-		_navMarker.SetAlpha(1.0f);
-		*/
 	}
 
 	/// <summary>
@@ -401,6 +390,8 @@ public class SpectateUI : MonoBehaviour {
 	}
 
 	public void UpdatePlayerInventoryUI(AgentTarget? target) {
+		// TODO: we need to check if a slot has infinite ammo
+		// TODO: on clients the ammo only shows reserve, perhaps
 		if (target == null) {
 			Logger.Error("SpectateUI: Could not update player inventory text: no target!");
 			return;
@@ -415,8 +406,15 @@ public class SpectateUI : MonoBehaviour {
 			return;
 		}
 
+		var activeSlot = target.Inventory?.WieldedSlot ?? InventorySlot.None;
+
 		foreach (var slot in pInv.m_slotGUIOrder) {
-			if (!tBackpack.TryGetBackpackItem(slot, out var item)) continue;
+			var guiSlot = pInv.m_inventorySlots[slot];
+			if (!tBackpack.TryGetBackpackItem(slot, out var item)) {
+				guiSlot.SetState(ePUI_InventortyItemState.Empty);
+				continue;
+			}
+
 			var ammo = tAmmoStorage.GetInventorySlotAmmo(slot);
 
 			string archeName = item.Instance.ArchetypeName;
@@ -426,11 +424,13 @@ public class SpectateUI : MonoBehaviour {
 			int inPack = ammo.BulletsInPack;
 			float inPackRel = (inPack + clip) * ammo.BulletsToRelConv;
 
-			var guiSlot = pInv.m_inventorySlots[slot];
 			guiSlot.SetArchetypeName(archeName);
 			guiSlot.SetDetailedName(modelName);
+			guiSlot.SetState(slot == activeSlot ? ePUI_InventortyItemState.Selected : ePUI_InventortyItemState.Slim);
 			pInv.SetSlotAmmo(slot, clip, inPack, inPackRel);
 		}
+
+		pInv.UpdateSlotPositions();
 	}
 
 	private void AddMenuItem(eSpectateMenuItem item, bool enableUI = true) {
