@@ -1,3 +1,7 @@
+# v1.4.3
+
+- Add a config option to hide the version watermark.
+
 # v1.4.2
 
 - Fixed a bug where player downed/revived messages are broadcasted twice in chat.
