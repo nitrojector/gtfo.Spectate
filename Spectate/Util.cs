@@ -5,21 +5,48 @@ namespace Spectate;
 public static class Util {
 	public const float GOOD_ENOUGH_DEG_EPS = 0.2f;
 
+	/// <summary>
+	/// Whether two angles/numbers are close enough, according to GOOD_ENOUGH_DEG_EPS.
+	/// </summary>
+	/// <param name="a">value a</param>
+	/// <param name="b">value b</param>
+	/// <returns>true if the angle/numbers are close enough</returns>
 	public static bool GoodEnoughDeg(float a, float b) {
 		return NearlyEqual(a, b, GOOD_ENOUGH_DEG_EPS);
 	}
 
+	/// <summary>
+	/// Whether two floats are close enough, according to a given epsilon.
+	/// </summary>
+	/// <param name="a">value a</param>
+	/// <param name="b">value b</param>
+	/// <param name="eps">epsilon (difference), default is 0.0001f</param>
+	/// <returns>true if the numbers are close enough</returns>
 	public static bool NearlyEqual(float a, float b, float eps = 0.0001f) {
 		return Mathf.Abs(a - b) < eps;
 	}
 
-	public static void SetTargetActiveIfDiff(GameObject? obj, bool active) {
-		if (obj == null) return;
+	/// <summary>
+	/// Sets the target active if its current active state is different from the desired state for a given GameObject.
+	/// </summary>
+	/// <param name="obj">GameObject to set the state for</param>
+	/// <param name="active">desired active state</param>
+	/// <returns>false if object is null, otherwise whether the object is now active</returns>
+	public static bool SetTargetActiveIfDiff(GameObject? obj, bool active) {
+		if (obj == null) return false;
 		if (obj.activeSelf != active) {
 			obj.SetActive(active);
 		}
+
+		return active;
 	}
 
+	/// <summary>
+	/// Sets the target active if its current active state is different from the desired state on a given Behaviour.
+	/// </summary>
+	/// <param name="beh">Behaviour to set the state for</param>
+	/// <param name="active">desired active state</param>
+	/// <returns>false if object is null, otherwise whether the object is now active</returns>
 	public static void SetTargetActiveIfDiff(Behaviour? beh, bool active) {
 		if (beh == null) return;
 		if (beh.enabled != active) {
@@ -27,9 +54,18 @@ public static class Util {
 		}
 	}
 
+	/// <summary>
+	/// Ported from R6 mono. Finds all PlayerGfxParts and categorizes them in output.
+	/// </summary>
+	/// <param name="root">the room game object to start searching from</param>
+	/// <param name="gfxHead">head parts</param>
+	/// <param name="gfxArms">arms parts</param>
+	/// <param name="gfxTorso">torso parts</param>
+	/// <param name="gfxLegs">legs parts</param>
+	/// <param name="includeInactive">whether to include inactive game objects in the search</param>
 	public static void FindAndSortGfxParts(GameObject root, out GameObject[] gfxHead, out GameObject[] gfxArms,
-		out GameObject[] gfxTorso, out GameObject[] gfxLegs) {
-		PlayerGfxPart[] componentsInChildren = root.GetComponentsInChildren<PlayerGfxPart>(true);
+		out GameObject[] gfxTorso, out GameObject[] gfxLegs, bool includeInactive = true) {
+		PlayerGfxPart[] componentsInChildren = root.GetComponentsInChildren<PlayerGfxPart>(includeInactive);
 		List<GameObject> list = new List<GameObject>();
 		List<GameObject> list2 = new List<GameObject>();
 		List<GameObject> list3 = new List<GameObject>();
