@@ -1,6 +1,8 @@
 ﻿using System.Runtime.CompilerServices;
 using System.Collections;
+using AIGraph;
 using BepInEx.Unity.IL2CPP.Utils.Collections;
+using CullingSystem;
 using Player;
 using SNetwork;
 using UnityEngine;
@@ -70,15 +72,20 @@ public class SpectateCam : MonoBehaviour {
 	public bool Freecam => _freecam;
 
 	/// <summary>
+	/// Last recorded course node of the local player
+	/// </summary>
+	public C_Node? LastLocalCullNode { get; private set; } = null;
+
+	/// <summary>
 	/// The real camera position of the local player
 	/// </summary>
-	public Vector3 DiegeticCamDir = Vector3.forward;
+	public Vector3 DiegeticCamDir { get; private set; } = Vector3.forward;
 
 	/// <summary>
 	/// The real local scale of the player rig, used for scaling back when detaching.
 	/// Funny enough, this is supposedly the non-diegetic scale, because players should all be scaled the same.
 	/// </summary>
-	public Vector3 DiegeticPlayerRigScale = Vector3.one;
+	public Vector3 DiegeticPlayerRigScale { get; private set; } = Vector3.one;
 
 	/// <summary>
 	/// The delay after going down before trying to attach the spectate camera. This solves player rig positioning issues.
@@ -332,8 +339,9 @@ public class SpectateCam : MonoBehaviour {
 
 		DiegeticCamDir = _self!.FPSCamera!.Forward;
 		DiegeticPlayerRigScale = _self!.PlayerModel.gameObject.transform.localScale;
-		_self!.PlayerModel.gameObject.transform.localScale = Vector3.one;
+		LastLocalCullNode = _self?.CourseNode?.m_cullNode;
 
+		_self!.PlayerModel.gameObject.transform.localScale = Vector3.one;
 		GuiManager.CrosshairLayer.ShowPrecisionDot();
 		SpectateUI.Instance?.UpdateForAttach();
 		if (ConfigMgr.ShowLocalPlayerNavMarker)
@@ -692,13 +700,10 @@ public class SpectateCam : MonoBehaviour {
 
 		_self.Agent.m_movingCuller.UpdatePosition(_self.Agent.m_dimensionIndex, targetCullPosition);
 		var curCullNode = _self.Agent.m_movingCuller.CurrentNode;
-		var targetNode = _self.CourseNode?.m_cullNode;
-		if (targetNode != null) {
-#if DEBUG
-			Logger.Debug($"RevertCull reverting to \"{targetNode.CourseNode.Name}\"");
-#endif
-			if (curCullNode?.Pointer != targetNode?.Pointer) {
-				_self.Agent.m_movingCuller.SetCurrentNode(targetNode);
+		// TODO: NOTE: This assumes that the local player doesn't move to a different node while spectating
+		if (LastLocalCullNode != null) {
+			if (curCullNode?.Pointer != LastLocalCullNode?.Pointer) {
+				_self.Agent.m_movingCuller.SetCurrentNode(LastLocalCullNode);
 			}
 		} else {
 			Logger.Warn("SpectateCam: RevertCull - failed to sync cull nodes self or target node is null");
