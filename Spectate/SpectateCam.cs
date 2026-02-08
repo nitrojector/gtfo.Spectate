@@ -214,6 +214,7 @@ public class SpectateCam : MonoBehaviour {
 		// NOTE: we don't want to disable Locomotion, we are
 		// _self.Locomotion.enabled = active;
 		_self!.Agent.DeadDebugMode = spectateActive;
+		_self!.PlayerModel.GhostEnabled = spectateActive;
 		Util.SetTargetActiveIfDiff(_self.Inventory, !spectateActive);
 		Util.SetTargetActiveIfDiff(_self.Inventory?.m_flashlight.gameObject, !spectateActive);
 		Util.SetTargetActiveIfDiff(_self.FPHolder?.gameObject, !spectateActive);

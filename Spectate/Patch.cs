@@ -166,7 +166,7 @@ public class Patch {
 		__instance.Owner.AnimatorBody.Play("Rifle_Movement");
 	}
 
-	public static void Play_Player_PLOC_Down_Animation(PLOC_Downed instance) {
+	private static void Play_Player_PLOC_Down_Animation(PLOC_Downed instance) {
 		instance.m_owner.AnimatorBody.Play("Dead", 1);
 		instance.m_owner.AnimatorArms.SetLayerWeight(7, 0f);
 		instance.m_owner.AnimatorArms.SetLayerWeight(8, 0f);
