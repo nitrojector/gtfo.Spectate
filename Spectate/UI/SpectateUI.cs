@@ -1,4 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
+using CellMenu;
 using Player;
 using Spectate.Config;
 using TMPro;
@@ -506,6 +507,11 @@ public class SpectateUI : MonoBehaviour {
 			}
 
 			_spectateInv.SetSlotAmmo(slot, clip, inPack, inPackRel);
+		}
+
+		// TODO: this method sucks ass. please come up with sth else...
+		if (CM_PageMap.TryGetInventoryWithSlotIndex(target.Agent.Owner.PlayerSlotIndex(), out var inv)) {
+			_spectateInv.SetFlashLightIcon(inv.m_iconDisplay.FlashLightIcon.Enabled.gameObject.activeSelf);
 		}
 
 		_spectateInv.UpdateSlotPositions();
