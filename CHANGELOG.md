@@ -1,3 +1,7 @@
+# v1.5.1
+
+- Fixed a bug where spectate inventory ui persists across game sessions if the session wipes while spectating.
+
 # v1.5.0
 
 - Added full spectate inventory display
