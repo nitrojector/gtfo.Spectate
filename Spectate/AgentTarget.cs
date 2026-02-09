@@ -1,4 +1,4 @@
-﻿using AIGraph;
+using AIGraph;
 using BepInEx.Unity.IL2CPP.Utils.Collections;
 using Il2CppInterop.Runtime.InteropTypes.Arrays;
 using Player;
@@ -65,9 +65,10 @@ public class AgentTarget {
 		psm.SetArmsVisible(active, active);
 	}
 
-	public void SetRigLegsActive(bool active) {
+	public void SetRigTorsoLegsActive(bool active) {
 		var psm = Agent.PlayerSyncModel;
 		psm.SetGFXVisible(psm.m_gfxLegs, active, active);
+		psm.SetGFXVisible(psm.m_gfxTorso, active, active);
 	}
 
 	public static bool operator ==(AgentTarget? a, AgentTarget? b) {

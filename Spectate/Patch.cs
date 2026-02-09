@@ -242,6 +242,7 @@ public class Patch {
 		Play_Player_PLOC_Down_Animation(__instance);
 		if (!SpectateCam.Instance.Active) {
 			var psm = __instance.m_owner.PlayerSyncModel;
+			psm.SetGFXVisible(psm.m_gfxTorso, false, false);
 			psm.SetGFXVisible(psm.m_gfxLegs, false, false);
 		} else {
 			// TODO: NOTE: We are doing this half assed solution to force update player rig posture/position
@@ -287,6 +288,7 @@ public class Patch {
 		}
 
 		var psm = __instance.Owner.PlayerSyncModel;
+		psm.SetGFXVisible(psm.m_gfxTorso, true, true);
 		psm.SetGFXVisible(psm.m_gfxLegs, true, true);
 		__instance.Owner.AnimatorBody.Play("Rifle_Movement");
 	}

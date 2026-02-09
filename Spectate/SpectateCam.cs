@@ -1,4 +1,4 @@
-﻿using System.Runtime.CompilerServices;
+using System.Runtime.CompilerServices;
 using System.Collections;
 using AIGraph;
 using BepInEx.Unity.IL2CPP.Utils.Collections;
@@ -411,9 +411,9 @@ public class SpectateCam : MonoBehaviour {
 			if (!Self!.IsDowned && !spectateActive) {
 				// NOTE: for the case of dev options allowing spectating anytime,
 				//   we want to show legs when not spectating even if not downed.
-				_self.SetRigLegsActive(true);
+				_self.SetRigTorsoLegsActive(true);
 			} else {
-				_self.SetRigLegsActive(spectateActive);
+				_self.SetRigTorsoLegsActive(spectateActive);
 			}
 		} else {
 			_self!.SetRigActive(!spectateActive);
