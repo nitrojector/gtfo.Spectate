@@ -1,3 +1,27 @@
+# v1.5.0
+
+- Added full spectate inventory display
+- Fixed a bug where immediately after exiting spectate, the player sees void (incorrect cull node setting).
+- Fixed a bug where player body is visible in FPS downed view for modded character models.
+- Adjusted behavior so that pressing number keys while the comms menu is active no longer switches players.
+
+*Known Issues*
+
+1. Player pings are broken when spectating players.
+    - i.e. pings are emitted relative to the local player position rather than the spectating camera
+    - **Current Solution**: Use [PingEverything](https://thunderstore.io/c/gtfo/p/Localia/PingEverything/)
+2. Spectated players don't display clip size
+    - Per limitations of the game, clip size are not synced across clients, so this is currently not possible.
+    - There is a method of possibly estimating the current clip size, this is wip and still being tested.
+
+*Special Notes*
+
+- Thanks to the following individuals for help with testing and/or discussing possible solutions.
+    - randomuserhi(@randomuserhi)
+    - JarheadHME(@jarheadhme)
+    - Microchips(@microchipsndip)
+    - BlueGuy(@blue_guy_or_something_idk)
+
 # v1.4.3
 
 - Add a config option to hide the version watermark.
