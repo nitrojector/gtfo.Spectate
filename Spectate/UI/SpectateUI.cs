@@ -98,6 +98,11 @@ public class SpectateUI : MonoBehaviour {
 	/// </summary>
 	private static readonly Vector3 HeadBeaconAlignOffset = new(0f, 0.3f, 0f);
 
+	/// <summary>
+	/// Offset of our spectate PUI_Inventory to show header
+	/// </summary>
+	private const float SpectateInvOffsetY = -35.0f;
+
 	// === UI Style Constants ===
 	private const string SpecTargetTextColor = "FFFFFF";
 	private const string StateHighlightColor = "04B065";
@@ -117,6 +122,14 @@ public class SpectateUI : MonoBehaviour {
 		_menuItemsTmp = new(MaxMenuItems); // (option, keybind)
 
 	private SpriteRenderer? _menuBackground;
+
+	// === PUI_Inventory ===
+	/// <summary>
+	/// NOTE: this is outside of the <see cref="_uiRoots"> system
+	/// </summary>
+	private PUI_Inventory? _spectateInv;
+
+	public PUI_Inventory? SpectateInventory => _spectateInv;
 
 	// === UI Render Data ===
 	private string _specTargetStr = "";
@@ -232,6 +245,11 @@ public class SpectateUI : MonoBehaviour {
 		} else {
 			SetUIState(eSpectateUIState.HideMenu);
 		}
+
+		{
+			GuiManager.PlayerLayer.Inventory.SetVisible(false);
+			_spectateInv?.SetVisible(true);
+		}
 	}
 
 	public void UpdateForDetach() {
@@ -239,9 +257,14 @@ public class SpectateUI : MonoBehaviour {
 		SetUIState(isDowned ? eSpectateUIState.FPDowned : eSpectateUIState.FPNotDowned);
 		UpdatePlayerStatusUI(SpectateCam.Instance?.Self);
 		UpdatePlayerInventoryUI(SpectateCam.Instance?.Self);
+
+		{
+			_spectateInv?.SetVisible(false);
+			GuiManager.PlayerLayer.Inventory.SetVisible(true);
+		}
 	}
 
-	void ProcessInput() {
+	private void ProcessInput() {
 		if (!InputMapper.Current.FocusStateFilterPass(eFocusState.FPS)) return;
 
 		if (Input.GetKeyDown(ConfigMgr.GetKeybind(SpectateInputAction.ToggleMenu))) {
@@ -257,11 +280,52 @@ public class SpectateUI : MonoBehaviour {
 	}
 
 	/// <summary>
+	/// Replicates existing elements for use
+	/// </summary>
+	public void ReplicateUI() {
+		if (!CheckOrCreateTMP()) {
+			Logger.Error("SpectateUI: Failed to create TMP elements for spectate UI!");
+		}
+
+		if (!CheckOrCreatePUI_Inventory()) {
+			Logger.Error("SpectateUI: Failed to create PUI_Inventory elements for spectate UI!");
+		}
+	}
+
+	private bool CheckOrCreatePUI_Inventory() {
+		var pInv = GuiManager.PlayerLayer?.Inventory;
+		if (pInv == null) {
+			Logger.Warn("SpectateUI: Failed to find PUI_Inventory for spectate UI replication!");
+			return false;
+		}
+
+		if (_spectateInv != null) return true;
+
+		_spectateInv = Instantiate(pInv, pInv.transform.parent, false);
+		var rt = _spectateInv.RectTrans;
+		for (int i = 0; i < rt.childCount; i++) {
+			Destroy(rt.GetChild(i).gameObject);
+		}
+
+		_spectateInv.Setup(GuiManager.PlayerLayer);
+		_spectateInv.name = $"{Plugin.GUID}_SpectateInventory";
+
+		_spectateInv.m_headerRoot = Instantiate(pInv.m_headerRoot, _spectateInv.RectTrans, false);
+		_spectateInv.m_headerTxt = _spectateInv.m_headerRoot.GetComponentInChildren<TextMeshPro>();
+
+		var newPos = _spectateInv.RectTrans.localPosition;
+		newPos.y += SpectateInvOffsetY;
+		_spectateInv.RectTrans.localPosition = newPos;
+		_spectateInv.gameObject.SetActive(false);
+		return true;
+	}
+
+	/// <summary>
 	/// Checks if necessary TMP elements exist, and creates them if not.
 	/// If partially exist, removes all and recreates.
 	/// </summary>
 	/// <returns>true if TMP already exists or created successfully</returns>
-	bool CheckOrCreateTMP() {
+	private bool CheckOrCreateTMP() {
 		if (AllTMPExist()) return true;
 
 		RemoveAllUIRoots();
@@ -390,14 +454,15 @@ public class SpectateUI : MonoBehaviour {
 	}
 
 	public void UpdatePlayerInventoryUI(AgentTarget? target) {
-		// TODO: we need to check if a slot has infinite ammo
-		// TODO: on clients the ammo only shows reserve, perhaps
 		if (target == null) {
 			Logger.Error("SpectateUI: Could not update player inventory text: no target!");
 			return;
 		}
 
-		PUI_Inventory pInv = GuiManager.PlayerLayer.Inventory;
+		if (_spectateInv == null && !CheckOrCreatePUI_Inventory()) {
+			Logger.Error("SpectateUI: Could not update player inventory text: failed to create PUI_Inventory!");
+			return;
+		}
 
 		var tBackpack = target.Backpack;
 		var tAmmoStorage = target.AmmoStorage;
@@ -406,16 +471,19 @@ public class SpectateUI : MonoBehaviour {
 			return;
 		}
 
-		var activeSlot = target.Inventory?.WieldedSlot ?? InventorySlot.None;
+		var activeSlot = target.ActiveItemSlot ?? InventorySlot.None;
 
-		foreach (var slot in pInv.m_slotGUIOrder) {
-			var guiSlot = pInv.m_inventorySlots[slot];
+		_spectateInv!.SetHeader(target.Agent.InteractionName, Color.white);
+
+		foreach (var slot in _spectateInv.m_slotGUIOrder) {
+			var guiSlot = _spectateInv.m_inventorySlots[slot];
 			if (!tBackpack.TryGetBackpackItem(slot, out var item)) {
 				guiSlot.SetState(ePUI_InventortyItemState.Empty);
 				continue;
 			}
 
 			var ammo = tAmmoStorage.GetInventorySlotAmmo(slot);
+			var db = item.Instance.ItemDataBlock;
 
 			string archeName = item.Instance.ArchetypeName;
 			string modelName = item.Instance.PublicName;
@@ -427,10 +495,20 @@ public class SpectateUI : MonoBehaviour {
 			guiSlot.SetArchetypeName(archeName);
 			guiSlot.SetDetailedName(modelName);
 			guiSlot.SetState(slot == activeSlot ? ePUI_InventortyItemState.Selected : ePUI_InventortyItemState.Slim);
-			pInv.SetSlotAmmo(slot, clip, inPack, inPackRel);
+			guiSlot.SetAll(clip, inPack, inPackRel);
+			if (db != null) {
+				guiSlot.SetAllShowFlags(
+					target.HasClipData && db.GUIShowAmmoClip,
+					db.GUIShowAmmoPack,
+					db.GUIShowAmmoTotalRel,
+					db.GUIShowAmmoInfinite
+				);
+			}
+
+			_spectateInv.SetSlotAmmo(slot, clip, inPack, inPackRel);
 		}
 
-		pInv.UpdateSlotPositions();
+		_spectateInv.UpdateSlotPositions();
 	}
 
 	private void AddMenuItem(eSpectateMenuItem item, bool enableUI = true) {

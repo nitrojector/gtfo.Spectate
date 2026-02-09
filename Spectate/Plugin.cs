@@ -41,13 +41,14 @@ public class Plugin : BasePlugin {
 	}
 
 	private void Initialize() {
-		Logger.Debug("Initializing Plugin GameObject...");
+		Logger.Debug("Initializing Spectate GameObject's...");
 		PluginObject = new GameObject(GUID);
 		UnityEngine.Object.DontDestroyOnLoad(PluginObject);
+		var ui = PluginObject.AddComponent<SpectateUI>();
 		PluginObject.AddComponent<SpectateCam>();
-		PluginObject.AddComponent<SpectateUI>();
 		PluginObject.AddComponent<SpectateConfigUpdater>();
 		PluginObject.AddComponent<Wm>();
+		ui.ReplicateUI();
 	}
 
 	public override bool Unload() {

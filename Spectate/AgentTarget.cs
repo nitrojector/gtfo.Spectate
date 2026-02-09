@@ -1,4 +1,4 @@
-using AIGraph;
+﻿using AIGraph;
 using BepInEx.Unity.IL2CPP.Utils.Collections;
 using Il2CppInterop.Runtime.InteropTypes.Arrays;
 using Player;
@@ -40,6 +40,14 @@ public class AgentTarget {
 	public PlayerBackpack? Backpack => PlayerBackpackManager.GetBackpack(Agent.Owner);
 
 	public PlayerAmmoStorage? AmmoStorage => Backpack?.AmmoStorage;
+
+	public bool HasClipData {
+		get {
+			if (IsLocal) return true;
+			if (PlayerManager.GetLocalPlayerAgent().Owner.IsMaster && IsBot) return true;
+			return false;
+		}
+	}
 
 	public AgentTarget(PlayerAgent agent) {
 		Agent = agent;

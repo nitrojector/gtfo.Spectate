@@ -5,6 +5,7 @@ using Spectate.Config;
 using UnityEngine;
 using System.Collections;
 using BepInEx.Unity.IL2CPP.Utils.Collections;
+using Spectate.UI;
 
 namespace Spectate;
 
@@ -95,6 +96,35 @@ public class Patch {
 		return true;
 	}
 
+	/// <summary>
+	/// Ensure certain UIs stay hidden when spectating.
+	/// </summary>
+	[HarmonyPatch(
+		typeof(GuiManager),
+		nameof(GuiManager.OnFocusStateChanged)
+	)]
+	[HarmonyPostfix]
+	public static void FocusStateChange(GuiManager __instance, eFocusState state) {
+		if (!(SpectateCam.Instance?.Active ?? false)) return;
+
+		// Ensure inventory PUI is disabled
+		GuiManager.PlayerLayer.Inventory.SetVisible(false);
+	}
+
+	/// <summary>
+	/// Ensure certain UIs stay hidden when spectating.
+	/// </summary>
+	[HarmonyPatch(
+		typeof(PlayerGuiLayer),
+		nameof(PlayerGuiLayer.UpdateGUIElementsVisibility)
+	)]
+	[HarmonyPostfix]
+	public static void UpdateGUIElementsVisibility(GuiManager __instance, eFocusState currentState) {
+		if (!(SpectateCam.Instance?.Active ?? false)) return;
+
+		// Ensure inventory PUI is disabled
+		GuiManager.PlayerLayer.Inventory.SetVisible(false);
+	}
 
 	/// <summary>
 	/// Prevent local player damage animation from playing when spectating
@@ -106,82 +136,6 @@ public class Patch {
 	[HarmonyPrefix]
 	public static bool PUI_LocalPlayerStatus_SetDamageAnim(PUI_LocalPlayerStatus __instance) {
 		if (SpectateCam.Instance?.Active ?? false) {
-			return false;
-		}
-
-		return true;
-	}
-
-	/// <summary>
-	/// Prevent local player inventory info updates when spectating.
-	/// </summary>
-	[HarmonyPatch(
-		typeof(PUI_Inventory),
-		nameof(PUI_Inventory.UpdateItemUI)
-	)]
-	[HarmonyPrefix]
-	public static bool PUI_Inventory_UpdateItemUI(PUI_Inventory __instance) {
-		if (SpectateCam.Instance?.Active ?? false) {
-			return false;
-		}
-
-		return true;
-	}
-
-	/// <summary>
-	/// Prevent local player inventory info updates when spectating.
-	/// </summary>
-	[HarmonyPatch(
-		typeof(PlayerAmmoStorage),
-		nameof(PlayerAmmoStorage.UpdateSlotAmmoUI),
-		new Type[] {
-			typeof(InventorySlot)
-		}
-	)]
-	[HarmonyPrefix]
-	public static bool PlayerAmmoStorage_UpdateSlotAmmoUI_0(PlayerAmmoStorage __instance) {
-		if (__instance.m_playerBackpack.Owner.IsLocal && (SpectateCam.Instance?.Active ?? false)) {
-			return false;
-		}
-
-		return true;
-	}
-
-	/// <summary>
-	/// Prevent local player inventory info updates when spectating.
-	/// </summary>
-	[HarmonyPatch(
-		typeof(PlayerAmmoStorage),
-		nameof(PlayerAmmoStorage.UpdateSlotAmmoUI),
-		new Type[] {
-			typeof(InventorySlot),
-			typeof(InventorySlotAmmo),
-			typeof(Item)
-		}
-	)]
-	[HarmonyPrefix]
-	public static bool PlayerAmmoStorage_UpdateSlotAmmoUI_1(PlayerAmmoStorage __instance) {
-		if (__instance.m_playerBackpack.Owner.IsLocal && (SpectateCam.Instance?.Active ?? false)) {
-			return false;
-		}
-
-		return true;
-	}
-
-	/// <summary>
-	/// Prevent local player inventory info updates when spectating.
-	/// </summary>
-	[HarmonyPatch(
-		typeof(PlayerAmmoStorage),
-		nameof(PlayerAmmoStorage.UpdateSlotAmmoUI),
-		new Type[] {
-			typeof(InventorySlotAmmo),
-			typeof(int)
-		}
-	)]
-	[HarmonyPrefix]
-	public static bool PlayerAmmoStorage_UpdateSlotAmmoUI(PlayerAmmoStorage __instance) {
-		if (__instance.m_playerBackpack.Owner.IsLocal && (SpectateCam.Instance?.Active ?? false)) {
 			return false;
 		}
 
