@@ -45,6 +45,7 @@ public class Patch {
 	[HarmonyPrefix]
 	private static void EndGameSession() {
 		SpectateCam.Instance?.Unload();
+		SpectateUI.Instance?.Unload();
 	}
 
 	/// <summary>
@@ -57,6 +58,7 @@ public class Patch {
 	[HarmonyPrefix]
 	private static void LeaveHub() {
 		SpectateCam.Instance?.Unload();
+		SpectateUI.Instance?.Unload();
 	}
 
 	/// <summary>

@@ -170,6 +170,14 @@ public class SpectateUI : MonoBehaviour {
 	}
 
 	/// <summary>
+	/// Unloads the spectate UI so there are no leftover elements.
+	/// </summary>
+	public void Unload() {
+		SetSpectateInventoryActive(false);
+	}
+
+
+	/// <summary>
 	/// Shows a nav marker on the local player to indicate their position while spectating.
 	/// </summary>
 	public void ShowNavMarker() {
@@ -229,8 +237,10 @@ public class SpectateUI : MonoBehaviour {
 		if (!CheckOrCreateTMP()) return; // ensure TMP is valid
 
 		ProcessInput();
-		if (SpectateCam.Instance?.Active ?? false) {
-			UpdatePlayerStatusUI(SpectateCam.Instance.Target);
+
+		bool camActive = SpectateCam.Instance?.Active ?? false;
+		if (camActive) {
+			UpdatePlayerStatusUI(SpectateCam.Instance!.Target);
 			UpdatePlayerInventoryUI(SpectateCam.Instance.Target);
 		}
 
@@ -247,10 +257,7 @@ public class SpectateUI : MonoBehaviour {
 			SetUIState(eSpectateUIState.HideMenu);
 		}
 
-		{
-			GuiManager.PlayerLayer.Inventory.SetVisible(false);
-			_spectateInv?.SetVisible(true);
-		}
+		SetSpectateInventoryActive(true);
 	}
 
 	public void UpdateForDetach() {
@@ -258,11 +265,7 @@ public class SpectateUI : MonoBehaviour {
 		SetUIState(isDowned ? eSpectateUIState.FPDowned : eSpectateUIState.FPNotDowned);
 		UpdatePlayerStatusUI(SpectateCam.Instance?.Self);
 		UpdatePlayerInventoryUI(SpectateCam.Instance?.Self);
-
-		{
-			_spectateInv?.SetVisible(false);
-			GuiManager.PlayerLayer.Inventory.SetVisible(true);
-		}
+		SetSpectateInventoryActive(false);
 	}
 
 	private void ProcessInput() {
@@ -438,6 +441,15 @@ public class SpectateUI : MonoBehaviour {
 		tmp.rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
 		tmp.rectTransform.pivot = new Vector2(0.5f, 0.5f);
 		return tmp;
+	}
+
+	/// <summary>
+	/// Adjust state of discrete inventory UI.
+	/// </summary>
+	/// <param name="active">whether spectate inventory ui should be active</param>
+	public void SetSpectateInventoryActive(bool active) {
+		_spectateInv?.SetVisible(active);
+		GuiManager.PlayerLayer.Inventory.SetVisible(!active);
 	}
 
 	// === UI Update Methods (implementation specific) ===
