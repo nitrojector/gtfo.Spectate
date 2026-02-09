@@ -1,4 +1,4 @@
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using System.Collections;
 using AIGraph;
 using BepInEx.Unity.IL2CPP.Utils.Collections;
@@ -560,8 +560,10 @@ public class SpectateCam : MonoBehaviour {
 			TrySetPreviousTarget();
 		}
 
-		int idx = InputHelper.GetAlphaNumKeyDown();
-		if (idx > 0) TrySetTargetByIdx(idx - 1);
+		if (FocusStateManager.Current.m_currentState != eFocusState.FPS_CommunicationDialog) {
+			int idx = InputHelper.GetAlphaNumKeyDown();
+			if (idx > 0) TrySetTargetByIdx(idx - 1);
+		}
 
 		// Camera fixed view adjust
 		float scrollDelta = Input.mouseScrollDelta.y * ConfigMgr.ScrollSensitivity;
