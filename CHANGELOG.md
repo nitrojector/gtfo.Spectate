@@ -1,3 +1,7 @@
+# v1.5.2
+
+- Fixed UI state desync issues.
+
 # v1.5.1
 
 - Fixed a bug where spectate inventory ui persists across game sessions if the session wipes while spectating.
