@@ -97,8 +97,4 @@ public class AnimationPatch {
 		instance.m_owner.AnimatorArms.SetLayerWeight(7, 0f);
 		instance.m_owner.AnimatorArms.SetLayerWeight(8, 0f);
 	}
-
-	public static void Apply(Harmony h) {
-		h.PatchAll(typeof(EventPatch));
-	}
 }

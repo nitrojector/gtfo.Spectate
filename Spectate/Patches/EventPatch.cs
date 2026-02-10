@@ -32,8 +32,4 @@ public class EventPatch {
 	private static void LeaveHub() {
 		Events.RaiseSessionEnd();
 	}
-
-	public static void Apply(Harmony h) {
-		h.PatchAll(typeof(EventPatch));
-	}
 }

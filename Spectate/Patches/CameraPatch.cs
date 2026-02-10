@@ -63,8 +63,4 @@ public class CameraPatch {
 
 		return true;
 	}
-
-	public static void Apply(Harmony h) {
-		h.PatchAll(typeof(UIPatch));
-	}
 }

@@ -37,12 +37,16 @@ public class Plugin : BasePlugin {
 		OnManagersSetup += Initialize;
 		Global.add_OnAllManagersSetup(OnManagersSetup);
 
-		EventPatch.Apply(h);
-		UIPatch.Apply(h);
-		CameraPatch.Apply(h);
-		AnimationPatch.Apply(h);
+		ApplyPatch<EventPatch>(h);
+		ApplyPatch<UIPatch>(h);
+		ApplyPatch<CameraPatch>(h);
+		ApplyPatch<AnimationPatch>(h);
 
 		Logger.Info("Finished Patching");
+	}
+
+	private static void ApplyPatch<T>(Harmony h) {
+		h.PatchAll(typeof(T));
 	}
 
 	private void Initialize() {
