@@ -29,6 +29,7 @@ public class AnimationPatch {
 	)]
 	[HarmonyPostfix]
 	public static void PLOC_Downed_Enter(PLOC_Downed __instance) {
+		Events.RaiseAnyPlayerDeath();
 		if (!__instance.m_owner.IsLocallyOwned || SpectateCam.Instance == null) return;
 
 		// NOTE: We transition player to downed posture FOR REAL

@@ -1,4 +1,4 @@
-﻿using System.Runtime.CompilerServices;
+using System.Runtime.CompilerServices;
 using CellMenu;
 using Player;
 using Spectate.Config;
@@ -164,9 +164,13 @@ public class SpectateUI : MonoBehaviour {
 	private void Awake() {
 		if (Instance != null && Instance != this) {
 			Destroy(gameObject);
-		} else {
-			Instance = this;
+			return;
 		}
+
+		Instance = this;
+		DontDestroyOnLoad(this);
+
+		Events.OnSessionEnd += Unload;
 	}
 
 	/// <summary>

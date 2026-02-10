@@ -1,4 +1,4 @@
-﻿using System.Runtime.CompilerServices;
+using System.Runtime.CompilerServices;
 using System.Collections;
 using AIGraph;
 using BepInEx.Unity.IL2CPP.Utils.Collections;
@@ -257,6 +257,9 @@ public class SpectateCam : MonoBehaviour {
 
 		Instance = this;
 		DontDestroyOnLoad(this);
+
+		Events.OnSessionStart += () => Load();
+		Events.OnSessionEnd += () => Unload();
 	}
 
 	/// <summary>
