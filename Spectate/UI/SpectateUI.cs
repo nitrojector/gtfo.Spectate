@@ -1,4 +1,4 @@
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using CellMenu;
 using Player;
 using Spectate.Config;
@@ -178,6 +178,9 @@ public class SpectateUI : MonoBehaviour {
 	/// </summary>
 	public void Unload() {
 		SetSpectateInventoryActive(false);
+		_uiState = eSpectateUIState.FPNotDowned;
+		_uiStatePrev = eSpectateUIState.FPNotDowned;
+		_uiStateRendered = eSpectateUIState.ShowMenu;
 	}
 
 
@@ -353,7 +356,6 @@ public class SpectateUI : MonoBehaviour {
 		_specTargetTmp.rectTransform.anchoredPosition3D = new Vector3(0f, -200f, 0f);
 		_specTargetTmp.rectTransform.sizeDelta = new Vector2(300f, 100f);
 		_specTargetTmp.alignment = TextAlignmentOptions.Center;
-		_specTargetTmp.gameObject.SetActive(false);
 
 		// Spectate Menu
 		_menuObj = new GameObject($"{Plugin.GUID}_SpectateMenu");
@@ -674,13 +676,14 @@ public class SpectateUI : MonoBehaviour {
 	}
 
 	/// <summary>
-	/// Registers a UI root GameObject for rendering management.
+	/// Registers a UI root GameObject for rendering management. Disabling the root after.
 	/// Roots should not have a parent who is also managed by this manager.
 	/// </summary>
 	/// <param name="root"></param>
 	private void RegisterUIRoot(GameObject root) {
 		if (!_uiRoots.Contains(root)) {
 			_uiRoots.Add(root);
+			root.gameObject.SetActive(false);
 		}
 	}
 
