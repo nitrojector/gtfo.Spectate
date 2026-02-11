@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+using CellMenu;
 using HarmonyLib;
 using Player;
 using Vector3 = UnityEngine.Vector3;
@@ -85,6 +86,25 @@ public class UIPatch {
 	private static void PlayerGuiLayer_ApplyMovementSway(PlayerGuiLayer __instance, ref Vector3 sway) {
 		if (PlayerManager.GetLocalPlayerAgent().Locomotion.m_currentStateEnum == PlayerLocomotion.PLOC_State.Downed) {
 			sway = Vector3.zero;
+		}
+	}
+
+	/// <summary>
+	/// Auto center map on player when spectating, respecting vanilla setting
+	/// </summary>
+	[HarmonyPatch(
+		typeof(CM_PageMap),
+		nameof(CM_PageMap.OnEnable)
+	)]
+	[HarmonyPostfix]
+	private static void CM_PageMap_OnEnable(CM_PageMap __instance) {
+		if ((SpectateCam.Instance?.Active ?? false) &&
+		    CellSettingsManager.GetBoolValue(eCellSettingID.HUD_MapAutoCenterOnPlayer)) {
+			int slot = SpectateCam.Instance.Target?.SAgent.PlayerSlotIndex() ?? -1;
+			if (slot == -1) return; // unlikely but whatever
+			Vector3 position = __instance.m_syncedPlayers[slot].transform.position;
+			Vector3 vector = __instance.m_mapHolder.transform.InverseTransformPoint(position);
+			__instance.m_mapMover.transform.localPosition -= vector;
 		}
 	}
 }
