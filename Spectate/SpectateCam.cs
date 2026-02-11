@@ -1,4 +1,4 @@
-﻿using System.Runtime.CompilerServices;
+using System.Runtime.CompilerServices;
 using System.Collections;
 using AIGraph;
 using BepInEx.Unity.IL2CPP.Utils.Collections;
@@ -350,10 +350,9 @@ public class SpectateCam : MonoBehaviour {
 		LastLocalCullNode = _self?.CourseNode?.m_cullNode;
 
 		_self!.PlayerModel.gameObject.transform.localScale = Vector3.one;
+		GuiManager.PlayerLayer.ApplyMovementSway(Vector3.zero);
 		GuiManager.CrosshairLayer.ShowPrecisionDot();
 		SpectateUI.Instance?.UpdateForAttach();
-		if (ConfigMgr.ShowLocalPlayerNavMarker)
-			SpectateUI.Instance?.ShowNavMarker();
 		SetRelatedActive(true);
 		UpdateCull();
 		SetActive(true);
@@ -374,14 +373,13 @@ public class SpectateCam : MonoBehaviour {
 			return false;
 		}
 
-		_self!.PlayerModel.gameObject.transform.localScale = DiegeticPlayerRigScale;
-
-		GuiManager.CrosshairLayer?.ShowSpreadCircle(_self!.FPHolder?.WieldedItem?.HipFireCrosshairSize ?? 40.0f);
-		SpectateUI.Instance?.UpdateForDetach();
-		SpectateUI.Instance?.HideNavMarker();
+		SetActive(false);
 		SetRelatedActive(false);
 		RevertCull();
-		SetActive(false);
+		SpectateUI.Instance?.UpdateForDetach();
+		GuiManager.CrosshairLayer?.ShowSpreadCircle(_self!.FPHolder?.WieldedItem?.HipFireCrosshairSize ?? 40.0f);
+		GuiManager.PlayerLayer?.m_playerStatus?.ResetDamageAnimation();
+		_self!.PlayerModel.gameObject.transform.localScale = DiegeticPlayerRigScale;
 		Logger.Debug("Detach");
 		return true;
 	}
@@ -802,7 +800,9 @@ public class SpectateCam : MonoBehaviour {
 				return false;
 
 			SetTarget(agent);
-			if ((ConfigMgr.NoPosLerpOnSwitchTarget && playerIdx != _lastTargetPlayerIdx) ||
+
+			bool diffTarget = playerIdx != _lastTargetPlayerIdx;
+			if ((ConfigMgr.NoPosLerpOnSwitchTarget && diffTarget) ||
 			    !_freecam) {
 				SetEye(GetTargetOrbitCenter(), true);
 			}

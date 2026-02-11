@@ -1,4 +1,7 @@
-﻿using HarmonyLib;
+﻿using System.Numerics;
+using HarmonyLib;
+using Player;
+using Vector3 = UnityEngine.Vector3;
 
 namespace Spectate.Patches;
 
@@ -8,16 +11,24 @@ public class UIPatch {
 	/// Prevents health GUI updates from local player when spectating
 	/// </summary>
 	[HarmonyPatch(
-		typeof(Dam_PlayerDamageLocal),
-		nameof(Dam_PlayerDamageLocal.UpdateHealthGui)
+		typeof(PlayerGuiLayer),
+		nameof(PlayerGuiLayer.UpdateHealth)
 	)]
 	[HarmonyPrefix]
-	public static bool Dam_PlayerDamageLocal_UpdateHealthGui(Dam_PlayerDamageLocal __instance) {
-		if (SpectateCam.Instance?.Active ?? false) {
-			return false;
-		}
+	private static bool PlayerGuiLayer_UpdateHealth(PlayerGuiLayer __instance) {
+		return !(SpectateCam.Instance?.Active ?? false);
+	}
 
-		return true;
+	/// <summary>
+	/// Prevents infection GUI updates from local player when spectating
+	/// </summary>
+	[HarmonyPatch(
+		typeof(PlayerGuiLayer),
+		nameof(PlayerGuiLayer.UpdateInfection)
+	)]
+	[HarmonyPrefix]
+	private static bool PlayerGuiLayer_UpdateInfection(PlayerGuiLayer __instance) {
+		return !(SpectateCam.Instance?.Active ?? false);
 	}
 
 	/// <summary>
@@ -28,7 +39,7 @@ public class UIPatch {
 		nameof(GuiManager.OnFocusStateChanged)
 	)]
 	[HarmonyPostfix]
-	public static void FocusStateChange(GuiManager __instance, eFocusState state) {
+	private static void FocusStateChange(GuiManager __instance, eFocusState state) {
 		if (!(SpectateCam.Instance?.Active ?? false)) return;
 
 		// Ensure inventory PUI is disabled
@@ -43,7 +54,7 @@ public class UIPatch {
 		nameof(PlayerGuiLayer.UpdateGUIElementsVisibility)
 	)]
 	[HarmonyPostfix]
-	public static void UpdateGUIElementsVisibility(GuiManager __instance, eFocusState currentState) {
+	private static void UpdateGUIElementsVisibility(GuiManager __instance, eFocusState currentState) {
 		if (!(SpectateCam.Instance?.Active ?? false)) return;
 
 		// Ensure inventory PUI is disabled
@@ -58,11 +69,22 @@ public class UIPatch {
 		nameof(PUI_LocalPlayerStatus.SetDamageAnim)
 	)]
 	[HarmonyPrefix]
-	public static bool PUI_LocalPlayerStatus_SetDamageAnim(PUI_LocalPlayerStatus __instance) {
-		if (SpectateCam.Instance?.Active ?? false) {
-			return false;
-		}
-
+	private static bool PUI_LocalPlayerStatus_SetDamageAnim(PUI_LocalPlayerStatus __instance) {
+		// return !(SpectateCam.Instance?.Active ?? false);
 		return true;
+	}
+
+	/// <summary>
+	/// Disable the weird UI offset when players are downed
+	/// </summary>
+	[HarmonyPatch(
+		typeof(PlayerGuiLayer),
+		nameof(PlayerGuiLayer.ApplyMovementSway)
+	)]
+	[HarmonyPrefix]
+	private static void PlayerGuiLayer_ApplyMovementSway(PlayerGuiLayer __instance, ref Vector3 sway) {
+		if (PlayerManager.GetLocalPlayerAgent().Locomotion.m_currentStateEnum == PlayerLocomotion.PLOC_State.Downed) {
+			sway = Vector3.zero;
+		}
 	}
 }

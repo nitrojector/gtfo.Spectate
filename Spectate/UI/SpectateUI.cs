@@ -42,6 +42,11 @@ public class SpectateUI : MonoBehaviour {
 	private eSpectateUIState _uiStateRendered = eSpectateUIState.ShowMenu;
 
 	/// <summary>
+	/// The last PlayerAgent target that the UI was rendered for.
+	/// </summary>
+	private PlayerAgent? _lastRenderedTarget = null;
+
+	/// <summary>
 	/// List of root UI GameObjects that can be rendered.
 	/// Parents of roots are always external.
 	/// </summary>
@@ -102,7 +107,7 @@ public class SpectateUI : MonoBehaviour {
 	/// <summary>
 	/// Offset of our spectate PUI_Inventory to show header
 	/// </summary>
-	private const float SpectateInvOffsetY = -35.0f;
+	private const float SpectateInvOffsetY = -20.0f;
 
 	// === UI Style Constants ===
 	private const string SpecTargetTextColor = "FFFFFF";
@@ -249,6 +254,7 @@ public class SpectateUI : MonoBehaviour {
 		if (camActive) {
 			UpdatePlayerStatusUI(SpectateCam.Instance!.Target);
 			UpdatePlayerInventoryUI(SpectateCam.Instance.Target);
+			_lastRenderedTarget = SpectateCam.Instance.Target?.Agent;
 		}
 
 		SetUIActive(true);
@@ -265,6 +271,8 @@ public class SpectateUI : MonoBehaviour {
 		}
 
 		SetSpectateInventoryActive(true);
+		if (ConfigMgr.ShowLocalPlayerNavMarker)
+			ShowNavMarker();
 	}
 
 	public void UpdateForDetach() {
@@ -273,6 +281,7 @@ public class SpectateUI : MonoBehaviour {
 		UpdatePlayerStatusUI(SpectateCam.Instance?.Self);
 		UpdatePlayerInventoryUI(SpectateCam.Instance?.Self);
 		SetSpectateInventoryActive(false);
+		HideNavMarker();
 	}
 
 	private void ProcessInput() {
@@ -461,7 +470,6 @@ public class SpectateUI : MonoBehaviour {
 	// === UI Update Methods (implementation specific) ===
 	// These methods should (only) be called in UpdateUI or its helpers.
 	public void UpdatePlayerStatusUI(AgentTarget? target) {
-		// TODO: BUG: If any attribute of the local player is updating (e.g. infection), the spectate UI would change
 		if (target == null) {
 			Logger.Error("SpectateUI: Could not update player status text: no target!");
 			return;
@@ -469,7 +477,10 @@ public class SpectateUI : MonoBehaviour {
 
 		PUI_LocalPlayerStatus? pstatus = GuiManager.PlayerLayer?.m_playerStatus;
 		pstatus?.UpdateHealth(target.Health);
-		pstatus?.UpdateInfection(target.Infection, 0.0f);
+		pstatus?.UpdateInfection(target.Infection, target.Agent.InfectionTargetHealthRel);
+		if (_lastRenderedTarget?.Pointer != target.Agent.Pointer) {
+			GuiManager.PlayerLayer?.m_playerStatus.ResetDamageAnimation();
+		}
 	}
 
 	public void UpdatePlayerInventoryUI(AgentTarget? target) {
