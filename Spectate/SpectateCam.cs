@@ -1,4 +1,4 @@
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using System.Collections;
 using AIGraph;
 using BepInEx.Unity.IL2CPP.Utils.Collections;
@@ -486,13 +486,6 @@ public class SpectateCam : MonoBehaviour {
 		// Active only
 		if (!Active)
 			return;
-
-		// Ensure spectating target is alive if option is enabled
-		// TODO: change behavior to have these kinds of elements in combination:
-		// - auto switch to next alive target on down
-		// - mouse prev/next only navigates alive targets
-		if (ConfigMgr.PreferSpectateAlive) {
-		}
 
 		if (ConfigMgr.AutoTransitionToFollowView && _freeLookReturnTimer >= 0.0f) {
 			_freeLookReturnTimer -= Time.deltaTime;
