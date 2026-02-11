@@ -11,6 +11,7 @@ public class CameraPatch {
 	/// but our method of updating FPSCamera position isn't reflected in CamPos.
 	/// Updates CamPos to match our camera position when spectating,
 	/// so that player pings work as expected.
+	/// This fixes pings for PingEverything
 	/// </summary>
 	[HarmonyPatch(
 		typeof(LocalPlayerAgent),
@@ -25,6 +26,21 @@ public class CameraPatch {
 		}
 
 		return true;
+	}
+
+	/// <summary>
+	/// See <see cref="PlayerAgent_get_CamPos"/>.
+	/// This patch fixes pings for the vanilla ping system.
+	/// </summary>
+	[HarmonyPatch(
+		typeof(LocalPlayerAgent),
+		nameof(LocalPlayerAgent.UpdateGlobalInput)
+	)]
+	[HarmonyPrefix]
+	private static void PlayerAgent_UpdateGlobalInput(LocalPlayerAgent __instance) {
+		if (SpectateCam.Instance?.Active ?? false) {
+			__instance.m_camPos = SpectateCam.Instance.CameraPos;
+		}
 	}
 
 	/// <summary>
