@@ -16,7 +16,8 @@
         <BepInEx Condition="'$(CI)' == 'true'">$(SolutionDir)/GTFOBepInDep</BepInEx>
         <BepInEx Condition="'$(CI)' != 'true' AND '$(IsMacOS)' != 'true'">$(AppData)\com.kesomannen.gale\gtfo\profiles\$(Profile)\BepInEx</BepInEx>
         <BepInEx Condition="'$(CI)' != 'true' AND '$(IsMacOS)' == 'true'">/opt/GTFOBepInDep</BepInEx>
-        <PlugOutput>$(BepInEx)\plugins\$(SolutionName)\</PlugOutput>
+        <PluginFolder>$(BepInEx)\plugins</PluginFolder>
+        <PlugOutput>$(PluginFolder)\$(SolutionName)</PlugOutput>
         <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     </PropertyGroup>
     <Target Name="PostBuild" BeforeTargets="PostBuildEvent">
@@ -53,6 +54,8 @@
         <Exec Condition="'$(OS)' == 'Windows_NT' AND '$(CI)' != 'true'"
               Command="powershell -NoProfile -Command &quot;Compress-Archive -Path '$(PkgFolder)*' -DestinationPath '$(ZipFile)' -Force&quot;"/>
     </Target>
+
+    <!-- BepInEx & Game Assemblies -->
     <ItemGroup>
         <Reference Include="$(BepInEx)\core\0Harmony.dll" Private="false"/>
         <Reference Include="$(BepInEx)\core\BepInEx.Core.dll" Private="false"/>
@@ -62,6 +65,7 @@
         <Reference Include="$(BepInEx)\interop\*.dll" Private="false"/>
         <Reference Remove="$(BepInEx)\interop\netstandard.dll"/>
     </ItemGroup>
+
     <ItemGroup>
         <Compile Remove="obj\**"/>
         <Compile Remove="pkg\**"/>

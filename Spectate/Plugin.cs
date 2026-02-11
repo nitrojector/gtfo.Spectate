@@ -6,6 +6,7 @@ using Il2CppInterop.Runtime.Injection;
 using UnityEngine;
 using Spectate.Config;
 using Spectate.Patches;
+using Spectate.Patches.Compat;
 using Spectate.UI;
 
 namespace Spectate;
@@ -23,7 +24,6 @@ public class Plugin : BasePlugin {
 	public override void Load() {
 		Logger.Setup();
 		Logger.Info($"{NAME} [{GUID} @ {VERSION}]");
-		Logger.Info("Patching...");
 
 		Harmony h = new Harmony(GUID);
 		ConfigMgr.Process();
@@ -37,10 +37,14 @@ public class Plugin : BasePlugin {
 		OnManagersSetup += Initialize;
 		Global.add_OnAllManagersSetup(OnManagersSetup);
 
+		Logger.Info("Patching...");
+
 		ApplyPatch<EventPatch>(h);
 		ApplyPatch<UIPatch>(h);
 		ApplyPatch<CameraPatch>(h);
 		ApplyPatch<AnimationPatch>(h);
+
+		CompatPatcher.PatchAll(h);
 
 		Logger.Info("Finished Patching");
 	}
