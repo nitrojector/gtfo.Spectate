@@ -1,3 +1,11 @@
+# v1.5.4
+
+- Fixed vanilla player pings when spectating.
+- Fixed UI updating artifacts for infection.
+- Improved health UI animation logic.
+- Support for auto centering map to spectating player.
+    - Respects vanilla setting: \[HUD\] >> \[Auto Center Map on Player\]
+
 # v1.5.3
 
 - Add preference in spectating alive players (enabled by default, can be disabled in the config), which:
