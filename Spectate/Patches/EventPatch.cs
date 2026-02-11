@@ -1,6 +1,5 @@
 ﻿using HarmonyLib;
 using SNetwork;
-using Spectate.UI;
 
 namespace Spectate.Patches;
 
@@ -13,6 +12,15 @@ public class EventPatch {
 	[HarmonyPostfix]
 	private static void GS_ReadyToStopElevatorRide_Enter() {
 		Events.RaiseSessionStart();
+	}
+
+	[HarmonyPatch(
+		typeof(PLOC_Downed),
+		nameof(PLOC_Downed.SyncEnter)
+	)]
+	[HarmonyPostfix]
+	private static void PLOC_Downed_SyncEnter() {
+		Events.RaiseAnyPlayerDeath();
 	}
 
 	[HarmonyPatch(

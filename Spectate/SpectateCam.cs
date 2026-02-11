@@ -1,4 +1,4 @@
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using System.Collections;
 using AIGraph;
 using BepInEx.Unity.IL2CPP.Utils.Collections;
@@ -260,6 +260,11 @@ public class SpectateCam : MonoBehaviour {
 
 		Events.OnSessionStart += () => Load();
 		Events.OnSessionEnd += () => Unload();
+		Events.OnAnyPlayerDeath += () => {
+			if (ConfigMgr.PreferSpectateAlive && (_target == null || _target.IsDowned)) {
+				TrySetAnyNonLocalTarget();
+			}
+		};
 	}
 
 	/// <summary>
@@ -484,6 +489,13 @@ public class SpectateCam : MonoBehaviour {
 		if (!Active)
 			return;
 
+		// Ensure spectating target is alive if option is enabled
+		// TODO: change behavior to have these kinds of elements in combination:
+		// - auto switch to next alive target on down
+		// - mouse prev/next only navigates alive targets
+		if (ConfigMgr.PreferSpectateAlive) {
+		}
+
 		if (ConfigMgr.AutoTransitionToFollowView && _freeLookReturnTimer >= 0.0f) {
 			_freeLookReturnTimer -= Time.deltaTime;
 		}
@@ -565,7 +577,7 @@ public class SpectateCam : MonoBehaviour {
 
 		if (FocusStateManager.Current.m_currentState != eFocusState.FPS_CommunicationDialog) {
 			int idx = InputHelper.GetAlphaNumKeyDown();
-			if (idx > 0) TrySetTargetByIdx(idx - 1);
+			if (idx > 0) TrySetTargetByIdx(idx - 1, overridePreferAlive: true);
 		}
 
 		// Camera fixed view adjust
@@ -774,22 +786,29 @@ public class SpectateCam : MonoBehaviour {
 	/// Tries to set the spectate target to the player in a given slot
 	/// </summary>
 	/// <param name="playerIdx">player slot index</param>
-	/// <returns></returns>
-	private bool TrySetTargetByIdx(int playerIdx) {
+	/// <param name="overridePreferAlive">whether method should succeed even if player is downed</param>
+	/// <returns>true if successfully set</returns>
+	private bool TrySetTargetByIdx(int playerIdx, bool overridePreferAlive = false) {
 		var players = SNet.Slots?.SlottedPlayers;
 		if (players == null || players.Count == 0) return false;
 
 		if (playerIdx >= 0 && playerIdx < players.Count) {
-			if (!players[playerIdx].IsLocal) {
-				SetTarget(players[playerIdx].PlayerAgent.Cast<PlayerAgent>());
-				if ((ConfigMgr.NoPosLerpOnSwitchTarget && playerIdx != _lastTargetPlayerIdx) ||
-				    !_freecam) {
-					SetEye(GetTargetOrbitCenter(), true);
-				}
+			if (players[playerIdx].IsLocal) return false;
 
-				_lastTargetPlayerIdx = playerIdx;
-				return true;
+			PlayerAgent agent = players[playerIdx].PlayerAgent.Cast<PlayerAgent>();
+
+			if (!overridePreferAlive && ConfigMgr.PreferSpectateAlive &&
+			    agent.Locomotion.m_currentStateEnum == PlayerLocomotion.PLOC_State.Downed)
+				return false;
+
+			SetTarget(agent);
+			if ((ConfigMgr.NoPosLerpOnSwitchTarget && playerIdx != _lastTargetPlayerIdx) ||
+			    !_freecam) {
+				SetEye(GetTargetOrbitCenter(), true);
 			}
+
+			_lastTargetPlayerIdx = playerIdx;
+			return true;
 		}
 
 		return false;

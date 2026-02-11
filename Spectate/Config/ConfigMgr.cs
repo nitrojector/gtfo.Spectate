@@ -31,6 +31,7 @@ internal static class ConfigMgr {
 	private static readonly ConfigEntryExtended<bool> NoPosLerpOnSwitchTargetConf;
 	private static readonly ConfigEntryExtended<bool> ShowPlayerBodyWhenSpectatingConf;
 	private static readonly ConfigEntryExtended<bool> ShowLocalPlayerNavMarkerConf;
+	private static readonly ConfigEntryExtended<bool> PreferSpectateAliveConf;
 	private static readonly ConfigEntryExtended<bool> AutoTransitionToFollowViewConf;
 	private static readonly ConfigEntryExtended<float> AutoTransitionDelayConf;
 	private static bool _autoTransitionToFollowViewCache = false;
@@ -39,6 +40,7 @@ internal static class ConfigMgr {
 	public static bool NoPosLerpOnSwitchTarget => NoPosLerpOnSwitchTargetConf.Value;
 	public static bool ShowPlayerBodyWhenSpectating => ShowPlayerBodyWhenSpectatingConf.Value;
 	public static bool ShowLocalPlayerNavMarker => ShowLocalPlayerNavMarkerConf.Value;
+	public static bool PreferSpectateAlive => PreferSpectateAliveConf.Value;
 	public static float AutoTransitionDelay => AutoTransitionDelayConf.Value;
 
 	public static bool AutoTransitionToFollowView {
@@ -122,6 +124,10 @@ internal static class ConfigMgr {
 	// Misc.
 	private static readonly ConfigEntryExtended<bool> HideWmConf;
 	public static bool HideWm => HideWmConf.Value;
+
+	// Experimental
+	private static readonly ConfigEntryExtended<bool> ShowEstimatedClipSizeConf;
+	public static bool ShowEstimatedClipSize => ShowEstimatedClipSizeConf.Value;
 
 	// Methods
 	public static KeyCode GetKeybind(SpectateInputAction action) {
@@ -207,6 +213,12 @@ internal static class ConfigMgr {
 			"Show Local Player Body when Spectating",
 			true,
 			"render the local player's body when spectating in third-person views");
+
+		PreferSpectateAliveConf = Conf.Bind(
+			sectionHeader,
+			"Prefer Spectating Alive Players",
+			true,
+			"automatically switch to an alive player when current spectate target dies; mouse prev/next target selection will only select alive players");
 
 		AutoTransitionToFollowViewConf = Conf.Bind(
 			sectionHeader,
@@ -307,6 +319,16 @@ internal static class ConfigMgr {
 			"Hide Version Watermark",
 			false,
 			"hide the version watermark on the bottom right of the screen");
+
+		sectionHeader = $"(Y) Experimental Features";
+
+		// TODO: estimated clip size
+		// ShowEstimatedClipSizeConf = Conf.Bind(
+		// 	sectionHeader,
+		// 	"Show Estimated Clip Size",
+		// 	false,
+		// 	"when enabled, show an estimated remaining clip size for players when spectating. Note: this estimate deviates when players silent shoot or are on ping"
+		// );
 
 		sectionHeader = "(Z) Dev";
 
