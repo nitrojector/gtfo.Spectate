@@ -1,3 +1,12 @@
+# v1.5.3
+
+- Add preference in spectating alive players (enabled by default, can be disabled in the config), which:
+    - Tries to switch to an alive player when currently spectating player is downed.
+    - Makes LMB/RMB next/prev player switching keybinds switch only between alive players.
+- Add compatibility with [EOSExt EMP](https://thunderstore.io/c/gtfo/p/Inas07/EOSExt_EMP/)
+    - EOSExt EMP tries to set the state of the player inventory ui every frame, causing spectate UI management to fail.
+    - The patch disables the EOSExt EMP's player UI update when spectate is active.
+
 # v1.5.2
 
 - Fixed UI state desync issues.
