@@ -126,8 +126,8 @@ internal static class ConfigMgr {
 	public static bool HideWm => HideWmConf.Value;
 
 	// Experimental
-	private static readonly ConfigEntryExtended<bool> ShowEstimatedClipSizeConf;
-	public static bool ShowEstimatedClipSize => ShowEstimatedClipSizeConf.Value;
+	// private static readonly ConfigEntryExtended<bool> ShowEstimatedClipSizeConf;
+	// public static bool ShowEstimatedClipSize => ShowEstimatedClipSizeConf.Value;
 
 	// Methods
 	public static KeyCode GetKeybind(SpectateInputAction action) {
