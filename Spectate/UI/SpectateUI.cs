@@ -1,6 +1,7 @@
 ﻿using System.Runtime.CompilerServices;
 using CellMenu;
 using Player;
+using SNetwork;
 using Spectate.Config;
 using TMPro;
 using UnityEngine;
@@ -271,6 +272,7 @@ public class SpectateUI : MonoBehaviour {
 		}
 
 		SetSpectateInventoryActive(true);
+		GuiManager.PlayerLayer.m_playerStatus.gameObject.SetActive(true); // for compat with EOSExt EMP ig...
 		if (ConfigMgr.ShowLocalPlayerNavMarker)
 			ShowNavMarker();
 	}
@@ -489,9 +491,13 @@ public class SpectateUI : MonoBehaviour {
 			return;
 		}
 
-		if (_spectateInv == null && !CheckOrCreatePUI_Inventory()) {
-			Logger.Error("SpectateUI: Could not update player inventory text: failed to create PUI_Inventory!");
-			return;
+		if (_spectateInv == null) {
+			if (!CheckOrCreatePUI_Inventory()) {
+				Logger.Error("SpectateUI: Could not update player inventory text: failed to create PUI_Inventory!");
+				return;
+			}
+
+			_spectateInv?.gameObject.SetActive(true);
 		}
 
 		var tBackpack = target.Backpack;

@@ -290,7 +290,7 @@ public class SpectateCam : MonoBehaviour {
 	/// </summary>
 	/// <returns>true always (currently)</returns>
 	public bool Unload() {
-		Active = false;
+		SetActive(false);
 		_self = null;
 		_target = null;
 
@@ -729,7 +729,6 @@ public class SpectateCam : MonoBehaviour {
 		_lastTargetPlayerIdx = 0;
 		for (int i = 0; i < players.Count; i++) {
 			if (TrySetTargetByIdx(i)) {
-				_lastTargetPlayerIdx = i;
 				return true;
 			}
 		}

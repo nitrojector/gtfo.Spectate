@@ -19,7 +19,6 @@ public class CameraPatch {
 	)]
 	[HarmonyPrefix]
 	private static bool PlayerAgent_get_CamPos(ref Vector3 __result) {
-		// TODO: broken?
 		if (SpectateCam.Instance?.Active ?? false) {
 			__result = SpectateCam.Instance.CameraPos;
 			return false;
@@ -38,6 +37,7 @@ public class CameraPatch {
 	)]
 	[HarmonyPrefix]
 	private static void PlayerAgent_UpdateGlobalInput(LocalPlayerAgent __instance) {
+		// TODO: We could have just patched the getter for m_camPos
 		if (SpectateCam.Instance?.Active ?? false) {
 			__instance.m_camPos = SpectateCam.Instance.CameraPos;
 		}

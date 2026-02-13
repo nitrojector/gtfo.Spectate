@@ -1,5 +1,4 @@
 ﻿using HarmonyLib;
-using JetBrains.Annotations;
 
 namespace Spectate.Patches.Compat;
 

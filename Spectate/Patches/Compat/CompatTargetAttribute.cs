@@ -1,6 +1,4 @@
-﻿using JetBrains.Annotations;
-
-namespace Spectate.Patches.Compat;
+﻿namespace Spectate.Patches.Compat;
 
 [AttributeUsage(AttributeTargets.Class)]
 public class CompatTargetAttribute : Attribute {
