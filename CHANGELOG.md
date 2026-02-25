@@ -5,6 +5,11 @@
   `PUI_LocalPlayerStatus.SetDamageAnim`.
 - Fixed an incompatibility issue with Striker Mode where PLOC state would be desynced when dropping in in-level lobby.
 
+*Special Notes*
+
+- Thanks to Nikita(@nikita_2414) for finding a reproducible scenario for the native crash on
+  `PUI_LocalPlayerStatus.SetDamageAnim`.
+
 # v1.5.4
 
 - Fixed vanilla player pings when spectating.
