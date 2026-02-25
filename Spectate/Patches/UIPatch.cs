@@ -62,19 +62,6 @@ public class UIPatch {
 	}
 
 	/// <summary>
-	/// Prevent local player damage animation from playing when spectating
-	/// </summary>
-	[HarmonyPatch(
-		typeof(PUI_LocalPlayerStatus),
-		nameof(PUI_LocalPlayerStatus.SetDamageAnim)
-	)]
-	[HarmonyPrefix]
-	private static bool PUI_LocalPlayerStatus_SetDamageAnim(PUI_LocalPlayerStatus __instance) {
-		// return !(SpectateCam.Instance?.Active ?? false);
-		return true;
-	}
-
-	/// <summary>
 	/// Disable the weird UI offset when players are downed
 	/// </summary>
 	[HarmonyPatch(
