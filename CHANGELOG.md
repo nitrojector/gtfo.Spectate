@@ -1,3 +1,10 @@
+# v1.5.5
+
+- Refactored some logic to be more robust
+- Fixed a bug where under certain conditions the game would crash with a native pointer exception on
+  `PUI_LocalPlayerStatus.SetDamageAnim`.
+- Fixed an incompatibility issue with Striker Mode where PLOC state would be desynced when dropping in in-level lobby.
+
 # v1.5.4
 
 - Fixed vanilla player pings when spectating.
