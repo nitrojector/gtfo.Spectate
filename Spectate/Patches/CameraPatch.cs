@@ -52,12 +52,10 @@ public class CameraPatch {
 		nameof(PlayerAgent.GetDetectionMod)
 	)]
 	[HarmonyPrefix]
-	private static bool PlayerAgent_GetDetectionMod(PlayerAgent __instance, ref Vector3 dir, float distance) {
+	private static void PlayerAgent_GetDetectionMod(PlayerAgent __instance, ref Vector3 dir, float distance) {
 		if (SpectateCam.Instance?.Active ?? false) {
 			dir = SpectateCam.Instance.DiegeticCamDir;
 		}
-
-		return true;
 	}
 
 	/// <summary>
@@ -68,7 +66,7 @@ public class CameraPatch {
 		nameof(PlayerSync.SendLocomotion)
 	)]
 	[HarmonyPrefix]
-	private static bool PlayerSync_SendLocomotion(PlayerSync __instance, PlayerLocomotion.PLOC_State state, Vector3 pos,
+	private static void PlayerSync_SendLocomotion(PlayerSync __instance, PlayerLocomotion.PLOC_State state, Vector3 pos,
 		ref Vector3 lookDir, float velFwd, float velRight) {
 #if DEBUG
 		if (!__instance.m_agent.IsLocallyOwned) return true;
@@ -76,7 +74,5 @@ public class CameraPatch {
 		if (SpectateCam.Instance?.Active ?? false) {
 			lookDir = SpectateCam.Instance.DiegeticCamDir;
 		}
-
-		return true;
 	}
 }
