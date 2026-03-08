@@ -1,3 +1,16 @@
+# v1.5.6
+
+- Implemented a safeguard so that players cannot spectate when they are snatched by a Pouncer (i.e. they are in the
+  Pouncer dimension)
+    - This prevents a bug of the player entering a state where enemies cannot detect the player and teammates cannot see
+      the player model or pointer on map.
+    - This is not a fix of the root cause, but is good enough for now.
+
+*Special Notes*
+
+- This issue was discovered by Lakana(@lakana0451); thanks to them for providing details.
+- Thanks to Nivoe(@pssucks) and Sp3ctre(@sp3c7re_) for help with testing.
+
 # v1.5.5
 
 - Refactored some logic to be more robust
