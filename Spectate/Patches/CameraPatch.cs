@@ -69,7 +69,7 @@ public class CameraPatch {
 	private static void PlayerSync_SendLocomotion(PlayerSync __instance, PlayerLocomotion.PLOC_State state, Vector3 pos,
 		ref Vector3 lookDir, float velFwd, float velRight) {
 #if DEBUG
-		if (!__instance.m_agent.IsLocallyOwned) return true;
+		if (!__instance.m_agent.IsLocallyOwned) return;
 #endif
 		if (SpectateCam.Instance?.Active ?? false) {
 			lookDir = SpectateCam.Instance.DiegeticCamDir;

@@ -356,7 +356,9 @@ public class SpectateCam : MonoBehaviour {
 		SetRelatedActive(true);
 		UpdateCull();
 		SetActive(true);
+#if DEBUG
 		Logger.Debug("Attach");
+#endif
 		return true;
 	}
 
@@ -380,7 +382,9 @@ public class SpectateCam : MonoBehaviour {
 		GuiManager.CrosshairLayer?.ShowSpreadCircle(_self!.FPHolder?.WieldedItem?.HipFireCrosshairSize ?? 40.0f);
 		GuiManager.PlayerLayer?.m_playerStatus?.ResetDamageAnimation();
 		_self!.PlayerModel.gameObject.transform.localScale = DiegeticPlayerRigScale;
+#if DEBUG
 		Logger.Debug("Detach");
+#endif
 		return true;
 	}
 
@@ -600,7 +604,7 @@ public class SpectateCam : MonoBehaviour {
 	/// </summary>
 	private void UpdateCamera() {
 		if (!SelfReady || !TargetReady) {
-			Logger.Error("SpectateCam: UpdateCull failed - target or self not ready");
+			Logger.Error("SpectateCam: UpdateCamera failed - target or self not ready");
 			return;
 		}
 
