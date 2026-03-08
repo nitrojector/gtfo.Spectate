@@ -49,6 +49,16 @@ public class AgentTarget {
 		}
 	}
 
+	public bool IsCaptured {
+		get {
+			if (PouncerTracker.Instance == null)
+				return false;
+			return PouncerTracker.Instance.IsCaptured(Agent);
+		}
+	}
+
+	public bool CanSpectate => IsDowned && !IsCaptured;
+
 	public AgentTarget(PlayerAgent agent) {
 		Agent = agent;
 	}

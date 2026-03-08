@@ -240,9 +240,8 @@ public class SpectateUI : MonoBehaviour {
 	}
 
 	private void Update() {
-		bool canSpectate = (SpectateCam.Instance?.Self != null && SpectateCam.Instance.Self.IsDowned)
-		                   || ConfigMgr.DevEnables(eDevOpts.AllowSpectatingAnytime);
-		if (!canSpectate) {
+		var cam = SpectateCam.Instance;
+		if (!(SpectateCam.Instance?.CanSpectate ?? false)) {
 			SetUIActive(false);
 			return;
 		}

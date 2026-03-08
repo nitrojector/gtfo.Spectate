@@ -32,6 +32,8 @@ public class Plugin : BasePlugin {
 		ClassInjector.RegisterTypeInIl2Cpp<SpectateCam>();
 		ClassInjector.RegisterTypeInIl2Cpp<SpectateUI>();
 		ClassInjector.RegisterTypeInIl2Cpp<SpectateConfigUpdater>();
+		ClassInjector.RegisterTypeInIl2Cpp<PouncerTracker>();
+		ClassInjector.RegisterTypeInIl2Cpp<PouncerTrackingDart>();
 		ClassInjector.RegisterTypeInIl2Cpp<Wm>();
 
 		OnManagersSetup += Initialize;
@@ -43,6 +45,7 @@ public class Plugin : BasePlugin {
 		ApplyPatch<UIPatch>(h);
 		ApplyPatch<CameraPatch>(h);
 		ApplyPatch<AnimationPatch>(h);
+		ApplyPatch<PouncerPatch>(h);
 
 		CompatPatcher.PatchAll(h);
 
@@ -60,6 +63,7 @@ public class Plugin : BasePlugin {
 		var ui = PluginObject.AddComponent<SpectateUI>();
 		PluginObject.AddComponent<SpectateCam>();
 		PluginObject.AddComponent<SpectateConfigUpdater>();
+		PluginObject.AddComponent<PouncerTracker>();
 		PluginObject.AddComponent<Wm>();
 		ui.ReplicateUI();
 	}

@@ -244,6 +244,14 @@ public class SpectateCam : MonoBehaviour {
 	public AgentTarget? Target => _target;
 
 	/// <summary>
+	/// Returns whether the player can spectate.
+	/// NOTE: This is NOT behavior safe!!! If dev options is enabled, pouncer issues can occur!!
+	///   For safe behavior, use <see cref="AgentTarget.CanSpectate"/>!!
+	/// </summary>
+	public bool CanSpectate => ConfigMgr.DevEnables(eDevOpts.AllowSpectatingAnytime) ||
+	                           (SelfReady && _self!.CanSpectate);
+
+	/// <summary>
 	/// IL2CPP compatibility constructor
 	/// </summary>
 	public SpectateCam(IntPtr ptr) : base(ptr) {
@@ -339,6 +347,10 @@ public class SpectateCam : MonoBehaviour {
 			Logger.Error("SpectateCam: Attach failed - self not ready and cannot be loaded");
 			return false;
 		}
+
+		// NOTE: we do a redundant check here just for safety.
+		if (!CanSpectate)
+			return false;
 
 		if (!TargetReady && !TrySetAnyNonLocalTarget()) {
 			Logger.Warn("SpectateCam: Attach failed - no valid target available");
@@ -504,8 +516,7 @@ public class SpectateCam : MonoBehaviour {
 			return;
 
 		// Universal inputs
-		bool allowKeySwitch = ConfigMgr.DevEnables(eDevOpts.AllowSpectatingAnytime) || (SelfReady && _self!.IsDowned);
-		if (allowKeySwitch && Input.GetKeyDown(ConfigMgr.GetKeybind(SpectateInputAction.ToggleSpectate))) {
+		if (CanSpectate && Input.GetKeyDown(ConfigMgr.GetKeybind(SpectateInputAction.ToggleSpectate))) {
 			if (Active) {
 				if (!Detach()) Logger.Warn("SpectateCam: Failed to detach SpecCam");
 			} else {
