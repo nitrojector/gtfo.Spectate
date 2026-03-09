@@ -35,7 +35,17 @@ public class AgentTarget {
 	public PlayerInventoryBase? Inventory => Agent.Inventory;
 	public InventorySlot? ActiveItemSlot => Inventory?.WieldedSlot;
 
-	public AIG_CourseNode? CourseNode => Agent.CourseNode;
+	public AIG_CourseNode? CourseNode {
+		get {
+			if (IsCaptured && (PouncerTracker.Instance?.TryGetCapturingPouncer(
+				    Agent, out var p
+			    ) ?? false)) {
+				return p?.m_ai?.m_enemyAgent?.CourseNode ?? Agent.CourseNode;
+			}
+
+			return Agent.CourseNode;
+		}
+	}
 
 	public PlayerBackpack? Backpack => PlayerBackpackManager.GetBackpack(Agent.Owner);
 

@@ -3,6 +3,7 @@ using System.Collections;
 using AIGraph;
 using BepInEx.Unity.IL2CPP.Utils.Collections;
 using CullingSystem;
+using Enemies;
 using Player;
 using SNetwork;
 using UnityEngine;
@@ -65,6 +66,8 @@ public class SpectateCam : MonoBehaviour {
 	/// Used only if <see cref="_freecamFollow"/> is true
 	/// </summary>
 	private float _freeLookReturnTimer = 0f;
+
+	private PouncerBehaviour? _lastPouncer = null;
 
 	/// <summary>
 	/// Public accessor for whether freecam mode is enabled, used for UI and input processing
@@ -203,6 +206,11 @@ public class SpectateCam : MonoBehaviour {
 	/// Maximum allowed distance of the spectate camera from the orbit center
 	/// </summary>
 	public const float DistanceMax = 5.0f;
+
+	/// <summary>
+	/// The additional distance offset for camera when spectating a pouncer (which captured a teammate)
+	/// </summary>
+	public const float DistanceOffsetPouncer = 1.3f;
 
 	/// <summary>
 	/// Minimum allowed pitch angle of the camera view direction in degrees.
@@ -650,8 +658,11 @@ public class SpectateCam : MonoBehaviour {
 		dir.Normalize();
 
 		// raycast to avoid clipping into walls
-		_camPosComputed = orbitCenter - dir * ConfigMgr.CameraDistance;
-		if (Physics.Raycast(orbitCenter, -dir, out var hit, ConfigMgr.CameraDistance, LayerManager.MASK_WORLD)) {
+		float dist = ConfigMgr.CameraDistance;
+		if (_target.IsCaptured)
+			dist = Mathf.Clamp(dist + DistanceOffsetPouncer, DistanceMin, DistanceMax);
+		_camPosComputed = orbitCenter - dir * dist;
+		if (Physics.Raycast(orbitCenter, -dir, out var hit, dist, LayerManager.MASK_WORLD)) {
 			_camPosComputed = hit.m_Point + dir * 0.1f;
 		}
 
@@ -686,7 +697,7 @@ public class SpectateCam : MonoBehaviour {
 			return;
 		}
 
-		Vector3 targetCullPosition = _target!.Agent.Position;
+		Vector3 targetCullPosition = GetTargetOrbitCenter();
 		if (Physics.Raycast(targetCullPosition, Vector3.down, out var hit, 64f, LayerManager.MASK_WORLD))
 			targetCullPosition = hit.m_Point;
 
@@ -695,7 +706,7 @@ public class SpectateCam : MonoBehaviour {
 
 		_self.Agent.m_movingCuller.UpdatePosition(_self.Agent.m_dimensionIndex, targetCullPosition);
 		var curCullNode = _self.Agent.m_movingCuller.CurrentNode;
-		var targetNode = _target.CourseNode?.m_cullNode;
+		var targetNode = _target!.CourseNode?.m_cullNode;
 		if (targetNode != null) {
 			if (curCullNode.Pointer != targetNode.Pointer) {
 				_self.Agent.m_movingCuller.SetCurrentNode(targetNode);
@@ -826,7 +837,21 @@ public class SpectateCam : MonoBehaviour {
 	/// </summary>
 	/// <returns>target orbit center position, or vertical if target is null</returns>
 	private Vector3 GetTargetOrbitCenter() {
-		var eyeTmp = _target != null ? _target.Agent.m_eyePosition : Vector3.zero;
+		var eyeTmp = Vector3.zero;
+		if (_target != null) {
+			var ag = _target.Agent;
+			if (_target.IsCaptured) {
+				if ((_lastPouncer == null || (_lastPouncer.CapturedPlayer?.Pointer ?? IntPtr.Zero) != ag.Pointer) &&
+				    (PouncerTracker.Instance?.TryGetCapturingPouncer(ag, out var p) ?? false)) {
+					_lastPouncer = p;
+				}
+
+				eyeTmp = _lastPouncer == null ? ag.m_eyePosition : _lastPouncer.transform.position;
+			} else {
+				eyeTmp = _target.Agent.m_eyePosition;
+			}
+		}
+
 		eyeTmp.y += ConfigMgr.CameraOrbitVerticalOffset;
 		return eyeTmp;
 	}

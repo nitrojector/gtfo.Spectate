@@ -62,6 +62,19 @@ public class PouncerTracker : MonoBehaviour {
 		return false;
 	}
 
+	public bool TryGetCapturingPouncer(PlayerAgent agent, out PouncerBehaviour? capturingPouncer) {
+		foreach (var pouncer in ActivePouncers) {
+			if (pouncer == null || pouncer.CapturedPlayer == null) continue;
+			if (pouncer.CapturedPlayer.Pointer == agent.Pointer) {
+				capturingPouncer = pouncer;
+				return true;
+			}
+		}
+
+		capturingPouncer = null;
+		return false;
+	}
+
 	private void CleanupPouncers() {
 		ActivePouncers.RemoveAll(p => p == null || !p.gameObject.activeInHierarchy);
 	}
