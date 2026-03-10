@@ -51,6 +51,19 @@ public class AnimationPatch {
 		}
 	}
 
+
+	/// <summary>
+	/// Reset player spectate target when they are revived.
+	/// </summary>
+	[HarmonyPatch(
+		typeof(PLOC_Downed),
+		nameof(PLOC_Downed.Exit)
+	)]
+	[HarmonyPostfix]
+	public static void PLOC_Downed_Exit(PLOC_Downed __instance) {
+		SpectateCam.Instance?.ClearTarget();
+	}
+
 	/// <summary>
 	/// A pretty bad solution to solve weird player rig attitude transitions
 	/// when attached to spectate cam.

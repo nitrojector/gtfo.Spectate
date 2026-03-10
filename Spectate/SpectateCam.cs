@@ -1,5 +1,6 @@
 ﻿using System.Runtime.CompilerServices;
 using System.Collections;
+using System.Diagnostics.CodeAnalysis;
 using AIGraph;
 using BepInEx.Unity.IL2CPP.Utils.Collections;
 using CullingSystem;
@@ -745,6 +746,15 @@ public class SpectateCam : MonoBehaviour {
 	}
 
 	/// <summary>
+	/// Clears the current spectate target.
+	/// Used for spectate closest on first spectate after down logic
+	/// </summary>
+	public void ClearTarget() {
+		_target = null;
+		_lastTargetPlayerIdx = -1;
+	}
+
+	/// <summary>
 	/// Tries to set the spectate target to any valid non-local player.
 	/// </summary>
 	/// <returns>true if a valid target was set</returns>
@@ -752,14 +762,27 @@ public class SpectateCam : MonoBehaviour {
 		var players = SNet.Slots?.SlottedPlayers;
 		if (players == null || players.Count == 0) return false;
 
-		_lastTargetPlayerIdx = 0;
+		float closestDist = float.MaxValue;
+
+#if DEBUG
+		Logger.Debug("TrySetNonLocalTarget");
+#endif
+
+		_lastTargetPlayerIdx = -1;
 		for (int i = 0; i < players.Count; i++) {
-			if (TrySetTargetByIdx(i)) {
-				return true;
+			if (SimulateSetTargetIdx(i, out var agent)) {
+				float dist = Vector3.Distance(agent!.Position, _self!.Agent.Position);
+				if (dist < closestDist) {
+#if DEBUG
+					Logger.Debug("TrySetNonLocalTarget - found closer target: " + agent.name + " at distance " + dist);
+#endif
+					closestDist = dist;
+					_lastTargetPlayerIdx = i;
+				}
 			}
 		}
 
-		return false;
+		return _lastTargetPlayerIdx != -1 && TrySetTargetByIdx(_lastTargetPlayerIdx);
 	}
 
 	/// <summary>
@@ -793,6 +816,36 @@ public class SpectateCam : MonoBehaviour {
 			if (TrySetTargetByIdx(tryIdx)) {
 				return true;
 			}
+		}
+
+		return false;
+	}
+
+	/// <summary>
+	/// Checks if a player in a given slot is spectatable
+	/// </summary>
+	/// <param name="playerIdx">player slot index</param>
+	/// <param name="agent">player agent of simulated set if successful</param>
+	/// <param name="overridePreferAlive">whether method should succeed even if player is downed</param>
+	/// <returns>true if slotted player is spectatable</returns>
+	private bool SimulateSetTargetIdx(int playerIdx,
+		[NotNullWhen(true)] out PlayerAgent? agent,
+		bool overridePreferAlive = false) {
+		agent = null;
+
+		var players = SNet.Slots?.SlottedPlayers;
+		if (players == null || players.Count == 0) return false;
+
+		if (playerIdx >= 0 && playerIdx < players.Count) {
+			if (players[playerIdx].IsLocal) return false;
+
+			agent = players[playerIdx].PlayerAgent.Cast<PlayerAgent>();
+
+			if (!overridePreferAlive && ConfigMgr.PreferSpectateAlive &&
+			    agent.Locomotion.m_currentStateEnum == PlayerLocomotion.PLOC_State.Downed)
+				return false;
+
+			return true;
 		}
 
 		return false;
