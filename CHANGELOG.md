@@ -1,3 +1,8 @@
+# v1.5.7
+
+- Spectates the capturing snatcher if the spectated player is snatched by a Pouncer.
+- Spectate now select the closest player to the local player on first spectate switch. Resets after revive.
+
 # v1.5.6
 
 - Implemented a safeguard so that players cannot spectate when they are snatched by a Pouncer (i.e. they are in the
