@@ -44,9 +44,7 @@ public class AnimationPatch {
 			__instance.m_owner.StartCoroutine(BumF__kRandomSolutionRoutine().WrapToIl2Cpp());
 		}
 
-		if (ConfigMgr.SwitchOnDeath &&
-		    (SpectateCam.Instance.Self?.CanSpectate ?? false) &&
-		    !SpectateCam.Instance.Active) {
+		if (ConfigMgr.SwitchOnDeath && SpectateCam.Instance.CanSpectate && !SpectateCam.Instance.Active) {
 			SpectateCam.Instance.TryAttachDelayed(SpectateCam.DownToSpectateDelay);
 		}
 	}

@@ -59,15 +59,13 @@ public class AgentTarget {
 		}
 	}
 
-	public bool IsCaptured {
-		get {
-			if (PouncerTracker.Instance == null)
-				return false;
-			return PouncerTracker.Instance.IsCaptured(Agent);
-		}
-	}
+	public bool IsCaptured => PouncerTracker.Instance != null && PouncerTracker.Instance.IsCaptured(Agent);
 
-	public bool CanSpectate => IsDowned && !IsCaptured;
+	public static bool CanSpectate(PlayerAgent agent) {
+		bool isDowned = agent.Locomotion.m_currentStateEnum == PlayerLocomotion.PLOC_State.Downed;
+		bool isCaptured = PouncerTracker.Instance != null && PouncerTracker.Instance.IsCaptured(agent);
+		return isDowned && !isCaptured;
+	}
 
 	public AgentTarget(PlayerAgent agent) {
 		Agent = agent;

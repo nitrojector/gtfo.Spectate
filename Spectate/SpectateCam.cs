@@ -257,8 +257,13 @@ public class SpectateCam : MonoBehaviour {
 	/// NOTE: This is NOT behavior safe!!! If dev options is enabled, pouncer issues can occur!!
 	///   For safe behavior, use <see cref="AgentTarget.CanSpectate"/>!!
 	/// </summary>
-	public bool CanSpectate => ConfigMgr.DevEnables(eDevOpts.AllowSpectatingAnytime) ||
-	                           (SelfReady && _self!.CanSpectate);
+	public bool CanSpectate {
+		get {
+			var agent = PlayerManager.GetLocalPlayerAgent();
+			bool canSpec = agent != null && AgentTarget.CanSpectate(agent);
+			return ConfigMgr.DevEnables(eDevOpts.AllowSpectatingAnytime) || canSpec;
+		}
+	}
 
 	/// <summary>
 	/// IL2CPP compatibility constructor
