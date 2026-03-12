@@ -1,3 +1,9 @@
+# v1.5.8
+
+- Fix a bug causing players to be unable to spectate even when they should
+    - This was caused my stupidity of checking whether player is captured by depending on a state which is only
+      guaranteed valid if the player is spectating.
+
 # v1.5.7
 
 - Spectates the capturing snatcher if the spectated player is snatched by a Pouncer.
