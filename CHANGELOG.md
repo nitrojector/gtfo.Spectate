@@ -1,3 +1,13 @@
+# v1.5.9
+
+- Fixed an issue on interaction with checkpoints: player status and inventory might not be properly reset after
+  restarting from checkpoint.
+    - This seems to only happen sometimes with previous versions.
+
+*Special Notes*
+
+- Thanks to Sp3ctre(@sp3c7re_) for reporting and providing details on a case inventory issue.
+
 # v1.5.8
 
 - Fix a bug causing players to be unable to spectate even when they should
