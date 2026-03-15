@@ -70,7 +70,8 @@ public class UIPatch {
 	)]
 	[HarmonyPrefix]
 	private static void PlayerGuiLayer_ApplyMovementSway(PlayerGuiLayer __instance, ref Vector3 sway) {
-		if (PlayerManager.GetLocalPlayerAgent().Locomotion.m_currentStateEnum == PlayerLocomotion.PLOC_State.Downed) {
+		var player = PlayerManager.GetLocalPlayerAgent();
+		if (player != null && player.Locomotion.m_currentStateEnum == PlayerLocomotion.PLOC_State.Downed) {
 			sway = Vector3.zero;
 		}
 	}
