@@ -58,6 +58,12 @@ public class SpectateUI : MonoBehaviour {
 	/// </summary>
 	private readonly Dictionary<eSpectateUIComp, bool> _uiCompState = new();
 
+	/// <summary>
+	/// Whether there is a pending request to revert PUI to local player.
+	/// Sometimes we want to do so but player is null at the moment.
+	/// </summary>
+	private bool _wantToRevertPUIStatus = false;
+
 	// === UI Layout Constants ===
 	/// <summary>
 	/// The horizontal offset of the center of the menu
@@ -187,6 +193,8 @@ public class SpectateUI : MonoBehaviour {
 		_uiState = eSpectateUIState.FPNotDowned;
 		_uiStatePrev = eSpectateUIState.FPNotDowned;
 		_uiStateRendered = eSpectateUIState.ShowMenu;
+		_lastRenderedTarget = null;
+		_wantToRevertPUIStatus = false;
 	}
 
 
@@ -240,6 +248,14 @@ public class SpectateUI : MonoBehaviour {
 	}
 
 	private void Update() {
+		if (_wantToRevertPUIStatus) {
+			var self = SpectateCam.Instance?.Self;
+			if (self != null) {
+				UpdatePlayerStatusUI(self);
+				_wantToRevertPUIStatus = false;
+			}
+		}
+
 		var cam = SpectateCam.Instance;
 		if (!(SpectateCam.Instance?.CanSpectate ?? false)) {
 			SetUIActive(false);
@@ -279,8 +295,7 @@ public class SpectateUI : MonoBehaviour {
 	public void UpdateForDetach() {
 		bool isDowned = SpectateCam.Instance?.Self?.IsDowned ?? false;
 		SetUIState(isDowned ? eSpectateUIState.FPDowned : eSpectateUIState.FPNotDowned);
-		UpdatePlayerStatusUI(SpectateCam.Instance?.Self);
-		UpdatePlayerInventoryUI(SpectateCam.Instance?.Self);
+		_wantToRevertPUIStatus = true;
 		SetSpectateInventoryActive(false);
 		HideNavMarker();
 	}
@@ -497,6 +512,11 @@ public class SpectateUI : MonoBehaviour {
 			}
 
 			_spectateInv?.gameObject.SetActive(true);
+		}
+
+		if (target.Agent.Owner == null) {
+			Logger.Warn("SpectateUI: UpdatePlayerInventoryUI: SNet Owner is null");
+			return;
 		}
 
 		var tBackpack = target.Backpack;
