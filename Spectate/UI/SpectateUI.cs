@@ -183,6 +183,7 @@ public class SpectateUI : MonoBehaviour {
 		DontDestroyOnLoad(this);
 
 		Events.OnSessionEnd += Unload;
+		Events.OnCheckpointReload += Unload;
 	}
 
 	/// <summary>
@@ -190,11 +191,15 @@ public class SpectateUI : MonoBehaviour {
 	/// </summary>
 	public void Unload() {
 		SetSpectateInventoryActive(false);
+		HideNavMarker();
 		_uiState = eSpectateUIState.FPNotDowned;
 		_uiStatePrev = eSpectateUIState.FPNotDowned;
 		_uiStateRendered = eSpectateUIState.ShowMenu;
 		_lastRenderedTarget = null;
 		_wantToRevertPUIStatus = false;
+#if DEBUG
+		Logger.Debug("SpectateUI: Unload");
+#endif
 	}
 
 
@@ -298,6 +303,9 @@ public class SpectateUI : MonoBehaviour {
 		_wantToRevertPUIStatus = true;
 		SetSpectateInventoryActive(false);
 		HideNavMarker();
+#if DEBUG
+		Logger.Debug("SpectateUI: UpdateForDetach");
+#endif
 	}
 
 	private void ProcessInput() {

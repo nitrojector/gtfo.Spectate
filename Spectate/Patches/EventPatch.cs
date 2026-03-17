@@ -40,4 +40,18 @@ public class EventPatch {
 	private static void LeaveHub() {
 		Events.RaiseSessionEnd();
 	}
+
+	[HarmonyPatch(
+		typeof(CheckpointManager),
+		nameof(CheckpointManager.OnStateChange)
+	)]
+	[HarmonyPrefix]
+	private static void CheckpointStateChange(pCheckpointState oldState, pCheckpointState newState) {
+		if (newState.lastInteraction == eCheckpointInteractionType.ReloadCheckpoint) {
+#if DEBUG
+			Logger.Debug("[EVENT] OnCheckpointReload");
+#endif
+			Events.RaiseCheckpointReload();
+		}
+	}
 }

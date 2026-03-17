@@ -287,6 +287,13 @@ public class SpectateCam : MonoBehaviour {
 				TrySetAnyNonLocalTarget();
 			}
 		};
+		Events.OnCheckpointReload += () => {
+			if (Active) {
+				Detach();
+			}
+
+			Unload();
+		};
 	}
 
 	/// <summary>
@@ -484,7 +491,7 @@ public class SpectateCam : MonoBehaviour {
 		UpdateTransitions();
 
 		if (Active) {
-			if (_target == null) {
+			if (!TargetReady || !SelfReady) {
 				Detach();
 				return;
 			}
@@ -844,7 +851,9 @@ public class SpectateCam : MonoBehaviour {
 		if (playerIdx >= 0 && playerIdx < players.Count) {
 			if (players[playerIdx].IsLocal) return false;
 
-			agent = players[playerIdx].PlayerAgent.Cast<PlayerAgent>();
+			agent = players[playerIdx]?.PlayerAgent?.Cast<PlayerAgent>();
+
+			if (agent == null) return false;
 
 			if (!overridePreferAlive && ConfigMgr.PreferSpectateAlive &&
 			    agent.Locomotion.m_currentStateEnum == PlayerLocomotion.PLOC_State.Downed)
