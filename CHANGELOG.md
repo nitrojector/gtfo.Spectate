@@ -1,3 +1,8 @@
+# v1.5.10
+
+- Fix what `v1.5.9` should have fixed.
+- Added some additional checks to prevent weird null cases which cause exceptions
+
 # v1.5.9
 
 - Fixed an issue on interaction with checkpoints: player status and inventory might not be properly reset after
