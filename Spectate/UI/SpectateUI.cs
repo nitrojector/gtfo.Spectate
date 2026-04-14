@@ -487,8 +487,10 @@ public class SpectateUI : MonoBehaviour {
 	/// </summary>
 	/// <param name="active">whether spectate inventory ui should be active</param>
 	public void SetSpectateInventoryActive(bool active) {
+		bool inGameInvActive = CellSettingsManager.Current != null &&
+		                       CellSettingsManager.GetBoolValue(eCellSettingID.HUD_PUI_Inventory_Show) && !active;
 		_spectateInv?.SetVisible(active);
-		GuiManager.PlayerLayer.Inventory.SetVisible(!active);
+		GuiManager.PlayerLayer.Inventory.SetVisible(inGameInvActive);
 	}
 
 	// === UI Update Methods (implementation specific) ===
