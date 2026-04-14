@@ -1,3 +1,13 @@
+# v1.5.11
+
+- Now respects if player inventory UI is enabled in vanilla settings.
+
+*Known Issues*
+
+- Players do not prevent respawn rooms from respawning when spectating (i.e. their in-game position is effectively
+  whomever they are spectating).
+- Bots, a lot of times, do not shoot their weapon when the player is spectating.
+
 # v1.5.10
 
 - Fix what `v1.5.9` should have fixed.

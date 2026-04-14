@@ -13,3 +13,11 @@
 <p align="center">For feedback and issues, DM <code>@uwufood</code> or message <a href="https://discord.com/channels/782438773690597389/1468851402339258499">the feedback thread</a> on the GTFO Modding Discord Server</p>
 
 </div>
+
+<hr/>
+
+*Known Issues*
+
+- Players do not prevent respawn rooms from respawning when spectating (i.e. their in-game position is effectively
+  whomever they are spectating).
+- Bots, a lot of times, do not shoot their weapon when the player is spectating.
