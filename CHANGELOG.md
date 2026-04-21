@@ -1,3 +1,8 @@
+# v1.5.12
+
+- Update PlayerStatus booster display for spectating targets.
+- Clear visor liquids on spectate enter.
+
 # v1.5.11
 
 - Now respects if player inventory UI is enabled in vanilla settings.
