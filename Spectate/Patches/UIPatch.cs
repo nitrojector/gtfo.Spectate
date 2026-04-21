@@ -1,6 +1,7 @@
 ﻿using CellMenu;
 using HarmonyLib;
 using Player;
+using Spectate.UI;
 using Vector3 = UnityEngine.Vector3;
 
 namespace Spectate.Patches;
@@ -59,6 +60,22 @@ public class UIPatch {
 
 		// Ensure inventory PUI is disabled
 		GuiManager.PlayerLayer.Inventory.SetVisible(false);
+	}
+
+	/// <summary>
+	/// Gate booster updates for spectate
+	/// </summary>
+	[HarmonyPatch(
+		typeof(PUI_BoosterIconActiveDisplay),
+		nameof(PUI_BoosterIconActiveDisplay.UpdateBoosterIconsActiveState)
+	)]
+	[HarmonyPrefix]
+	private static bool UpdateBoosterIconActiveState(PUI_BoosterIconActiveDisplay __instance) {
+		if ((SpectateCam.Instance?.Active ?? false) &&
+		    (!SpectateUI.Instance?.InPlayerStatusUpdate ?? false)) {
+			return false;
+		}
+		return true;
 	}
 
 	/// <summary>

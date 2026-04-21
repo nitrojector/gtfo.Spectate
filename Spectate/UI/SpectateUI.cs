@@ -1,4 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
+using BoosterImplants;
 using CellMenu;
 using Player;
 using SNetwork;
@@ -63,6 +64,11 @@ public class SpectateUI : MonoBehaviour {
 	/// Sometimes we want to do so but player is null at the moment.
 	/// </summary>
 	private bool _wantToRevertPUIStatus = false;
+
+	/// <summary>
+	/// Whether we are currently updating PUI_LocalPlayerStatus
+	/// </summary>
+	public bool InPlayerStatusUpdate { get; private set; } = false;
 
 	// === UI Layout Constants ===
 	/// <summary>
@@ -501,12 +507,18 @@ public class SpectateUI : MonoBehaviour {
 			return;
 		}
 
+		InPlayerStatusUpdate = true;
+
 		PUI_LocalPlayerStatus? pstatus = GuiManager.PlayerLayer?.m_playerStatus;
 		pstatus?.UpdateHealth(target.Health);
 		pstatus?.UpdateInfection(target.Infection, target.Agent.InfectionTargetHealthRel);
+		pstatus?.m_boosterIconActiveDisplay.UpdateBoosterIconsActiveState(target.SAgent);
+
 		if (_lastRenderedTarget?.Pointer != target.Agent.Pointer) {
 			GuiManager.PlayerLayer?.m_playerStatus.ResetDamageAnimation();
 		}
+
+		InPlayerStatusUpdate = false;
 	}
 
 	public void UpdatePlayerInventoryUI(AgentTarget? target) {
