@@ -1,9 +1,19 @@
 ﻿using UnityEngine;
+using Array = Il2CppSystem.Array;
+using Il2CppArrays = Il2CppInterop.Runtime.InteropTypes.Arrays;
+using GlsParticleData = GlassLiquidSystem.particleData;
 
 namespace Spectate;
 
 public static class Util {
 	public const float GOOD_ENOUGH_DEG_EPS = 0.2f;
+	public const int PARTICLE_BUFFER_SIZE = 53248 / 0x34;
+	public static readonly Array EmptyParticleBuffer;
+
+	static Util() {
+		Il2CppArrays.Il2CppStructArray<GlsParticleData> il2Array = new GlsParticleData[PARTICLE_BUFFER_SIZE];
+		EmptyParticleBuffer = il2Array.Cast<Array>();
+	}
 
 	/// <summary>
 	/// Whether two angles/numbers are close enough, according to GOOD_ENOUGH_DEG_EPS.
@@ -93,5 +103,26 @@ public static class Util {
 		gfxArms = list2.ToArray();
 		gfxTorso = list3.ToArray();
 		gfxLegs = list4.ToArray();
+	}
+
+	/// <summary>
+	/// Clears visor liquids for <see cref="GlassLiquidSystem"/>.
+	/// </summary>
+	public static void ClearGlassLiquid() {
+		if (!ScreenLiquidManager.hasSystem) return;
+		var gls = ScreenLiquidManager.currentSystem;
+
+		ScreenLiquidManager.Clear();
+
+		gls.cbParticles.SetData(EmptyParticleBuffer);
+		gls.particleWrap = 0;
+
+		RenderTexture prev = RenderTexture.active;
+		foreach (var rt in new[] { gls.rtParams, gls.rtColor, gls.rtParams_db, gls.rtColor_db })
+		{
+			RenderTexture.active = rt;
+			GL.Clear(false, true, Color.clear);
+		}
+		RenderTexture.active = prev;
 	}
 }

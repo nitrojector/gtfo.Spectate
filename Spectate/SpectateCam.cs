@@ -10,6 +10,7 @@ using SNetwork;
 using UnityEngine;
 using Spectate.Config;
 using Spectate.UI;
+using UnityEngine.Diagnostics;
 using Quaternion = UnityEngine.Quaternion;
 using Vector2 = UnityEngine.Vector2;
 using Vector3 = UnityEngine.Vector3;
@@ -389,6 +390,8 @@ public class SpectateCam : MonoBehaviour {
 		SetRelatedActive(true);
 		UpdateCull();
 		SetActive(true);
+
+		Util.ClearGlassLiquid();
 #if DEBUG
 		Logger.Debug("Attach");
 #endif
