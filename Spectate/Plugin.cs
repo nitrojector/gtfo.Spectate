@@ -17,7 +17,7 @@ namespace Spectate;
 public class Plugin : BasePlugin {
 	public const string NAME = "Spectate";
 	public const string GUID = "io.takina.gtfo." + NAME;
-	public const string VERSION = "1.5.12";
+	public const string VERSION = "1.5.13";
 
 	public const string GUID_EOSExtEMP = "Inas.EOSExt.EMP";
 	public const string GUID_EEC = "GTFO.EECustomization";

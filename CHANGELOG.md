@@ -1,3 +1,8 @@
+# v1.5.13
+
+- Added compatibility with [EEC](https://thunderstore.io/c/gtfo/p/hirnukuono/EEC_H/)
+  - Inventory display state no longer interferes.
+
 # v1.5.12
 
 - Update PlayerStatus booster display for spectating targets.
