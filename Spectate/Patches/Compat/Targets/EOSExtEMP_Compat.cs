@@ -2,7 +2,7 @@
 
 namespace Spectate.Patches.Compat.Targets;
 
-[CompatTarget("Inas.EOSExt.EMP")]
+[CompatTarget(Plugin.GUID_EOSExtEMP)]
 public class EOSExtEMP_Compat {
 	[CompatPatch(
 		HarmonyPatchType.Prefix,

@@ -12,10 +12,15 @@ using Spectate.UI;
 namespace Spectate;
 
 [BepInPlugin(GUID, NAME, VERSION)]
+[BepInDependency(GUID_EOSExtEMP, BepInDependency.DependencyFlags.SoftDependency)]
+[BepInDependency(GUID_EEC, BepInDependency.DependencyFlags.SoftDependency)]
 public class Plugin : BasePlugin {
 	public const string NAME = "Spectate";
 	public const string GUID = "io.takina.gtfo." + NAME;
 	public const string VERSION = "1.5.12";
+
+	public const string GUID_EOSExtEMP = "Inas.EOSExt.EMP";
+	public const string GUID_EEC = "GTFO.EECustomization";
 
 	public event Action? OnManagersSetup;
 	public static GameObject? PluginObject;
@@ -48,6 +53,11 @@ public class Plugin : BasePlugin {
 		ApplyPatch<PouncerPatch>(h);
 
 		CompatPatcher.PatchAll(h);
+
+		// CompatPatcher throws exception when patching EEC, great
+		if (IL2CPPChainloader.Instance.Plugins.ContainsKey(GUID_EEC)){
+			ApplyPatch<Patches.Compat.Targets.ECC_Compat>(h);
+		}
 
 		Logger.Info("Finished Patching");
 	}
