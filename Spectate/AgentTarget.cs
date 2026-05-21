@@ -23,6 +23,7 @@ public class AgentTarget {
 	public PlayerSyncModelData PlayerModel => Agent.PlayerSyncModel;
 
 	public SNet_Player SAgent => Agent.Owner;
+	public ulong Lookup => SAgent.Lookup;
 	public bool IsBot => SAgent.IsBot;
 	public bool IsLocal => SAgent.IsLocal;
 

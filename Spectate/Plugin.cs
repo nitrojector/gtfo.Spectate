@@ -5,8 +5,10 @@ using HarmonyLib;
 using Il2CppInterop.Runtime.Injection;
 using UnityEngine;
 using Spectate.Config;
+using Spectate.Network;
 using Spectate.Patches;
 using Spectate.Patches.Compat;
+using Spectate.SpectatorCount;
 using Spectate.UI;
 
 namespace Spectate;
@@ -17,7 +19,7 @@ namespace Spectate;
 public class Plugin : BasePlugin {
 	public const string NAME = "Spectate";
 	public const string GUID = "io.takina.gtfo." + NAME;
-	public const string VERSION = "1.5.13";
+	public const string VERSION = "1.6.0";
 
 	public const string GUID_EOSExtEMP = "Inas.EOSExt.EMP";
 	public const string GUID_EEC = "GTFO.EECustomization";
@@ -39,6 +41,7 @@ public class Plugin : BasePlugin {
 		ClassInjector.RegisterTypeInIl2Cpp<SpectateConfigUpdater>();
 		ClassInjector.RegisterTypeInIl2Cpp<PouncerTracker>();
 		ClassInjector.RegisterTypeInIl2Cpp<PouncerTrackingDart>();
+		ClassInjector.RegisterTypeInIl2Cpp<SpectatorCountUI>();
 		ClassInjector.RegisterTypeInIl2Cpp<Wm>();
 
 		OnManagersSetup += Initialize;
@@ -51,6 +54,7 @@ public class Plugin : BasePlugin {
 		ApplyPatch<CameraPatch>(h);
 		ApplyPatch<AnimationPatch>(h);
 		ApplyPatch<PouncerPatch>(h);
+		ApplyPatch<Net>(h);
 
 		CompatPatcher.PatchAll(h);
 
@@ -74,6 +78,7 @@ public class Plugin : BasePlugin {
 		PluginObject.AddComponent<SpectateCam>();
 		PluginObject.AddComponent<SpectateConfigUpdater>();
 		PluginObject.AddComponent<PouncerTracker>();
+		PluginObject.AddComponent<SpectatorCountUI>();
 		PluginObject.AddComponent<Wm>();
 		ui.ReplicateUI();
 	}

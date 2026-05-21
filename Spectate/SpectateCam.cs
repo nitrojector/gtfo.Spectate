@@ -9,6 +9,7 @@ using Player;
 using SNetwork;
 using UnityEngine;
 using Spectate.Config;
+using Spectate.Network;
 using Spectate.UI;
 using UnityEngine.Diagnostics;
 using Quaternion = UnityEngine.Quaternion;
@@ -223,6 +224,16 @@ public class SpectateCam : MonoBehaviour {
 	/// Maximum allowed pitch angle of the camera view direction in degrees.
 	/// </summary>
 	public const float PitchAngleDegMax = 89f;
+
+	/// <summary>
+	/// The interval in seconds between sending spectator updates to others.
+	/// </summary>
+	public const float SpectateMessageSendInterval = 0.5f;
+
+	/// <summary>
+	/// The time since the last spectate message was sent.
+	/// </summary>
+	private float _timeSinceLastSpectateMessage = SpectateMessageSendInterval + 1f;
 
 	/// <summary>
 	/// The current local player instance.
@@ -490,6 +501,8 @@ public class SpectateCam : MonoBehaviour {
 	private void Update() {
 		if (!enabled || !gameObject.activeInHierarchy) return;
 
+		SpectatorMessageUpdate();
+
 		ProcessInput();
 		UpdateTransitions();
 
@@ -502,6 +515,26 @@ public class SpectateCam : MonoBehaviour {
 			UpdateLerp(_freecam);
 			UpdateCamera();
 			UpdateCull();
+		}
+	}
+
+	/// <summary>
+	/// Update timer and sends spectator updates to others if necessary.
+	/// </summary>
+	private void SpectatorMessageUpdate() {
+		if (!Active || !TargetReady) {
+			_timeSinceLastSpectateMessage = SpectateMessageSendInterval + 1f;
+			return;
+		}
+		_timeSinceLastSpectateMessage += Time.deltaTime;
+		if (_timeSinceLastSpectateMessage < SpectateMessageSendInterval) return;
+
+		Logger.Debug("SpectateCam: Sending spectate target update messages");
+		_timeSinceLastSpectateMessage = 0f;
+		foreach (var player in PlayerManager.PlayerAgentsInLevel) {
+			SNet_Player sNetP = player.Owner;
+			if (sNetP.IsLocal || sNetP.IsBot) continue;
+			NetImpl.SendSpectateTargetState(_target!.Lookup == sNetP.Lookup, sNetP);
 		}
 	}
 
