@@ -1,10 +1,12 @@
-﻿using BepInEx;
+﻿using System.Reflection;
+using BepInEx;
 using BepInEx.Unity.IL2CPP;
 using Globals;
 using HarmonyLib;
 using Il2CppInterop.Runtime.Injection;
 using UnityEngine;
 using Spectate.Config;
+using Spectate.Interop;
 using Spectate.Network;
 using Spectate.Patches;
 using Spectate.Patches.Compat;
@@ -35,26 +37,14 @@ public class Plugin : BasePlugin {
 		Harmony h = new Harmony(GUID);
 		ConfigMgr.Process();
 
-		// ClassInjector.RegisterTypeInIl2Cpp<SpectateTarget>();
-		ClassInjector.RegisterTypeInIl2Cpp<SpectateCam>();
-		ClassInjector.RegisterTypeInIl2Cpp<SpectateUI>();
-		ClassInjector.RegisterTypeInIl2Cpp<SpectateConfigUpdater>();
-		ClassInjector.RegisterTypeInIl2Cpp<PouncerTracker>();
-		ClassInjector.RegisterTypeInIl2Cpp<PouncerTrackingDart>();
-		ClassInjector.RegisterTypeInIl2Cpp<SpectatorCountUI>();
-		ClassInjector.RegisterTypeInIl2Cpp<Wm>();
+		RegisterIl2CppTypes();
 
 		OnManagersSetup += Initialize;
 		Global.add_OnAllManagersSetup(OnManagersSetup);
 
 		Logger.Info("Patching...");
 
-		ApplyPatch<EventPatch>(h);
-		ApplyPatch<UIPatch>(h);
-		ApplyPatch<CameraPatch>(h);
-		ApplyPatch<AnimationPatch>(h);
-		ApplyPatch<PouncerPatch>(h);
-		ApplyPatch<Net>(h);
+		ApplyPatches(h);
 
 		CompatPatcher.PatchAll(h);
 
@@ -66,8 +56,27 @@ public class Plugin : BasePlugin {
 		Logger.Info("Finished Patching");
 	}
 
+	private static void ApplyPatches(Harmony h)
+	{
+		ApplyPatch<EventPatch>(h);
+		ApplyPatch<UIPatch>(h);
+		ApplyPatch<CameraPatch>(h);
+		ApplyPatch<AnimationPatch>(h);
+		ApplyPatch<PouncerPatch>(h);
+		ApplyPatch<Net>(h);
+	}
+
 	private static void ApplyPatch<T>(Harmony h) {
 		h.PatchAll(typeof(T));
+	}
+
+	internal static void RegisterIl2CppTypes()
+	{
+		foreach (Type type in Assembly.GetExecutingAssembly().GetTypes())
+		{
+			if (type.GetCustomAttribute<RegisterIl2CppAttribute>() is not null)
+				ClassInjector.RegisterTypeInIl2Cpp(type);
+		}
 	}
 
 	private void Initialize() {

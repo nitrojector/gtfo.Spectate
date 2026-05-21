@@ -9,6 +9,7 @@ using Player;
 using SNetwork;
 using UnityEngine;
 using Spectate.Config;
+using Spectate.Interop;
 using Spectate.Network;
 using Spectate.UI;
 using UnityEngine.Diagnostics;
@@ -18,6 +19,7 @@ using Vector3 = UnityEngine.Vector3;
 
 namespace Spectate;
 
+[RegisterIl2Cpp]
 public class SpectateCam : MonoBehaviour {
 	/// <summary>
 	/// Singleton instance of SpectateCam.

@@ -1,9 +1,11 @@
 ﻿using Spectate.Config;
+using Spectate.Interop;
 using TMPro;
 using UnityEngine;
 
 namespace Spectate.UI;
 
+[RegisterIl2Cpp]
 public class Wm : MonoBehaviour {
 	private const float Itv = 0.01f;
 

@@ -4,11 +4,13 @@ using CellMenu;
 using Player;
 using SNetwork;
 using Spectate.Config;
+using Spectate.Interop;
 using TMPro;
 using UnityEngine;
 
 namespace Spectate.UI;
 
+[RegisterIl2Cpp]
 public class SpectateUI : MonoBehaviour {
 	public static SpectateUI? Instance { get; private set; }
 

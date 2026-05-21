@@ -1,9 +1,11 @@
 ﻿using Enemies;
 using Player;
+using Spectate.Interop;
 using UnityEngine;
 
 namespace Spectate;
 
+[RegisterIl2Cpp]
 public class PouncerTracker : MonoBehaviour {
 	public static PouncerTracker? Instance { get; private set; }
 	public bool IsLocalPlayerSnatched { get; private set; } = false;
@@ -80,6 +82,7 @@ public class PouncerTracker : MonoBehaviour {
 	}
 }
 
+[RegisterIl2Cpp]
 public class PouncerTrackingDart : MonoBehaviour {
 	public PouncerTrackingDart(IntPtr ptr) : base(ptr) {
 	}

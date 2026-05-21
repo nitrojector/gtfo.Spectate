@@ -1,4 +1,5 @@
 ﻿using SNetwork;
+using Spectate.Interop;
 using Spectate.Network;
 using UnityEngine;
 
@@ -7,6 +8,7 @@ namespace Spectate.SpectatorCount;
 /// <summary>
 /// Manages UI for displaying number of players watching the spectated player.
 /// </summary>
+[RegisterIl2Cpp]
 public class SpectatorCountUI : MonoBehaviour {
 	/// <summary>
 	/// Time (in seconds) after a spectator's last active spectate packet is
