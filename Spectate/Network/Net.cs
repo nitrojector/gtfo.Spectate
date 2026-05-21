@@ -139,12 +139,10 @@ public class Net {
 	/// </summary>
 	/// <param name="id">player lookup (i.e. steamid)</param>
 	/// <returns>player matched, otherwise false</returns>
-	/// TODO: optimize this function
 	private static SNet_Player? GetPlayerByID(ulong id) {
-		foreach (var agent in PlayerManager.PlayerAgentsInLevel) {
-			var sNetAgent = agent.Owner;
-			if (sNetAgent.Lookup == id) {
-				return sNetAgent;
+		foreach (var agent in SNet.LobbyPlayers) {
+			if (agent.Lookup == id) {
+				return agent;
 			}
 		}
 
