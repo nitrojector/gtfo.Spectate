@@ -11,7 +11,6 @@ public static class Events {
 	// === Lobby ===
 	public static event Action<SNet_Player>? OnPlayerJoinLobby;
 
-
 	internal static void RaiseSessionEnd() => OnSessionEnd?.Invoke();
 	internal static void RaiseSessionStart() => OnSessionStart?.Invoke();
 	internal static void RaiseAnyPlayerDeath() => OnAnyPlayerDeath?.Invoke();

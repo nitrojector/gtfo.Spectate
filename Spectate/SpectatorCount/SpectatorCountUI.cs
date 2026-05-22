@@ -1,6 +1,7 @@
 ﻿using SNetwork;
 using Spectate.Interop;
 using Spectate.Network;
+using Spectate.Network.Impl;
 using UnityEngine;
 
 namespace Spectate.SpectatorCount;

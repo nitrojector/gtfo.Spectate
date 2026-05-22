@@ -8,10 +8,12 @@ using UnityEngine;
 using Spectate.Config;
 using Spectate.Interop;
 using Spectate.Network;
+using Spectate.Network.Impl;
 using Spectate.Patches;
 using Spectate.Patches.Compat;
 using Spectate.SpectatorCount;
 using Spectate.UI;
+using Version = System.Version;
 
 namespace Spectate;
 
@@ -25,6 +27,8 @@ public class Plugin : BasePlugin {
 
 	public const string GUID_EOSExtEMP = "Inas.EOSExt.EMP";
 	public const string GUID_EEC = "GTFO.EECustomization";
+
+	public static readonly PlugVersion PlugVersion = new(VERSION);
 
 	public event Action? OnManagersSetup;
 	public static GameObject? PluginObject;
@@ -88,7 +92,7 @@ public class Plugin : BasePlugin {
 		PluginObject.AddComponent<SpectateConfigUpdater>();
 		PluginObject.AddComponent<PouncerTracker>();
 		PluginObject.AddComponent<SpectatorCountUI>();
-		PluginObject.AddComponent<LobbyInfo>();
+		PluginObject.AddComponent<PeerInfoManager>();
 		PluginObject.AddComponent<Wm>();
 		ui.ReplicateUI();
 	}

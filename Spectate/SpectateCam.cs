@@ -11,6 +11,7 @@ using UnityEngine;
 using Spectate.Config;
 using Spectate.Interop;
 using Spectate.Network;
+using Spectate.Network.Impl;
 using Spectate.UI;
 using UnityEngine.Diagnostics;
 using Quaternion = UnityEngine.Quaternion;
@@ -533,11 +534,10 @@ public class SpectateCam : MonoBehaviour {
 
 		Logger.Debug("SpectateCam: Sending spectate target update messages");
 		_timeSinceLastSpectateMessage = 0f;
-		foreach (var player in PlayerManager.PlayerAgentsInLevel) {
-			SNet_Player sNetP = player.Owner;
-			if (sNetP.IsLocal || sNetP.IsBot || !LobbyInfo.HasSpectate(sNetP)) continue;
-			NetImpl.SendSpectateTargetState(_target!.Lookup == sNetP.Lookup, sNetP);
-		}
+		NetHelper.InvokeWithAllPlayers(player => {
+			if (!PeerInfoManager.Supported(player)) return;
+			NetImpl.SendSpectateTargetState(_target!.Lookup == player.Lookup, player);
+		});
 	}
 
 	/// <summary>
