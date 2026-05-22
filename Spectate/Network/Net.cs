@@ -130,6 +130,7 @@ public class Net {
 	/// <param name="bytes">raw received bytes</param>
 	/// <returns>true if is spectate message</returns>
 	private static bool IsSpectateMessage(Il2CppStructArray<byte> bytes) {
+		if (bytes.Length < 2) return false;
 		ushort key = BitConverter.ToUInt16(bytes, 0);
 		return key == KeyBytesSpectate;
 	}

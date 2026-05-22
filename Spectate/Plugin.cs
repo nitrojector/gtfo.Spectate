@@ -88,6 +88,7 @@ public class Plugin : BasePlugin {
 		PluginObject.AddComponent<SpectateConfigUpdater>();
 		PluginObject.AddComponent<PouncerTracker>();
 		PluginObject.AddComponent<SpectatorCountUI>();
+		PluginObject.AddComponent<LobbyInfo>();
 		PluginObject.AddComponent<Wm>();
 		ui.ReplicateUI();
 	}

@@ -42,6 +42,15 @@ public class EventPatch {
 	}
 
 	[HarmonyPatch(
+		typeof(SNet_SessionHub),
+		nameof(SNet_SessionHub.OnJoinedLobby)
+	)]
+	[HarmonyPrefix]
+	private static void PlayerJoin(SNet_Player player) {
+		Events.RaisePlayerJoinLobby(player);
+	}
+
+	[HarmonyPatch(
 		typeof(CheckpointManager),
 		nameof(CheckpointManager.OnStateChange)
 	)]

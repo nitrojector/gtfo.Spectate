@@ -535,7 +535,7 @@ public class SpectateCam : MonoBehaviour {
 		_timeSinceLastSpectateMessage = 0f;
 		foreach (var player in PlayerManager.PlayerAgentsInLevel) {
 			SNet_Player sNetP = player.Owner;
-			if (sNetP.IsLocal || sNetP.IsBot) continue;
+			if (sNetP.IsLocal || sNetP.IsBot || !LobbyInfo.HasSpectate(sNetP)) continue;
 			NetImpl.SendSpectateTargetState(_target!.Lookup == sNetP.Lookup, sNetP);
 		}
 	}
