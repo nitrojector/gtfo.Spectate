@@ -23,8 +23,10 @@
     <Target Name="PostBuild" BeforeTargets="PostBuildEvent">
         <Delete Files="$(OutputPath)/$(AssemblyName).deps.json"/>
     </Target>
+    
     <Target Name="PostBuildCopy" AfterTargets="Build">
         <Copy Condition="'$(CI)' != 'true' AND '$(IsMacOS)' != 'true'" SourceFiles="$(OutputPath)/$(AssemblyName).dll" DestinationFolder="$(PlugOutput)"/>
+        <Copy Condition="'$(CI)' != 'true' AND '$(IsMacOS)' != 'true'" SourceFiles="@(AssetFiles)" DestinationFolder="$(PlugOutput)/assets/%(RecursiveDir)"/>
     </Target>
 
     <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
@@ -38,6 +40,10 @@
         <Optimize>true</Optimize>
     </PropertyGroup>
 
+    <ItemGroup>
+        <AssetFiles Include="$(SolutionDir)/assets/**/*"/>
+    </ItemGroup>
+
     <Target Name="Package" AfterTargets="Build">
         <PropertyGroup>
             <PkgFolder>$(SolutionDir)\pkg\</PkgFolder>
@@ -47,6 +53,7 @@
         <Exec WorkingDirectory="$(SolutionDir)" Command="python &quot;$(SolutionDir)/mkmanifest.py&quot;"/>
         <Copy SourceFiles="$(OutputPath)/$(AssemblyName).dll" DestinationFolder="$(PkgFolder)"/>
         <Copy SourceFiles="$(SolutionDir)/.assets/icon.png" DestinationFolder="$(PkgFolder)"/>
+        <Copy SourceFiles="@(AssetFiles)" DestinationFolder="$(PkgFolder)/assets/%(RecursiveDir)"/>
         <Copy SourceFiles="$(SolutionDir)/README.md" DestinationFolder="$(PkgFolder)"/>
         <Copy SourceFiles="$(SolutionDir)/CHANGELOG.md" DestinationFolder="$(PkgFolder)"/>
         <Copy SourceFiles="$(SolutionDir)/manifest.json" DestinationFolder="$(PkgFolder)"/>

@@ -21,3 +21,7 @@
 - Players do not prevent respawn rooms from respawning when spectating (i.e. their in-game position is effectively
   whomever they are spectating).
 - Bots, a lot of times, do not shoot their weapon when the player is spectating.
+
+*Attributions*
+
+- This mod uses assets from [Bootstrap Icons](https://icons.getbootstrap.com/) licensed under [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/).
