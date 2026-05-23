@@ -4,7 +4,7 @@ using Spectate.Network;
 using Spectate.Network.Impl;
 using UnityEngine;
 
-namespace Spectate.SpectatorCount;
+namespace Spectate.UI;
 
 /// <summary>
 /// Manages UI for displaying number of players watching the spectated player.
@@ -18,6 +18,7 @@ public class SpectatorCountUI : MonoBehaviour {
 	private const float SpectateTTL = 1.0f;
 
 	private readonly Dictionary<SNet_Player, float> _timeSinceLastActiveSpectate = new();
+
 
 	private void Awake() {
 		Net.RegisterHandler(NetImpl.PacketIdxSendSpectatorTargetState, HandlePacket);
@@ -34,6 +35,13 @@ public class SpectatorCountUI : MonoBehaviour {
 				_timeSinceLastActiveSpectate.Remove(player);
 			}
 		}
+	}
+
+	/// <summary>
+	/// Replicates existing elements for use
+	/// </summary>
+	public void CreateUI() {
+
 	}
 
 	private int GetSpectatorCount() {

@@ -11,7 +11,6 @@ using Spectate.Network;
 using Spectate.Network.Impl;
 using Spectate.Patches;
 using Spectate.Patches.Compat;
-using Spectate.SpectatorCount;
 using Spectate.UI;
 
 namespace Spectate;
