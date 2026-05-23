@@ -62,11 +62,11 @@ public class CameraPatch {
 	/// Ensure clients receive updates of our real camera direction
 	/// </summary>
 	[HarmonyPatch(
-		typeof(PlayerSync),
-		nameof(PlayerSync.SendLocomotion)
+		typeof(Player.PlayerSync),
+		nameof(Player.PlayerSync.SendLocomotion)
 	)]
 	[HarmonyPrefix]
-	private static void PlayerSync_SendLocomotion(PlayerSync __instance, PlayerLocomotion.PLOC_State state, Vector3 pos,
+	private static void PlayerSync_SendLocomotion(Player.PlayerSync __instance, PlayerLocomotion.PLOC_State state, Vector3 pos,
 		ref Vector3 lookDir, float velFwd, float velRight) {
 #if DEBUG
 		if (!__instance.m_agent.IsLocallyOwned) return;

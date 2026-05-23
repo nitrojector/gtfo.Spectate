@@ -4,7 +4,6 @@ using UnityEngine;
 
 namespace Spectate.Network.Impl;
 
-
 /// <summary>
 /// Manages information about peers and their support for our plugin.
 /// </summary>

@@ -68,6 +68,7 @@
     
     <ItemGroup>
         <Reference Include="$(PluginFolder)\hirnukuono-EEC_H\*.dll" Private="false"/>
+        <Reference Include="$(PluginFolder)\PlayerSync\*.dll" Private="false"/>
     </ItemGroup>
 
     <ItemGroup>

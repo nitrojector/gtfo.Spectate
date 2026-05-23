@@ -1,9 +1,8 @@
 ﻿using AIGraph;
-using BepInEx.Unity.IL2CPP.Utils.Collections;
-using Il2CppInterop.Runtime.InteropTypes.Arrays;
 using Player;
 using SNetwork;
 using UnityEngine;
+using PlayerSyncPeerMgr = PlayerSync.Network.Impl.PeerInfoManager;
 
 namespace Spectate;
 
@@ -56,6 +55,7 @@ public class AgentTarget {
 		get {
 			if (IsLocal) return true;
 			if (PlayerManager.GetLocalPlayerAgent().Owner.IsMaster && IsBot) return true;
+			if (PlayerSyncPeerMgr.Supported(SAgent)) return true;
 			return false;
 		}
 	}

@@ -13,11 +13,11 @@ using Spectate.Patches;
 using Spectate.Patches.Compat;
 using Spectate.SpectatorCount;
 using Spectate.UI;
-using Version = System.Version;
 
 namespace Spectate;
 
 [BepInPlugin(GUID, NAME, VERSION)]
+[BepInDependency(GUID_PlayerSync, BepInDependency.DependencyFlags.HardDependency)]
 [BepInDependency(GUID_EOSExtEMP, BepInDependency.DependencyFlags.SoftDependency)]
 [BepInDependency(GUID_EEC, BepInDependency.DependencyFlags.SoftDependency)]
 public class Plugin : BasePlugin {
@@ -25,6 +25,7 @@ public class Plugin : BasePlugin {
 	public const string GUID = "io.takina.gtfo." + NAME;
 	public const string VERSION = "1.6.0";
 
+	public const string GUID_PlayerSync = "io.takina.gtfo.PlayerSync";
 	public const string GUID_EOSExtEMP = "Inas.EOSExt.EMP";
 	public const string GUID_EEC = "GTFO.EECustomization";
 
