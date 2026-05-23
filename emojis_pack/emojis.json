@@ -1,0 +1,746 @@
+{
+  "alien": {
+    "src": "/assets/9cf1e02c84cdd759ebbd16d28e431d42.svg",
+    "unicode": "\ud83d\udc7d"
+  },
+  "anatomical_heart": {
+    "src": "/assets/4cd3151267b3c4033da1226fb48105f9.svg",
+    "unicode": "\ud83e\udec0"
+  },
+  "angry": {
+    "src": "/assets/4a1e59abafc2145af813eda8bf82a49d.svg",
+    "unicode": "\ud83d\ude20"
+  },
+  "anguished": {
+    "src": "/assets/92a2ca0b8a4ec9474a0b1e1a953262a9.svg",
+    "unicode": "\ud83d\ude27"
+  },
+  "astonished": {
+    "src": "/assets/b4a967b8b0d6fea5994d4efdbe07f354.svg",
+    "unicode": "\ud83d\ude32"
+  },
+  "biting_lip": {
+    "src": "/assets/aea1000bde11cedc2b8bc8c9d6b7d5c9.svg",
+    "unicode": "\ud83e\udee6"
+  },
+  "blush": {
+    "src": "/assets/6f75b58eb746d08c2c18451573876292.svg",
+    "unicode": "\ud83d\ude0a"
+  },
+  "bone": {
+    "src": "/assets/dc147b62a179d59b5098c926628ebab1.svg",
+    "unicode": "\ud83e\uddb4"
+  },
+  "brain": {
+    "src": "/assets/0bf5972bff8b8b4c26621bd5cd25d839.svg",
+    "unicode": "\ud83e\udde0"
+  },
+  "call_me": {
+    "src": "/assets/29e1f3826b6e67ef9c25140c83a5d802.svg",
+    "unicode": "\ud83e\udd19"
+  },
+  "clap": {
+    "src": "/assets/9fa091f676e4451ee5946fed948cb8fe.svg",
+    "unicode": "\ud83d\udc4f"
+  },
+  "clown": {
+    "src": "/assets/9b323e96266a2cbf1fa0b07a547418be.svg",
+    "unicode": "\ud83e\udd21"
+  },
+  "cold_face": {
+    "src": "/assets/10ba107674fdf2d100be5592e7c85c74.svg",
+    "unicode": "\ud83e\udd76"
+  },
+  "cold_sweat": {
+    "src": "/assets/b6e59899d18889c76321b4cb546b30b9.svg",
+    "unicode": "\ud83d\ude30"
+  },
+  "confounded": {
+    "src": "/assets/e6fe72eb79ef6258554b1385259df5d1.svg",
+    "unicode": "\ud83d\ude16"
+  },
+  "confused": {
+    "src": "/assets/fc5c8aa09047ef94d2c380891feff0f4.svg",
+    "unicode": "\ud83d\ude15"
+  },
+  "cowboy": {
+    "src": "/assets/c18f8f63a3232a0d246868b4d9f20f7b.svg",
+    "unicode": "\ud83e\udd20"
+  },
+  "cry": {
+    "src": "/assets/f6d30507f4baee759bc9d7e5c0d3ba4f.svg",
+    "unicode": "\ud83d\ude22"
+  },
+  "crying_cat_face": {
+    "src": "/assets/509c4f6bb9b71c5d9551357942e11f12.svg",
+    "unicode": "\ud83d\ude3f"
+  },
+  "disappointed": {
+    "src": "/assets/08b9e24092ee146b9e071e89049c1055.svg",
+    "unicode": "\ud83d\ude1e"
+  },
+  "disappointed_relieved": {
+    "src": "/assets/7e1efa56e2112cb69d5d6c205d2c454a.svg",
+    "unicode": "\ud83d\ude25"
+  },
+  "disguised_face": {
+    "src": "/assets/5963476960a5b3a9cf36e7bf8b435928.svg",
+    "unicode": "\ud83e\udd78"
+  },
+  "dizzy_face": {
+    "src": "/assets/08cf46d4be10cd96a7f69a8b372d1425.svg",
+    "unicode": "\ud83d\ude35"
+  },
+  "dotted_line_face": {
+    "src": "/assets/adc7e2a980c644dd79582158ec23ea79.svg",
+    "unicode": "\ud83e\udee5"
+  },
+  "drooling_face": {
+    "src": "/assets/bcee365bd88b9ad34961293f870fbc65.svg",
+    "unicode": "\ud83e\udd24"
+  },
+  "drop_of_blood": {
+    "src": "/assets/2af597d88e655d0cce7ff65a50298d70.svg",
+    "unicode": "\ud83e\ude78"
+  },
+  "ear": {
+    "src": "/assets/c6d79c4d1a768725d74b74b8dde87041.svg",
+    "unicode": "\ud83d\udc42"
+  },
+  "ear_with_hearing_aid": {
+    "src": "/assets/ff0d16a79f1080221ca5523ac87d9472.svg",
+    "unicode": "\ud83e\uddbb"
+  },
+  "exploding_head": {
+    "src": "/assets/ddea4500a252f80cbf6d6c92db15178e.svg",
+    "unicode": "\ud83e\udd2f"
+  },
+  "expressionless": {
+    "src": "/assets/4f57f2120dbe61deda4eb15ea2fd3559.svg",
+    "unicode": "\ud83d\ude11"
+  },
+  "eye": {
+    "src": "/assets/938845ae928cc025cc21cc71d38c2418.svg",
+    "unicode": "\ud83d\udc41"
+  },
+  "eyes": {
+    "src": "/assets/4c5a77a89716352686f590a6f014770c.svg",
+    "unicode": "\ud83d\udc40"
+  },
+  "face_exhaling": {
+    "src": "/assets/7669a083750f34a23def85b9afe351ab.svg",
+    "unicode": "\ud83d\ude2e\u200d\ud83d\udca8"
+  },
+  "face_holding_back_tears": {
+    "src": "/assets/d77373463253ef8742d127f40819ed87.svg",
+    "unicode": "\ud83e\udd79"
+  },
+  "face_in_clouds": {
+    "src": "/assets/cffbe7d3b392eec446456db6adea7704.svg",
+    "unicode": "\ud83d\ude36\u200d\ud83c\udf2b\ufe0f"
+  },
+  "face_vomiting": {
+    "src": "/assets/633e893d2577bb3de002991aa00bc3b0.svg",
+    "unicode": "\ud83e\udd2e"
+  },
+  "face_with_diagonal_mouth": {
+    "src": "/assets/981be7a645b49c309a2424165e31518d.svg",
+    "unicode": "\ud83e\udee4"
+  },
+  "face_with_hand_over_mouth": {
+    "src": "/assets/6ba3855f5ea79b9b014e66b28c54429c.svg",
+    "unicode": "\ud83e\udd2d"
+  },
+  "face_with_monocle": {
+    "src": "/assets/ece6283544a703f158b497507aae3b62.svg",
+    "unicode": "\ud83e\uddd0"
+  },
+  "face_with_open_eyes_and_hand_over_mouth": {
+    "src": "/assets/1dd7a811b3c7640a8a8775921e56446a.svg",
+    "unicode": "\ud83e\udee2"
+  },
+  "face_with_peeking_eye": {
+    "src": "/assets/d5c8d0449482e5cf153ebd79c4ff4a36.svg",
+    "unicode": "\ud83e\udee3"
+  },
+  "face_with_raised_eyebrow": {
+    "src": "/assets/879468637365983eba26983ddf6d38ad.svg",
+    "unicode": "\ud83e\udd28"
+  },
+  "face_with_spiral_eyes": {
+    "src": "/assets/8a44746659bab9f133830029b166edff.svg",
+    "unicode": "\ud83d\ude35\u200d\ud83d\udcab"
+  },
+  "face_with_symbols_over_mouth": {
+    "src": "/assets/d3b48623c6a5915294f7278351b002da.svg",
+    "unicode": "\ud83e\udd2c"
+  },
+  "fearful": {
+    "src": "/assets/f467d08bfa67807c2b3dc6e0d1495fe1.svg",
+    "unicode": "\ud83d\ude28"
+  },
+  "fingers_crossed": {
+    "src": "/assets/093949d259169bc4d540b065462277de.svg",
+    "unicode": "\ud83e\udd1e"
+  },
+  "fist": {
+    "src": "/assets/a6b80a0effe992a7dab3a0da18335d39.svg",
+    "unicode": "\u270a"
+  },
+  "flushed": {
+    "src": "/assets/fd077d826b040d6c8b895de3b7585c25.svg",
+    "unicode": "\ud83d\ude33"
+  },
+  "foot": {
+    "src": "/assets/44b6cd0df0c9590310f18b21279b0b31.svg",
+    "unicode": "\ud83e\uddb6"
+  },
+  "footprints": {
+    "src": "/assets/2f9c6cba3a5fc370216faeb3b04927c3.svg",
+    "unicode": "\ud83d\udc63"
+  },
+  "frowning": {
+    "src": "/assets/c57f781369d6761064207b216ab66d1e.svg",
+    "unicode": "\ud83d\ude26"
+  },
+  "frowning2": {
+    "src": "/assets/88201cfdba8c923f39b94e0db7f42f08.svg",
+    "unicode": "\u2639\ufe0f"
+  },
+  "ghost": {
+    "src": "/assets/d92e0fd8dd2558af60d2a77eaae3100f.svg",
+    "unicode": "\ud83d\udc7b"
+  },
+  "grimacing": {
+    "src": "/assets/c4a0dcc8ff99eb77285d772b6b577389.svg",
+    "unicode": "\ud83d\ude2c"
+  },
+  "grin": {
+    "src": "/assets/ab226fe832acc948e9f974decd04a4f0.svg",
+    "unicode": "\ud83d\ude01"
+  },
+  "grinning": {
+    "src": "/assets/7c010dc6da25c012643ea22c1f002bb4.svg",
+    "unicode": "\ud83d\ude00"
+  },
+  "hand_splayed": {
+    "src": "/assets/03a7095ff4fb6450153094ecb26b236d.svg",
+    "unicode": "\ud83d\udd90"
+  },
+  "hand_with_index_finger_and_thumb_crossed": {
+    "src": "/assets/58905ea0d9ba9c84bf76176a5345561c.svg",
+    "unicode": "\ud83e\udef0"
+  },
+  "handshake": {
+    "src": "/assets/721f98d2ad64bc9a005819bddc2eb322.svg",
+    "unicode": "\ud83e\udd1d"
+  },
+  "head_bandage": {
+    "src": "/assets/267b527f1be941e367bce73444c96f3b.svg",
+    "unicode": "\ud83e\udd15"
+  },
+  "heart_eyes": {
+    "src": "/assets/e55f552bd0b1cf368b466422408c8401.svg",
+    "unicode": "\ud83d\ude0d"
+  },
+  "heart_eyes_cat": {
+    "src": "/assets/d4d91a5f31668dd4609a3d7522f722c5.svg",
+    "unicode": "\ud83d\ude3b"
+  },
+  "heart_hands": {
+    "src": "/assets/eb47d4c118ffc01ac50f2af9c7391a44.svg",
+    "unicode": "\ud83e\udef6"
+  },
+  "hot_face": {
+    "src": "/assets/372518b135d414f92edcd06b89e1468b.svg",
+    "unicode": "\ud83e\udd75"
+  },
+  "hugging": {
+    "src": "/assets/aeb86343db64360cf19cd66eae4eb792.svg",
+    "unicode": "\ud83e\udd17"
+  },
+  "hushed": {
+    "src": "/assets/f2d2c885c71d7c98b53fc15216e34e87.svg",
+    "unicode": "\ud83d\ude2f"
+  },
+  "imp": {
+    "src": "/assets/7fd35efd211326f76a364c4c10d77ef1.svg",
+    "unicode": "\ud83d\udc7f"
+  },
+  "index_pointing_at_the_viewer": {
+    "src": "/assets/443df4ef69cc07c7b0b10f1093836a79.svg",
+    "unicode": "\ud83e\udef5"
+  },
+  "innocent": {
+    "src": "/assets/e461bb3847973d47822fdc79d66f494d.svg",
+    "unicode": "\ud83d\ude07"
+  },
+  "jack_o_lantern": {
+    "src": "/assets/549e0b9954236583f841032b85ba45f9.svg",
+    "unicode": "\ud83c\udf83"
+  },
+  "japanese_goblin": {
+    "src": "/assets/97af278eacce256fb63c30689f80ee86.svg",
+    "unicode": "\ud83d\udc7a"
+  },
+  "japanese_ogre": {
+    "src": "/assets/f7b28657f23a942ed82d45ed23094d63.svg",
+    "unicode": "\ud83d\udc79"
+  },
+  "joy": {
+    "src": "/assets/6201503f3aa918470a2190b36d1e196f.svg",
+    "unicode": "\ud83d\ude02"
+  },
+  "joy_cat": {
+    "src": "/assets/4557741be111e94ca7083abf39422a30.svg",
+    "unicode": "\ud83d\ude39"
+  },
+  "kiss": {
+    "src": "/assets/1f47248f358622a7398c81207142239b.svg",
+    "unicode": "\ud83d\udc8b"
+  },
+  "kissing": {
+    "src": "/assets/2651df01b16f9037f954d7bfe6a535f4.svg",
+    "unicode": "\ud83d\ude17"
+  },
+  "kissing_cat": {
+    "src": "/assets/ddd2c1bf4d9e5afa87394a52f1832fe4.svg",
+    "unicode": "\ud83d\ude3d"
+  },
+  "kissing_closed_eyes": {
+    "src": "/assets/ac30cfcc3533da0c03cc80bbc3e63db6.svg",
+    "unicode": "\ud83d\ude1a"
+  },
+  "kissing_heart": {
+    "src": "/assets/81a553e7c02c5dd144e40888c4b2faad.svg",
+    "unicode": "\ud83d\ude18"
+  },
+  "kissing_smiling_eyes": {
+    "src": "/assets/d5d060921efbed7794c0d8087ba4cf58.svg",
+    "unicode": "\ud83d\ude19"
+  },
+  "laughing": {
+    "src": "/assets/cb91d362742dcc886e4a4c3f981f3365.svg",
+    "unicode": "\ud83d\ude06"
+  },
+  "left_facing_fist": {
+    "src": "/assets/94801ab47a5a573b00876e2d35fb9f44.svg",
+    "unicode": "\ud83e\udd1b"
+  },
+  "leftwards_hand": {
+    "src": "/assets/469260c0d80dfb5780e1c54795da61ae.svg",
+    "unicode": "\ud83e\udef2"
+  },
+  "leg": {
+    "src": "/assets/344019c5657ef505cd2458f05f1c89fe.svg",
+    "unicode": "\ud83e\uddb5"
+  },
+  "lips": {
+    "src": "/assets/c1aac731a5d5bab09fc7d177fadc5eef.svg",
+    "unicode": "\ud83d\udc44"
+  },
+  "love_you_gesture": {
+    "src": "/assets/3dc67b93bfac1fa91815569ffd22a874.svg",
+    "unicode": "\ud83e\udd1f"
+  },
+  "lungs": {
+    "src": "/assets/8e9f1b9bfcef34a52182bd1d06fbcb88.svg",
+    "unicode": "\ud83e\udec1"
+  },
+  "lying_face": {
+    "src": "/assets/7db949cd37e5e7c2623249272d9b3ea7.svg",
+    "unicode": "\ud83e\udd25"
+  },
+  "mask": {
+    "src": "/assets/2993ada413223a149555f5f68198043f.svg",
+    "unicode": "\ud83d\ude37"
+  },
+  "mechanical_arm": {
+    "src": "/assets/12b7251a9a096c53443ac4efbd01d0a3.svg",
+    "unicode": "\ud83e\uddbe"
+  },
+  "mechanical_leg": {
+    "src": "/assets/a8fae04612d4a5ef9c801b49121e69b1.svg",
+    "unicode": "\ud83e\uddbf"
+  },
+  "melting_face": {
+    "src": "/assets/2b2a009b3adc6ee893908925a47d0194.svg",
+    "unicode": "\ud83e\udee0"
+  },
+  "metal": {
+    "src": "/assets/4cc63989873551be9218f8219326eb62.svg",
+    "unicode": "\ud83e\udd18"
+  },
+  "middle_finger": {
+    "src": "/assets/66ab7f72e745ac8b2ccd0cd920b1d4e8.svg",
+    "unicode": "\ud83d\udd95"
+  },
+  "money_mouth": {
+    "src": "/assets/dd35e632b9aac425f17ad59c85ecf9eb.svg",
+    "unicode": "\ud83e\udd11"
+  },
+  "muscle": {
+    "src": "/assets/1837c5719a977362642ffaf4990b6bac.svg",
+    "unicode": "\ud83d\udcaa"
+  },
+  "nail_care": {
+    "src": "/assets/70f1d2b535b42b22b01302efe2b4bebc.svg",
+    "unicode": "\ud83d\udc85"
+  },
+  "nauseated_face": {
+    "src": "/assets/8212db2111debc4acc49ceb20cbfbdf0.svg",
+    "unicode": "\ud83e\udd22"
+  },
+  "nerd": {
+    "src": "/assets/c61131c53f9986ac8808d592c3019a7a.svg",
+    "unicode": "\ud83e\udd13"
+  },
+  "neutral_face": {
+    "src": "/assets/fa9b378aed10bba1aea54ca34e76fe4b.svg",
+    "unicode": "\ud83d\ude10"
+  },
+  "no_mouth": {
+    "src": "/assets/63164bb66f2c9c65db1b1f7cf554a968.svg",
+    "unicode": "\ud83d\ude36"
+  },
+  "nose": {
+    "src": "/assets/9a3e2c6b01cec5094c81ad9db673d430.svg",
+    "unicode": "\ud83d\udc43"
+  },
+  "ok_hand": {
+    "src": "/assets/464b4c2745e1dda6a86028d09bb8bbec.svg",
+    "unicode": "\ud83d\udc4c"
+  },
+  "open_hands": {
+    "src": "/assets/4824d50b7b1d299c694da8a3843ec840.svg",
+    "unicode": "\ud83d\udc50"
+  },
+  "open_mouth": {
+    "src": "/assets/2312e90b9fc75749149a200817b952f2.svg",
+    "unicode": "\ud83d\ude2e"
+  },
+  "palm_down_hand": {
+    "src": "/assets/3ff45773638d864b5789eac95c8e073f.svg",
+    "unicode": "\ud83e\udef3"
+  },
+  "palm_up_hand": {
+    "src": "/assets/c7365791eca611a8d95ab7274cc00128.svg",
+    "unicode": "\ud83e\udef4"
+  },
+  "palms_up_together": {
+    "src": "/assets/dd4f622d0cffd2089f4afb9076ff1797.svg",
+    "unicode": "\ud83e\udd32"
+  },
+  "partying_face": {
+    "src": "/assets/f3e307960b1c81de130c429034802618.svg",
+    "unicode": "\ud83e\udd73"
+  },
+  "pensive": {
+    "src": "/assets/2ea1f6bba4448fa4e8d9504fe976095d.svg",
+    "unicode": "\ud83d\ude14"
+  },
+  "persevere": {
+    "src": "/assets/00faf33e229084cb56d8a51c9130761a.svg",
+    "unicode": "\ud83d\ude23"
+  },
+  "pinched_fingers": {
+    "src": "/assets/24494e7542e5cb86e1821f11bcdad52e.svg",
+    "unicode": "\ud83e\udd0c"
+  },
+  "pinching_hand": {
+    "src": "/assets/2f99d51172fe3346316961fe4f67fe30.svg",
+    "unicode": "\ud83e\udd0f"
+  },
+  "pleading_face": {
+    "src": "/assets/6bca769662f755d33514d1f5304c617d.svg",
+    "unicode": "\ud83e\udd7a"
+  },
+  "point_down": {
+    "src": "/assets/985bb2d2398be71e1b68bc7e2103c993.svg",
+    "unicode": "\ud83d\udc47"
+  },
+  "point_left": {
+    "src": "/assets/1e3b6d27bfb21f04dc9e00c7bc965c55.svg",
+    "unicode": "\ud83d\udc48"
+  },
+  "point_right": {
+    "src": "/assets/032d907ff49a63e0757cadd5f36ab216.svg",
+    "unicode": "\ud83d\udc49"
+  },
+  "point_up": {
+    "src": "/assets/a08390af9d69488ad04ca6332b33c2d5.svg",
+    "unicode": "\u261d\ufe0f"
+  },
+  "point_up_2": {
+    "src": "/assets/863d47ae4fdda4d783c57dd9c496b7d6.svg",
+    "unicode": "\ud83d\udc46"
+  },
+  "poop": {
+    "src": "/assets/8359db312f7319a4b0b23415e5fd1392.svg",
+    "unicode": "\ud83d\udca9"
+  },
+  "pouting_cat": {
+    "src": "/assets/551f9d76028c39299e0bc9bc20cd0e0d.svg",
+    "unicode": "\ud83d\ude3e"
+  },
+  "pray": {
+    "src": "/assets/1904291ab1aa5d14b2adaaff23a578dd.svg",
+    "unicode": "\ud83d\ude4f"
+  },
+  "punch": {
+    "src": "/assets/4601b0cf78b83ff531ea80756d6cc9c2.svg",
+    "unicode": "\ud83d\udc4a"
+  },
+  "rage": {
+    "src": "/assets/3f4e3f10b0a177426ca14b381445ca3b.svg",
+    "unicode": "\ud83d\ude21"
+  },
+  "raised_back_of_hand": {
+    "src": "/assets/1d2621e5852646cb449ff778ff014969.svg",
+    "unicode": "\ud83e\udd1a"
+  },
+  "raised_hand": {
+    "src": "/assets/23862f9f0fbd366c49b898c278c879cb.svg",
+    "unicode": "\u270b"
+  },
+  "raised_hands": {
+    "src": "/assets/ba431d6ffa85449aca277d36b401519e.svg",
+    "unicode": "\ud83d\ude4c"
+  },
+  "relaxed": {
+    "src": "/assets/b426f77f42bb709bcb2faa23602d2dc4.svg",
+    "unicode": "\u263a\ufe0f"
+  },
+  "relieved": {
+    "src": "/assets/817f965bd1fd796777908e6c8052d665.svg",
+    "unicode": "\ud83d\ude0c"
+  },
+  "right_facing_fist": {
+    "src": "/assets/bfe98075124bdb8b6ac3c7f040774efb.svg",
+    "unicode": "\ud83e\udd1c"
+  },
+  "rightwards_hand": {
+    "src": "/assets/5553a433cc196c795417c8c5841922b3.svg",
+    "unicode": "\ud83e\udef1"
+  },
+  "robot": {
+    "src": "/assets/b67e65c2ab0428da786c1f53ebfd4243.svg",
+    "unicode": "\ud83e\udd16"
+  },
+  "rofl": {
+    "src": "/assets/567230faa19ec889fad5613630597049.svg",
+    "unicode": "\ud83e\udd23"
+  },
+  "rolling_eyes": {
+    "src": "/assets/8210e7f5bf5e03f5dee15f6ce4232feb.svg",
+    "unicode": "\ud83d\ude44"
+  },
+  "saluting_face": {
+    "src": "/assets/be438a3c54ed89b52bc3351ec3e631fc.svg",
+    "unicode": "\ud83e\udee1"
+  },
+  "scream": {
+    "src": "/assets/81195a9847a459acbb2b680a70357728.svg",
+    "unicode": "\ud83d\ude31"
+  },
+  "scream_cat": {
+    "src": "/assets/3068417ae7f1a7c5c2ba60ab1aa1fb62.svg",
+    "unicode": "\ud83d\ude40"
+  },
+  "selfie": {
+    "src": "/assets/38df7a213fb773ddc158558a3075d10d.svg",
+    "unicode": "\ud83e\udd33"
+  },
+  "shushing_face": {
+    "src": "/assets/acb7b1a237378bbddd34927b4001b8f4.svg",
+    "unicode": "\ud83e\udd2b"
+  },
+  "skull": {
+    "src": "/assets/f64f47a895e537305b3463f9d30bc177.svg",
+    "unicode": "\ud83d\udc80"
+  },
+  "skull_crossbones": {
+    "src": "/assets/39cb7a326a67437dfed8216b0523d055.svg",
+    "unicode": "\u2620\ufe0f"
+  },
+  "sleeping": {
+    "src": "/assets/711ac22a92d00f844023ded91f820e8c.svg",
+    "unicode": "\ud83d\ude34"
+  },
+  "sleepy": {
+    "src": "/assets/387d45cfc608c20850306f85bc143f09.svg",
+    "unicode": "\ud83d\ude2a"
+  },
+  "slight_frown": {
+    "src": "/assets/9dc0c15c9e35f7ba86150ae12e895d29.svg",
+    "unicode": "\ud83d\ude41"
+  },
+  "slight_smile": {
+    "src": "/assets/da3651e59d6006dfa5fa07ec3102d1f3.svg",
+    "unicode": "\ud83d\ude42"
+  },
+  "smile": {
+    "src": "/assets/626aaed496ac12bbdb68a86b46871a1f.svg",
+    "unicode": "\ud83d\ude04"
+  },
+  "smile_cat": {
+    "src": "/assets/e96ed3e46f59af0b9b7b49e3cb4e59f7.svg",
+    "unicode": "\ud83d\ude38"
+  },
+  "smiley": {
+    "src": "/assets/66f6c781fe86c346fbaf3390618668fc.svg",
+    "unicode": "\ud83d\ude03"
+  },
+  "smiley_cat": {
+    "src": "/assets/ef2af7fab48463e72a3a7f0f8fb4fb4e.svg",
+    "unicode": "\ud83d\ude3a"
+  },
+  "smiling_face_with_3_hearts": {
+    "src": "/assets/01c80723fb8cbdcb9e22747cd88e07e4.svg",
+    "unicode": "\ud83e\udd70"
+  },
+  "smiling_face_with_tear": {
+    "src": "/assets/4fc5b1ef776d4ae648d813da6eb6704f.svg",
+    "unicode": "\ud83e\udd72"
+  },
+  "smiling_imp": {
+    "src": "/assets/54b9902837fed72b7551edb77b30b96e.svg",
+    "unicode": "\ud83d\ude08"
+  },
+  "smirk": {
+    "src": "/assets/480eb6b0f6c22cbc1d98d6ff93e1edc1.svg",
+    "unicode": "\ud83d\ude0f"
+  },
+  "smirk_cat": {
+    "src": "/assets/e25128510c26b0aad9d71bc6cf49df67.svg",
+    "unicode": "\ud83d\ude3c"
+  },
+  "sneezing_face": {
+    "src": "/assets/a8a943a00a0430e5d06bb57ffacf2839.svg",
+    "unicode": "\ud83e\udd27"
+  },
+  "sob": {
+    "src": "/assets/f7b3f6b926cb31a17d4928d076febab4.svg",
+    "unicode": "\ud83d\ude2d"
+  },
+  "space_invader": {
+    "src": "/assets/f061fbca366aace47d711c09ee19d26b.svg",
+    "unicode": "\ud83d\udc7e"
+  },
+  "star_struck": {
+    "src": "/assets/ffa92fc2c8f0a781d5ae9ffbecefa054.svg",
+    "unicode": "\ud83e\udd29"
+  },
+  "stuck_out_tongue": {
+    "src": "/assets/10f25947b6687b5b103e131ca82826ab.svg",
+    "unicode": "\ud83d\ude1b"
+  },
+  "stuck_out_tongue_closed_eyes": {
+    "src": "/assets/8220f7a8492a41bd571c315954aeb9b9.svg",
+    "unicode": "\ud83d\ude1d"
+  },
+  "stuck_out_tongue_winking_eye": {
+    "src": "/assets/c9030d84bb2453fbba42c7c1896dbde8.svg",
+    "unicode": "\ud83d\ude1c"
+  },
+  "sunglasses": {
+    "src": "/assets/5f80f04e6ee97feebdd00feff92ced82.svg",
+    "unicode": "\ud83d\ude0e"
+  },
+  "sweat": {
+    "src": "/assets/6d8c8a8219b45458260ab4843f383b76.svg",
+    "unicode": "\ud83d\ude13"
+  },
+  "sweat_smile": {
+    "src": "/assets/b45af785b0e648fe2fb7e318a6b8010c.svg",
+    "unicode": "\ud83d\ude05"
+  },
+  "thermometer_face": {
+    "src": "/assets/0d8bbcf262e835b89d4f75a0cda241fe.svg",
+    "unicode": "\ud83e\udd12"
+  },
+  "thinking": {
+    "src": "/assets/263a7f4eeb6f69e46d969fa479188592.svg",
+    "unicode": "\ud83e\udd14"
+  },
+  "thumbsdown": {
+    "src": "/assets/66e3cbf517993ee5261f23687a2bc032.svg",
+    "unicode": "\ud83d\udc4e"
+  },
+  "thumbsup": {
+    "src": "/assets/08c0a077780263f3df97613e58e71744.svg",
+    "unicode": "\ud83d\udc4d"
+  },
+  "tired_face": {
+    "src": "/assets/7f36e54469b941cf193a1a19baf2b806.svg",
+    "unicode": "\ud83d\ude2b"
+  },
+  "tongue": {
+    "src": "/assets/0d16121d9eae5745be9da0c730557d30.svg",
+    "unicode": "\ud83d\udc45"
+  },
+  "tooth": {
+    "src": "/assets/0dc3b6c0f9b69ae7471adc414f6fc0ce.svg",
+    "unicode": "\ud83e\uddb7"
+  },
+  "triumph": {
+    "src": "/assets/1344a726dc134bff094a84ff60ea934d.svg",
+    "unicode": "\ud83d\ude24"
+  },
+  "unamused": {
+    "src": "/assets/19581aca5d78feac3a180971f24d399b.svg",
+    "unicode": "\ud83d\ude12"
+  },
+  "upside_down": {
+    "src": "/assets/559c3311dcdb3f23b7fb745559207db9.svg",
+    "unicode": "\ud83d\ude43"
+  },
+  "v": {
+    "src": "/assets/d24e4bd5f355ec0bdf176bd36d33678a.svg",
+    "unicode": "\u270c\ufe0f"
+  },
+  "vulcan": {
+    "src": "/assets/c9fa5a58142d229cf34ed71b0c213384.svg",
+    "unicode": "\ud83d\udd96"
+  },
+  "wave": {
+    "src": "/assets/df7ba0f4020ca70048a0226d1dfa73f6.svg",
+    "unicode": "\ud83d\udc4b"
+  },
+  "weary": {
+    "src": "/assets/7d9b0ce939d6486f22cf0111f0f815d6.svg",
+    "unicode": "\ud83d\ude29"
+  },
+  "wink": {
+    "src": "/assets/2e41bfdeba797283ee9da9bb439c3ece.svg",
+    "unicode": "\ud83d\ude09"
+  },
+  "woozy_face": {
+    "src": "/assets/154693d902e0f75f3e475bd487be7969.svg",
+    "unicode": "\ud83e\udd74"
+  },
+  "worried": {
+    "src": "/assets/a114d57f38f4921991a16893f9525421.svg",
+    "unicode": "\ud83d\ude1f"
+  },
+  "writing_hand": {
+    "src": "/assets/8cd77280fc37422a25059d2d6dd59797.svg",
+    "unicode": "\u270d\ufe0f"
+  },
+  "yawning_face": {
+    "src": "/assets/e899188d7f6b611acdca8b91abc2f104.svg",
+    "unicode": "\ud83e\udd71"
+  },
+  "yum": {
+    "src": "/assets/913e66b19410c0ca3e71fe837a29e093.svg",
+    "unicode": "\ud83d\ude0b"
+  },
+  "zany_face": {
+    "src": "/assets/aee3a8d989cabcd262db85fe0ce7cd0d.svg",
+    "unicode": "\ud83e\udd2a"
+  },
+  "zipper_mouth": {
+    "src": "/assets/c9687b0b5a491edea9fbe438d316a341.svg",
+    "unicode": "\ud83e\udd10"
+  }
+}
