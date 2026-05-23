@@ -1,0 +1,10 @@
+ManifestFileVersion: 0
+CRC: 426459004
+AssetBundleManifest:
+  AssetBundleInfos:
+    Info_0:
+      Name: spectate
+      Dependencies: {}
+    Info_1:
+      Name: emojis
+      Dependencies: {}

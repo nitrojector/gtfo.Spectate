@@ -4,6 +4,7 @@ using BepInEx.Unity.IL2CPP;
 using Globals;
 using HarmonyLib;
 using Il2CppInterop.Runtime.Injection;
+using Spectate.Assets;
 using UnityEngine;
 using Spectate.Config;
 using Spectate.Interop;
@@ -28,6 +29,8 @@ public class Plugin : BasePlugin {
 	public const string GUID_EOSExtEMP = "Inas.EOSExt.EMP";
 	public const string GUID_EEC = "GTFO.EECustomization";
 
+	internal static string PluginFolder { get; private set; } = "";
+
 	public static readonly PlugVersion PlugVersion = new(VERSION);
 
 	public event Action? OnManagersSetup;
@@ -40,6 +43,8 @@ public class Plugin : BasePlugin {
 
 		Harmony h = new Harmony(GUID);
 		ConfigMgr.Process();
+
+		PluginFolder = Path.GetDirectoryName(IL2CPPChainloader.Instance.Plugins[GUID].Location) ?? "";
 
 		RegisterIl2CppTypes();
 
@@ -74,7 +79,7 @@ public class Plugin : BasePlugin {
 		h.PatchAll(typeof(T));
 	}
 
-	internal static void RegisterIl2CppTypes()
+	private static void RegisterIl2CppTypes()
 	{
 		foreach (Type type in Assembly.GetExecutingAssembly().GetTypes())
 		{
@@ -84,6 +89,9 @@ public class Plugin : BasePlugin {
 	}
 
 	private void Initialize() {
+		Logger.Debug("Loading Emojis...");
+		EmojiLibrary.Load();
+
 		Logger.Debug("Initializing Spectate GameObject's...");
 		PluginObject = new GameObject(GUID);
 		UnityEngine.Object.DontDestroyOnLoad(PluginObject);

@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <ModName>Spectate</ModName>
+        <ModGroup>food</ModGroup>
         <Profile>Dev</Profile>
 
         <TargetFramework>net6.0</TargetFramework>
@@ -14,21 +15,16 @@
 
         <IsMacOS Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::OSX)))' == 'true'">true</IsMacOS>
         <BepInEx Condition="'$(CI)' == 'true'">$(SolutionDir)/GTFOBepInDep</BepInEx>
-        <BepInEx Condition="'$(CI)' != 'true' AND '$(IsMacOS)' != 'true'">$(AppData)\com.kesomannen.gale\gtfo\profiles\$(Profile)\BepInEx</BepInEx>
+        <BepInEx Condition="'$(CI)' != 'true' AND '$(IsMacOS)' != 'true'">$(AppData)/com.kesomannen.gale/gtfo/profiles/$(Profile)/BepInEx</BepInEx>
         <BepInEx Condition="'$(CI)' != 'true' AND '$(IsMacOS)' == 'true'">/opt/GTFOBepInDep</BepInEx>
-        <PluginFolder>$(BepInEx)\plugins</PluginFolder>
-        <PlugOutput>$(PluginFolder)\$(SolutionName)</PlugOutput>
+        
+        <PluginFolder>$(BepInEx)/plugins</PluginFolder>
+        <AssetsFolder>$(SolutionDir)/assets</AssetsFolder>
+        <PlugOutput>$(PluginFolder)/$(ModGroup)-$(ModName)</PlugOutput>
+        
         <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     </PropertyGroup>
-    <Target Name="PostBuild" BeforeTargets="PostBuildEvent">
-        <Delete Files="$(OutputPath)/$(AssemblyName).deps.json"/>
-    </Target>
     
-    <Target Name="PostBuildCopy" AfterTargets="Build">
-        <Copy Condition="'$(CI)' != 'true' AND '$(IsMacOS)' != 'true'" SourceFiles="$(OutputPath)/$(AssemblyName).dll" DestinationFolder="$(PlugOutput)"/>
-        <Copy Condition="'$(CI)' != 'true' AND '$(IsMacOS)' != 'true'" SourceFiles="@(AssetFiles)" DestinationFolder="$(PlugOutput)/assets/%(RecursiveDir)"/>
-    </Target>
-
     <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
         <DefineConstants>DEBUG</DefineConstants>
         <DebugType>embedded</DebugType>
@@ -40,17 +36,34 @@
         <Optimize>true</Optimize>
     </PropertyGroup>
 
-    <ItemGroup>
-        <AssetFiles Include="$(SolutionDir)/assets/**/*"/>
-    </ItemGroup>
+    <Target Name="PostBuild" BeforeTargets="PostBuildEvent">
+        <Delete Files="$(OutputPath)/$(AssemblyName).deps.json"/>
+    </Target>
+    
+    <Target Name="AssetBundleCopy" AfterTargets="Build">
+        <Copy SourceFiles="@(UnityAssetBundles)" DestinationFolder="$(AssetsFolder)"/>
+    </Target>
+    
+    <Target Name="PostBuildCopy" AfterTargets="AssetBundleCopy">
+        <Copy Condition="'$(CI)' != 'true' AND '$(IsMacOS)' != 'true'" SourceFiles="$(OutputPath)/$(AssemblyName).dll" DestinationFolder="$(PlugOutput)"/>
+        <ItemGroup>
+            <AssetFiles Include="$(SolutionDir)/assets/**/*"/>
+        </ItemGroup>
+        <Copy Condition="'$(CI)' != 'true' AND '$(IsMacOS)' != 'true'" SourceFiles="@(AssetFiles)" DestinationFolder="$(PlugOutput)/assets/%(RecursiveDir)"/>
+    </Target>
 
-    <Target Name="Package" AfterTargets="Build">
+    <Target Name="Package" AfterTargets="AssetBundleCopy">
         <PropertyGroup>
-            <PkgFolder>$(SolutionDir)\pkg\</PkgFolder>
+            <PkgFolder>$(SolutionDir)/pkg/</PkgFolder>
             <ZipFile>$(SolutionDir)$(SolutionName).zip</ZipFile>
         </PropertyGroup>
-        <MakeDir Directories="$(PkgFolder)"/>
+        <ItemGroup>
+            <AssetFiles Include="$(SolutionDir)/assets/**/*"/>
+        </ItemGroup>
+
         <Exec WorkingDirectory="$(SolutionDir)" Command="python &quot;$(SolutionDir)/mkmanifest.py&quot;"/>
+        
+        <MakeDir Directories="$(PkgFolder)"/>
         <Copy SourceFiles="$(OutputPath)/$(AssemblyName).dll" DestinationFolder="$(PkgFolder)"/>
         <Copy SourceFiles="$(SolutionDir)/.assets/icon.png" DestinationFolder="$(PkgFolder)"/>
         <Copy SourceFiles="@(AssetFiles)" DestinationFolder="$(PkgFolder)/assets/%(RecursiveDir)"/>
@@ -62,6 +75,12 @@
               Command="powershell -NoProfile -Command &quot;Compress-Archive -Path '$(PkgFolder)*' -DestinationPath '$(ZipFile)' -Force&quot;"/>
     </Target>
 
+    <!-- Asset / Asset Bundles -->
+    <ItemGroup>
+        <UnityAssetBundles Include="$(SolutionDir)/SpectateUnityAssetProject/AssetBundles/spectate"/>
+        <UnityAssetBundles Include="$(SolutionDir)/SpectateUnityAssetProject/AssetBundles/emojis"/>
+    </ItemGroup>
+
     <!-- BepInEx & Game Assemblies -->
     <ItemGroup>
         <Reference Include="$(BepInEx)\core\0Harmony.dll" Private="false"/>
@@ -70,22 +89,26 @@
         <Reference Include="$(BepInEx)\core\Il2CppInterop.Common.dll" Private="false"/>
         <Reference Include="$(BepInEx)\core\Il2CppInterop.Runtime.dll" Private="false"/>
         <Reference Include="$(BepInEx)\interop\*.dll" Private="false"/>
+        <Reference Remove="$(BepInEx)\interop\Newtonsoft.Json.dll"/>
         <Reference Remove="$(BepInEx)\interop\netstandard.dll"/>
     </ItemGroup>
     
     <ItemGroup>
         <Reference Include="$(PluginFolder)\hirnukuono-EEC_H\*.dll" Private="false"/>
-        <Reference Include="$(PluginFolder)\PlayerSync\*.dll" Private="false"/>
+        <Reference Include="$(PluginFolder)\AuriRex-Clonesoft_Json\*.dll" Private="false"/>
+        <Reference Include="$(PluginFolder)\food-PlayerSync\*.dll" Private="false"/>
     </ItemGroup>
 
     <ItemGroup>
         <Compile Remove="obj\**"/>
         <Compile Remove="pkg\**"/>
     </ItemGroup>
+    
     <ItemGroup>
         <EmbeddedResource Remove="obj\**"/>
         <EmbeddedResource Remove="pkg\**"/>
     </ItemGroup>
+    
     <ItemGroup>
         <None Remove="obj\**"/>
         <None Remove="pkg\**"/>

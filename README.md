@@ -25,3 +25,15 @@
 *Attributions*
 
 - This mod uses assets from [Bootstrap Icons](https://icons.getbootstrap.com/) licensed under [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/).
+
+## Building
+
+### Assets (if changed)
+
+1. Follow instructions in `emojis_pack` to build packed emoji atlases (Linux or wsl).
+2. Build asset bundles in `SpectateUnityAssetProject` Unity project.
+
+### Mod
+
+3. Install mod dependencies (EEC_H, PlayerSync, ClonesoftJson)
+4. Build the solution `Spectate.sln`.

@@ -1,0 +1,17 @@
+ManifestFileVersion: 0
+CRC: 392808988
+Hashes:
+  AssetFileHash:
+    serializedVersion: 2
+    Hash: 95261f8205e521f29272cb63a939b81b
+  TypeTreeHash:
+    serializedVersion: 2
+    Hash: 7859cd501ea75098bcf7e53f1b477c26
+HashAppended: 0
+ClassTypes:
+- Class: 28
+  Script: {instanceID: 0}
+SerializeReferenceClassIdentifiers: []
+Assets:
+- Assets/Spectate/eye_icon.png
+Dependencies: []

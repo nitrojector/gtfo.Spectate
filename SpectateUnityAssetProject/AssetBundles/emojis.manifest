@@ -1,0 +1,25 @@
+ManifestFileVersion: 0
+CRC: 3225084751
+Hashes:
+  AssetFileHash:
+    serializedVersion: 2
+    Hash: 194285635ca99866ff90303096f679e5
+  TypeTreeHash:
+    serializedVersion: 2
+    Hash: 8568e5201f97321957c300bce0003f95
+HashAppended: 0
+ClassTypes:
+- Class: 28
+  Script: {instanceID: 0}
+- Class: 49
+  Script: {instanceID: 0}
+SerializeReferenceClassIdentifiers: []
+Assets:
+- Assets/Emojis/atlas_001.json
+- Assets/Emojis/atlas_000.png
+- Assets/Emojis/atlas_002.json
+- Assets/Emojis/atlas_002.png
+- Assets/Emojis/atlas_001.png
+- Assets/Emojis/atlas_000.json
+- Assets/Emojis/manifest.json
+Dependencies: []

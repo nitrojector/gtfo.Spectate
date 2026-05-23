@@ -16,10 +16,11 @@ Atlas size:
     atlas_px = 8 * (120 + 8) = 1024
 
 Glyph size:
-  glyph_px = cell_px - padding   (half_pad clearance on each side within cell)
+  --size is the glyph size
+  cell_px = size + padding   (half_pad clearance on each side within cell)
 
   With the defaults:
-    glyph_px = 120 - 8 = 112
+    cell_px = 120 + 8 = 128
 """
 
 import argparse
@@ -27,6 +28,7 @@ import json
 import math
 import os
 import sys
+import shutil
 
 # ---------------------------------------------------------------------------
 # Dependency check
@@ -85,12 +87,14 @@ def pack(svg_dir: str, out_dir: str, width: int, cell_px: int, inner_padding: in
     if not svgs:
         sys.exit(f"No SVG files found in {svg_dir!r}")
 
-    os.makedirs(out_dir, exist_ok=True)
+    if os.path.exists(out_dir):
+        shutil.rmtree(out_dir)
+    os.makedirs(out_dir)
 
-    stride   = cell_px + inner_padding          # pixels between cell origins
-    half_pad = inner_padding // 2
-    glyph_px = cell_px - inner_padding          # half_pad clearance on each side
+    glyph_px = cell_px
+    stride   = glyph_px + inner_padding
     atlas_px = width * stride
+    half_pad = inner_padding // 2
 
     if glyph_px <= 0:
         sys.exit(f"padding ({inner_padding}) must be smaller than cell size ({cell_px})")
@@ -134,6 +138,7 @@ def pack(svg_dir: str, out_dir: str, width: int, cell_px: int, inner_padding: in
             entries.append({
                 "id":   global_id,
                 "name": name,
+                "page": page_idx,
                 "uv": {
                     "u0": round(u0, 6),
                     "v0": round(v0, 6),
@@ -156,13 +161,27 @@ def pack(svg_dir: str, out_dir: str, width: int, cell_px: int, inner_padding: in
             json.dump({
                 "page":       page_idx,
                 "atlas_size": atlas_px,
-                "cell_size":  cell_px,
+                "cell_size":  glyph_px + inner_padding,
                 "glyph_size": glyph_px,
                 "padding":    inner_padding,
                 "grid_width": width,
                 "emojis":     entries,
             }, f, indent=2, ensure_ascii=False)
         print(f"[PAGE {page_idx}] Saved {json_path}\n")
+    
+    manifest_path = os.path.join(out_dir, "manifest.json")
+    with open(manifest_path, "w", encoding="utf-8") as f:
+        json.dump({
+            "num_pages":  num_pages,
+            "atlas_size": atlas_px,
+            "cell_size":  glyph_px + inner_padding,
+            "glyph_size": glyph_px,
+            "padding":    inner_padding,
+            "grid_width": width,
+            "total_emojis": global_id,
+            "pages": [f"atlas_{i:03d}" for i in range(num_pages)],
+        }, f, indent=2, ensure_ascii=False)
+    print(f"[MANIFEST] Saved {manifest_path}\n")
 
     print(f"Done — {global_id} emojis packed into {num_pages} atlas page(s).")
 
@@ -177,42 +196,52 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=(
             "Atlas size formula:  atlas_px = width * (size + padding)\n"
-            "Glyph size formula:  glyph_px = size - padding\n\n"
+            "Cell size formula:  cell_px = size + padding\n\n"
             "Example -- 1024x1024 atlas:\n"
             "  pack_emojis.py --width 8 --size 120 --padding 8\n"
-            "  => 8 * (120 + 8) = 1024,  glyph = 112 px"
+            "  => 8 * (120 + 8) = 1024,  cell = 128 px"
         ),
     )
     parser.add_argument("--width",   type=int, default=8,
                         help="Emojis per row/col (default: 8)")
     parser.add_argument("--size",    type=int, default=120,
-                        help="Cell size in px, excluding padding (default: 120)")
+                        help="Glyph size in px, excluding padding (default: 120)")
     parser.add_argument("--padding", type=int, default=8,
                         help="Per-cell padding in px; glyph gets half on each side (default: 8)")
     parser.add_argument("--svgdir",  type=str,
                         default=os.path.join(os.path.dirname(os.path.abspath(__file__)), "emojis"),
                         help="Directory of renamed SVGs (default: ./emojis)")
-    parser.add_argument("--out",     type=str,
-                        default=os.path.join(os.path.dirname(os.path.abspath(__file__)), "atlas"),
-                        help="Output directory (default: ./atlas)")
+    parser.add_argument("--out", type=str, nargs="+",
+                        default=[os.path.join(os.path.dirname(os.path.abspath(__file__)), "atlas")],
+                        help="Output directory/directories (default: ./atlas)")
+                        
     args = parser.parse_args()
 
     atlas_px = args.width * (args.size + args.padding)
-    glyph_px = args.size - args.padding
+    glyph_px = args.size
+    cell_px  = args.size + args.padding
     print(f"Config : width={args.width}, cell={args.size}px, padding={args.padding}px")
     print(f"Atlas  : {atlas_px}x{atlas_px} px")
     print(f"Glyph  : {glyph_px}x{glyph_px} px")
+    print(f"Cell   : {cell_px}x{cell_px} px")
     print(f"SVG dir: {args.svgdir}")
     print(f"Out dir: {args.out}\n")
 
+    primary, *mirrors = args.out
+
     pack(
         svg_dir=args.svgdir,
-        out_dir=args.out,
+        out_dir=primary,
         width=args.width,
         cell_px=args.size,
         inner_padding=args.padding,
     )
 
-
+    for mirror in mirrors:
+        if os.path.exists(mirror):
+            shutil.rmtree(mirror)
+        shutil.copytree(primary, mirror)
+        print(f"[MIRROR] Copied to {mirror}")
+        
 if __name__ == "__main__":
     main()
