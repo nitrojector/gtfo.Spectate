@@ -111,7 +111,7 @@ public class PeerInfoManager : MonoBehaviour {
 		// Cleanup stale player infos for players that have left the lobby
 		foreach (var id in PeerInfos.Keys.ToList()) {
 			if (!sessionHub.IsPlayerInHub(PeerInfos[id].Player)) {
-				Logger.Warn($"Player '{PeerInfos[id].Player?.NickName ?? "???"}' ({id}) is not in lobby anymore, removing their info.");
+				Logger.Debug($"Player '{PeerInfos[id].Player?.NickName ?? "???"}' ({id}) is not in lobby anymore, removing their info.");
 				PeerInfos.Remove(id);
 			}
 		}
@@ -131,7 +131,7 @@ public class PeerInfoManager : MonoBehaviour {
 	/// <param name="player">player to request info</param>
 	private void RequestInfoFromPlayer(SNet_Player player) {
 		if (PeerInfos.TryGetValue(player.Lookup, out var info)) {
-			if (info.Support == PeerSupport.Supported) {
+			if (info.Support != PeerSupport.Unknown) {
 				return;
 			}
 
