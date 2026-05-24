@@ -110,21 +110,21 @@ public static class EmojiLibrary {
 	/// Creates a <see cref="Sprite"/> cropped to this emoji's UV region.
 	/// The sprite can be assigned to an Image component directly.
 	/// </summary>
-	public static Sprite? CreateSprite(EmojiEntry entry) {
+	public static Sprite? CreateSprite(EmojiEntry entry, float sizeUnits = 1.0f) {
 		if (!_textures.TryGetValue(entry.Page, out Texture2D? tex)) return null;
 
 		Rect pixelRect = UVToPixelRect(entry.UV, tex.width, tex.height);
-		return Sprite.Create(tex, pixelRect, new Vector2(0.5f, 0.5f));
+		return Sprite.Create(tex, pixelRect, new Vector2(0.5f, 0.5f), pixelRect.width / sizeUnits);
 	}
 
-	public static Sprite? CreateSprite(string name) {
+	public static Sprite? CreateSprite(string name, float sizeUnits = 1.0f) {
 		EmojiEntry? entry = GetByName(name);
-		return entry != null ? CreateSprite(entry) : null;
+		return entry != null ? CreateSprite(entry, sizeUnits) : null;
 	}
 
-	public static Sprite? CreateSprite(int id) {
+	public static Sprite? CreateSprite(int id, float sizeUnits = 1.0f) {
 		EmojiEntry? entry = GetById(id);
-		return entry != null ? CreateSprite(entry) : null;
+		return entry != null ? CreateSprite(entry, sizeUnits) : null;
 	}
 
 	// -------------------------------------------------------------------------
