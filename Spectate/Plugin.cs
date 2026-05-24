@@ -12,6 +12,7 @@ using Spectate.Network;
 using Spectate.Network.Impl;
 using Spectate.Patches;
 using Spectate.Patches.Compat;
+using Spectate.Patches.Compat.Targets;
 using Spectate.UI;
 using Spectate.UI.Support;
 
@@ -21,6 +22,7 @@ namespace Spectate;
 [BepInDependency(GUID_PlayerSync, BepInDependency.DependencyFlags.HardDependency)]
 [BepInDependency(GUID_EOSExtEMP, BepInDependency.DependencyFlags.SoftDependency)]
 [BepInDependency(GUID_EEC, BepInDependency.DependencyFlags.SoftDependency)]
+[BepInDependency(GUID_EOSAmor, BepInDependency.DependencyFlags.SoftDependency)]
 public class Plugin : BasePlugin {
 	public const string NAME = "Spectate";
 	public const string GUID = "io.takina.gtfo." + NAME;
@@ -28,6 +30,7 @@ public class Plugin : BasePlugin {
 
 	public const string GUID_PlayerSync = "io.takina.gtfo.PlayerSync";
 	public const string GUID_EOSExtEMP = "Inas.EOSExt.EMP";
+	public const string GUID_EOSAmor = "Amor.ExcellentObjectiveSetup";
 	public const string GUID_EEC = "GTFO.EECustomization";
 
 	internal static string PluginFolder { get; private set; } = "";
@@ -56,12 +59,7 @@ public class Plugin : BasePlugin {
 
 		ApplyPatches(h);
 
-		CompatPatcher.PatchAll(h);
-
-		// CompatPatcher throws exception when patching EEC, great
-		if (IL2CPPChainloader.Instance.Plugins.ContainsKey(GUID_EEC)){
-			ApplyPatch<Patches.Compat.Targets.ECC_Compat>(h);
-		}
+		ApplyCompatPatches(h);
 
 		Logger.Info("Finished Patching");
 	}
@@ -77,6 +75,27 @@ public class Plugin : BasePlugin {
 
 		ApplyPatch<SpectateSupportDisplay>(h);
 		ApplyPatch<Net>(h);
+	}
+
+	private static void ApplyCompatPatches(Harmony h) {
+		if (ConfigMgr.DevEnables(eDevOpts.CompatPatchUsingReflection) ||
+		    ConfigMgr.CompatPatchUsingReflection) {
+			CompatPatcher.PatchAll(h);
+			return;
+		}
+
+		ApplyPatchIfLoaded<EOSExtEMP_Compat>(h, GUID_EOSExtEMP);
+		ApplyPatchIfLoaded<ECC_Compat>(h, GUID_EEC);
+		ApplyPatchIfLoaded<EOSAmor_Compat>(h, GUID_EOSAmor);
+	}
+
+	private static void ApplyPatchIfLoaded<T>(Harmony h, string guid) {
+		if (IL2CPPChainloader.Instance.Plugins.ContainsKey(guid)){
+			ApplyPatch<T>(h);
+			Logger.Info($"Applied compat patches for plugin with GUID {guid}.");
+			return;
+		}
+		Logger.Info($"Plugin with GUID {guid} not found, skipping compat patches for it.");
 	}
 
 	private static void ApplyPatch<T>(Harmony h) {

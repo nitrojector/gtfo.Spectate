@@ -1,13 +1,13 @@
 ﻿using HarmonyLib;
 
+using EOSEMPHandler = EOS.Modules.World.EMP.Handlers;
+
 namespace Spectate.Patches.Compat.Targets;
 
-using EECEMP = EEC.CustomAbilities.EMP.Handlers;
-
 [HarmonyPatch]
-public class ECC_Compat {
+public class EOSAmor_Compat {
 	[HarmonyPatch(
-		typeof(EECEMP.EMPPlayerHudHandler),
+		typeof(EOSEMPHandler.EMPPlayerHudHandler),
 		"DeviceOn"
 	)]
 	[HarmonyPrefix]
@@ -16,7 +16,7 @@ public class ECC_Compat {
 	}
 
 	[HarmonyPatch(
-		typeof(EECEMP.EMPPlayerHudHandler),
+		typeof(EOSEMPHandler.EMPPlayerHudHandler),
 		"FlickerDevice"
 	)]
 	[HarmonyPrefix]
@@ -25,11 +25,11 @@ public class ECC_Compat {
 	}
 }
 
-[CompatTarget(Plugin.GUID_EEC)]
-public class ECC_Compat__Reflection {
+[CompatTarget(Plugin.GUID_EOSAmor)]
+public class EOSAmor_Compat__Reflection {
 	[CompatPatch(
 		HarmonyPatchType.Prefix,
-		"EEC.CustomAbilities.EMP.Handlers.EMPPlayerHudHandler",
+		"EOS.Modules.World.EMP.Handlers.EMPPlayerHudHandler",
 		"DeviceOn"
 	)]
 	private static bool Prefix__EMPPlayerHudHandler_DeviceOn() {
@@ -38,7 +38,7 @@ public class ECC_Compat__Reflection {
 
 	[CompatPatch(
 		HarmonyPatchType.Prefix,
-		"EEC.CustomAbilities.EMP.Handlers.EMPPlayerHudHandler",
+		"EOS.Modules.World.EMP.Handlers.EMPPlayerHudHandler",
 		"FlickerDevice"
 	)]
 	private static bool Prefix__EMPPlayerHudHandler_FlickerDevice() {

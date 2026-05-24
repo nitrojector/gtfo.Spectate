@@ -95,10 +95,17 @@
         <Reference Remove="$(BepInEx)\interop\netstandard.dll"/>
     </ItemGroup>
     
+    <!-- Mod Dependencies -->
     <ItemGroup>
-        <Reference Include="$(BIEPluginFolder)\hirnukuono-EEC_H\*.dll" Private="false"/>
         <Reference Include="$(BIEPluginFolder)\AuriRex-Clonesoft_Json\*.dll" Private="false"/>
         <Reference Include="$(BIEPluginFolder)\food-PlayerSync\*.dll" Private="false"/>
+    </ItemGroup>
+    
+    <!-- Patching Dependencies -->
+    <ItemGroup>
+        <Reference Include="$(BIEPluginFolder)\hirnukuono-EEC_H\*.dll" Private="false"/>
+        <Reference Include="$(BIEPluginFolder)\Amorously-ExcellentObjectiveSetup\*.dll" Private="false"/>
+        <Reference Include="$(BIEPluginFolder)\Inas07-EOSExt_EMP\*.dll" Private="false"/>
     </ItemGroup>
 
     <ItemGroup>

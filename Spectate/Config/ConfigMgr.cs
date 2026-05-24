@@ -16,12 +16,15 @@ internal static class ConfigMgr {
 	private static readonly Dictionary<string, eDevOpts> DevOptsStr2Enum = new() {
 		["--any"] = eDevOpts.AllowSpectatingAnytime,
 		["--exp"] = eDevOpts.ExperimentalFeatures,
+		["--reflect-patch"] = eDevOpts.CompatPatchUsingReflection,
 	};
 
 	// DEBUG
 	private static readonly ConfigEntryExtended<bool> DebugConf;
+	private static readonly ConfigEntryExtended<bool> CompatPathUsingReflectionConf;
 	private static readonly ConfigEntryExtended<string> DevOptsConf;
 	public static bool Debug => DebugConf.Value;
+	public static bool CompatPatchUsingReflection => CompatPathUsingReflectionConf.Value;
 	private static eDevOpts _devOptsVal = 0;
 	public static bool DevEnables(eDevOpts opt) => _devOptsVal.HasFlag(opt);
 
@@ -337,6 +340,13 @@ internal static class ConfigMgr {
 			"Enable Debug Logs",
 			false,
 			"debug logging");
+
+		CompatPathUsingReflectionConf = Conf.Bind(
+			sectionHeader,
+			"Apply Compatibility Patches using Reflection",
+			false,
+			"Applies compatibility patches using direct reflection instead of Harmony. " +
+			"This has been observed to cause crashes with UE and FloLib.");
 
 		DevOptsConf = Conf.Bind(
 			sectionHeader,
