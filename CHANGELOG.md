@@ -1,7 +1,20 @@
+# v1.6.0
+
+- Add networking
+    - Peer version awareness and feature negotiation
+- Added an icon indicating Spectate support on other players in the lobby screen.
+- Clip size is now displayed for supporting players.
+- Stamina BPM is now representative of the spectating player for supporting clients.
+- Add dependency to [PlayerSync](https://thunderstore.io/c/gtfo/p/food/PlayerSync/) to allow for stamina and better ammo information/updates when spectating players.
+- Add dependency to [Clonesoft Json](https://thunderstore.io/c/gtfo/p/AuriRex/Clonesoft_Json/) for JSON support (with attributes).
+- Added compatibility with [ExcellentObjectiveSetup](https://thunderstore.io/c/gtfo/p/Amorously/ExcellentObjectiveSetup/).
+    - `PUI_Inventory` display state no longer interferes.
+- Added an option to apply compatibility patches with direct reflection instead of Harmony. Switched compatibility patches all to Harmony instead of reflection by default.
+
 # v1.5.13
 
 - Added compatibility with [EEC](https://thunderstore.io/c/gtfo/p/hirnukuono/EEC_H/)
-  - Inventory display state no longer interferes.
+    - Inventory display state no longer interferes.
 
 # v1.5.12
 
