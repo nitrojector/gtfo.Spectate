@@ -101,16 +101,33 @@ public class SpectateSupportDisplay : MonoBehaviour {
 	}
 
 	public void UpdateSupportInfo() {
-		string CHex(Color color) {
-			return ColorUtility.ToHtmlStringRGB(color);
-		}
-
 		if (SlotIndex >= SNet.Slots.PlayerSlots.Length || SlotIndex < 0) {
 			Logger.Warn($"Invalid slot index={SlotIndex} for support display, did we call Setup()?");
 			return;
 		}
 
 		SNet_Player player = SNet.Slots.PlayerSlots[SlotIndex].player;
+
+		var (tooltipInfo, spriteColor) = GetDisplayInfo(player);
+
+		_cmItem.TooltipInfo = tooltipInfo;
+		_iconSpriteRenderer.color = spriteColor;
+
+		// update existing tooltip
+		var tooltip = _lobbyBar.m_parentPage.m_tooltip;
+		if (tooltip != null && tooltip.transform.parent == _container) {
+			tooltip.SetTooltip(tooltipInfo);
+#if DEBUG
+			Logger.Debug(
+				$"Updated existing tooltip for player '{player?.GetName() ?? "null"}' with support={tooltipInfo.TooltipHeader}\n{new System.Diagnostics.StackTrace(true)}");
+#endif
+		}
+	}
+
+	private (TooltipInfo, Color) GetDisplayInfo(SNet_Player player) {
+		string CHex(Color color) {
+			return ColorUtility.ToHtmlStringRGB(color);
+		}
 
 		TooltipInfo ti = new TooltipInfo {
 			PositionType = TooltipPositionType.UnderElement,
@@ -125,48 +142,49 @@ public class SpectateSupportDisplay : MonoBehaviour {
 		if (player == null) {
 			ti.TooltipHeader += $" <#{CHex(ColorNa)}>(N/A)</color>";
 			ti.TooltipText = "No player in slot";
-			_cmItem.TooltipInfo = ti;
-			_iconSpriteRenderer.color = ColorNa;
-			return;
+			return (ti, ColorNa);
 		}
 
 		if (player.IsBot) {
 			ti.TooltipHeader += $" <#{CHex(ColorNa)}>(Bot)</color>";
 			ti.TooltipText = "Beep boop, I'm a bot!";
-			_cmItem.TooltipInfo = ti;
-			_iconSpriteRenderer.color = ColorNa;
-			return;
+			return (ti, ColorNa);
 		}
 
 		if (!PeerInfoManager.TryGetPeerInfo(player, out var info)) {
-			Logger.Error("Failed to get PeerInfo for player in support display update, how do they not have PeerInfo??");
-			return;
+			Logger.Error(
+				"Failed to get PeerInfo for player in support display update, how do they not have PeerInfo??");
+			ti.TooltipHeader += $" <#{CHex(ColorUnknown)}>(Unknown)</color>";
+			ti.TooltipText = "<color=red>[ERROR] player in hub but has no PeerInfo</color>";
+			return (ti, ColorUnknown);
 		}
 
-		{
-			ti.TooltipHeader = "Spectate" + info.Support switch {
-				PeerInfoManager.PeerSupport.Supported => $" <#{CHex(ColorSupported)}>(Supported)</color>",
-				PeerInfoManager.PeerSupport.NotSupported => $" <#{CHex(ColorUnsupported)}>(Unsupported)</color>",
-				PeerInfoManager.PeerSupport.Unknown => $" <#{CHex(ColorUnknown)}>(Unknown)</color>",
-				_ => ""
-			};
-			ti.TooltipText = info.Support switch {
-				PeerInfoManager.PeerSupport.Supported => $"<#63DBD5>v{info.PlugVersion}</color>\n" +
-				                                         $"Advanced features available with this player.",
-				PeerInfoManager.PeerSupport.NotSupported => "Some features are limited.",
-				PeerInfoManager.PeerSupport.Unknown => "Waiting for player info...\n" +
-				                                       $"<#{CHex(ColorUnsupported)}>Requests sent ({info.RequestCount} of {PeerInfoManager.MaxRequestCount})</color>",
-				_ => "N/A"
-			};
-			_cmItem.TooltipInfo = ti;
+		ti.TooltipHeader = "Spectate" + info.Support switch {
+			PeerInfoManager.PeerSupport.Supported => $" <#{CHex(ColorSupported)}>(Supported)</color>",
+			PeerInfoManager.PeerSupport.NotSupported => $" <#{CHex(ColorUnsupported)}>(Unsupported)</color>",
+			PeerInfoManager.PeerSupport.Unknown => $" <#{CHex(ColorUnknown)}>(Unknown)</color>",
+			_ => ""
+		};
+		ti.TooltipText = info.Support switch {
+			PeerInfoManager.PeerSupport.Supported => $"<#63DBD5>v{info.PlugVersion}</color>\n" +
+			                                         (player.IsLocal
+				                                         ? "This is you!"
+				                                         : "Complete features available with this player."),
+			PeerInfoManager.PeerSupport.NotSupported => "Some features are limited.",
+			PeerInfoManager.PeerSupport.Unknown => "Waiting for player info...\n" +
+			                                       $"<#{CHex(ColorUnsupported)}>Attempts ({info.RequestCount} of {PeerInfoManager.MaxRequestCount})</color>",
+			_ => "N/A"
+		};
+		_cmItem.TooltipInfo = ti;
 
-			_iconSpriteRenderer.color = info.Support switch {
-				PeerInfoManager.PeerSupport.Supported => ColorSupported,
-				PeerInfoManager.PeerSupport.NotSupported => ColorUnsupported,
-				PeerInfoManager.PeerSupport.Unknown => ColorUnknown,
-				_ => ColorNa
-			};
-		}
+		var spriteColor = info.Support switch {
+			PeerInfoManager.PeerSupport.Supported => ColorSupported,
+			PeerInfoManager.PeerSupport.NotSupported => ColorUnsupported,
+			PeerInfoManager.PeerSupport.Unknown => ColorUnknown,
+			_ => ColorNa
+		};
+
+		return (ti, spriteColor);
 	}
 
 	[HarmonyPatch(
@@ -176,21 +194,5 @@ public class SpectateSupportDisplay : MonoBehaviour {
 	[HarmonyPostfix]
 	private static void OnLobbyBarSetupFromPage(CM_PlayerLobbyBar __instance) {
 		__instance.gameObject.AddComponent<SpectateSupportDisplay>();
-	}
-
-	[HarmonyPatch(
-		typeof(CM_PlayerLobbyBar),
-		nameof(CM_PlayerLobbyBar.UpdatePlayer)
-	)]
-	[HarmonyPostfix]
-	private static void OnLobbyBarPlayerUpdate(CM_PlayerLobbyBar __instance) {
-		SpectateSupportDisplay? display = __instance.GetComponent<SpectateSupportDisplay>();
-
-		if (display == null) {
-			Logger.Warn("CM_PlayerLobbyBar doesn't have a SpectateSupportDisplay component? How did we not set it up?");
-			return;
-		}
-
-		display.UpdateSupportInfo();
 	}
 }

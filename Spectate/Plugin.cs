@@ -73,6 +73,8 @@ public class Plugin : BasePlugin {
 		ApplyPatch<CameraPatch>(h);
 		ApplyPatch<AnimationPatch>(h);
 		ApplyPatch<PouncerPatch>(h);
+		ApplyPatch<TooltipFixPatch>(h);
+
 		ApplyPatch<SpectateSupportDisplay>(h);
 		ApplyPatch<Net>(h);
 	}

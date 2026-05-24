@@ -62,7 +62,6 @@ public class EventPatch {
 		}
 	}
 
-
 	[HarmonyPatch(
 		typeof(CM_PageLoadout),
 		nameof(CM_PageLoadout.UpdatePlayerList)
