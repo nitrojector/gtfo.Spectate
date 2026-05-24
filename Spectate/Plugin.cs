@@ -32,6 +32,7 @@ public class Plugin : BasePlugin {
 	public const string GUID_EOSExtEMP = "Inas.EOSExt.EMP";
 	public const string GUID_EOSAmor = "Amor.ExcellentObjectiveSetup";
 	public const string GUID_EEC = "GTFO.EECustomization";
+	public const string ASM_ClonesoftJson = "Clonesoft.Json";
 
 	internal static string PluginFolder { get; private set; } = "";
 
@@ -47,6 +48,18 @@ public class Plugin : BasePlugin {
 
 		Harmony h = new Harmony(GUID);
 		ConfigMgr.Process();
+
+		{
+			try {
+				_ = Assembly.Load(ASM_ClonesoftJson);
+				Logger.Info($"ASM({ASM_ClonesoftJson}) loaded.");
+			} catch (Exception ex) {
+				Logger.Error($"Exception while loading assembly ({ASM_ClonesoftJson}): {ex}");
+				Logger.Fatal($"Failed to load assembly ({ASM_ClonesoftJson}). " +
+				             $"This is required for Spectate to function. Aborting...");
+				return;
+			}
+		}
 
 		PluginFolder = Path.GetDirectoryName(IL2CPPChainloader.Instance.Plugins[GUID].Location) ?? "";
 
