@@ -5,6 +5,7 @@ using Player;
 using SNetwork;
 using Spectate.Config;
 using Spectate.Interop;
+using Spectate.Patches;
 using TMPro;
 using UnityEngine;
 
@@ -518,8 +519,10 @@ public class SpectateUI : MonoBehaviour {
 		pstatus?.UpdateInfection(target.Infection, target.Agent.InfectionTargetHealthRel);
 		pstatus?.m_boosterIconActiveDisplay.UpdateBoosterIconsActiveState(target.SAgent);
 
+		StaminaPatch.RevertStaminaBpmDisplay(pstatus);
+
 		if (_lastRenderedTarget?.Pointer != target.Agent.Pointer) {
-			GuiManager.PlayerLayer?.m_playerStatus.ResetDamageAnimation();
+			pstatus?.ResetDamageAnimation();
 		}
 
 		InPlayerStatusUpdate = false;

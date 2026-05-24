@@ -85,6 +85,7 @@ public class Plugin : BasePlugin {
 		ApplyPatch<AnimationPatch>(h);
 		ApplyPatch<PouncerPatch>(h);
 		ApplyPatch<TooltipFixPatch>(h);
+		ApplyPatch<StaminaPatch>(h);
 
 		ApplyPatch<SpectateSupportDisplay>(h);
 		ApplyPatch<Net>(h);
