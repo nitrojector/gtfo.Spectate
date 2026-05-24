@@ -33,7 +33,7 @@ public class PeerInfoManager : MonoBehaviour {
 	public const byte KeyRequest = 0x69;
 	public const byte KeyResponse = 0x67;
 
-	public const int MaxRequestCount = 7;
+	public const int MaxRequestCount = 5;
 	private const float PeerInfoUpdateInterval = 2.0f;
 
 	public static PeerInfoManager? Instance { get; private set; }
