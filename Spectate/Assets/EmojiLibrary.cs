@@ -9,7 +9,7 @@ public static class EmojiLibrary {
 	// Paths
 	// -------------------------------------------------------------------------
 
-	private const string BundlePath = "assets/emojis";
+	private const string BundlePath = "emojis";
 	private const string ManifestPath = "Assets/Emojis/manifest.json"; // asset path inside bundle
 	private const string PagePathFmt = "Assets/Emojis/atlas_{0:000}"; // {0} = page index
 

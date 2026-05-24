@@ -1,4 +1,5 @@
-﻿using Il2CppInterop.Runtime.InteropTypes;
+﻿using BepInEx;
+using Il2CppInterop.Runtime.InteropTypes;
 using UnityEngine;
 
 namespace Spectate.Assets;
@@ -10,7 +11,7 @@ public static class AssetBundleLoader {
 		if (Cache.TryGetValue(bundlePath, out AssetBundle? cached))
 			return cached;
 
-		string realPath = Path.Combine(Plugin.PluginFolder, bundlePath);
+		string realPath = Path.Combine(Paths.BepInExRootPath, "Assets", Plugin.NAME, bundlePath);
 
 		Logger.Debug($"Loading bundle at '{bundlePath}' ==resolved=> '{realPath}'");
 

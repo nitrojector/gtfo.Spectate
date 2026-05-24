@@ -18,9 +18,10 @@
         <BepInEx Condition="'$(CI)' != 'true' AND '$(IsMacOS)' != 'true'">$(AppData)/com.kesomannen.gale/gtfo/profiles/$(Profile)/BepInEx</BepInEx>
         <BepInEx Condition="'$(CI)' != 'true' AND '$(IsMacOS)' == 'true'">/opt/GTFOBepInDep</BepInEx>
         
-        <PluginFolder>$(BepInEx)/plugins</PluginFolder>
-        <AssetsFolder>$(SolutionDir)/assets</AssetsFolder>
-        <PlugOutput>$(PluginFolder)/$(ModGroup)-$(ModName)</PlugOutput>
+        <BIEPluginFolder>$(BepInEx)/plugins</BIEPluginFolder>
+        <PlugOutput>$(BIEPluginFolder)/$(ModGroup)-$(ModName)</PlugOutput>
+        <BIEAssetsFolder>$(BepInEx)/Assets/$(ModName)</BIEAssetsFolder>
+        <ProjectAssetsFolder>$(SolutionDir)/Assets/$(ModName)</ProjectAssetsFolder>
         
         <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     </PropertyGroup>
@@ -41,15 +42,15 @@
     </Target>
     
     <Target Name="AssetBundleCopy" AfterTargets="Build">
-        <Copy SourceFiles="@(UnityAssetBundles)" DestinationFolder="$(AssetsFolder)"/>
+        <Copy SourceFiles="@(UnityAssetBundles)" DestinationFolder="$(ProjectAssetsFolder)"/>
     </Target>
     
     <Target Name="PostBuildCopy" AfterTargets="AssetBundleCopy">
         <Copy Condition="'$(CI)' != 'true' AND '$(IsMacOS)' != 'true'" SourceFiles="$(OutputPath)/$(AssemblyName).dll" DestinationFolder="$(PlugOutput)"/>
         <ItemGroup>
-            <AssetFiles Include="$(SolutionDir)/assets/**/*"/>
+            <AssetFiles Include="$(ProjectAssetsFolder)/**/*"/>
         </ItemGroup>
-        <Copy Condition="'$(CI)' != 'true' AND '$(IsMacOS)' != 'true'" SourceFiles="@(AssetFiles)" DestinationFolder="$(PlugOutput)/assets/%(RecursiveDir)"/>
+        <Copy Condition="'$(CI)' != 'true' AND '$(IsMacOS)' != 'true'" SourceFiles="@(AssetFiles)" DestinationFolder="$(BIEAssetsFolder)/%(RecursiveDir)"/>
     </Target>
 
     <Target Name="Package" AfterTargets="AssetBundleCopy">
@@ -58,15 +59,16 @@
             <ZipFile>$(SolutionDir)$(SolutionName).zip</ZipFile>
         </PropertyGroup>
         <ItemGroup>
-            <AssetFiles Include="$(SolutionDir)/assets/**/*"/>
+            <AssetFiles Include="$(ProjectAssetsFolder)/**/*"/>
         </ItemGroup>
 
         <Exec WorkingDirectory="$(SolutionDir)" Command="python &quot;$(SolutionDir)/mkmanifest.py&quot;"/>
-        
+
+        <RemoveDir Directories="$(PkgFolder)"/>
         <MakeDir Directories="$(PkgFolder)"/>
         <Copy SourceFiles="$(OutputPath)/$(AssemblyName).dll" DestinationFolder="$(PkgFolder)"/>
         <Copy SourceFiles="$(SolutionDir)/.assets/icon.png" DestinationFolder="$(PkgFolder)"/>
-        <Copy SourceFiles="@(AssetFiles)" DestinationFolder="$(PkgFolder)/assets/%(RecursiveDir)"/>
+        <Copy SourceFiles="@(AssetFiles)" DestinationFolder="$(PkgFolder)/Assets/$(ModName)/%(RecursiveDir)"/>
         <Copy SourceFiles="$(SolutionDir)/README.md" DestinationFolder="$(PkgFolder)"/>
         <Copy SourceFiles="$(SolutionDir)/CHANGELOG.md" DestinationFolder="$(PkgFolder)"/>
         <Copy SourceFiles="$(SolutionDir)/manifest.json" DestinationFolder="$(PkgFolder)"/>
@@ -94,9 +96,9 @@
     </ItemGroup>
     
     <ItemGroup>
-        <Reference Include="$(PluginFolder)\hirnukuono-EEC_H\*.dll" Private="false"/>
-        <Reference Include="$(PluginFolder)\AuriRex-Clonesoft_Json\*.dll" Private="false"/>
-        <Reference Include="$(PluginFolder)\food-PlayerSync\*.dll" Private="false"/>
+        <Reference Include="$(BIEPluginFolder)\hirnukuono-EEC_H\*.dll" Private="false"/>
+        <Reference Include="$(BIEPluginFolder)\AuriRex-Clonesoft_Json\*.dll" Private="false"/>
+        <Reference Include="$(BIEPluginFolder)\food-PlayerSync\*.dll" Private="false"/>
     </ItemGroup>
 
     <ItemGroup>
