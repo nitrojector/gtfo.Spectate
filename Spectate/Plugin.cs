@@ -13,6 +13,7 @@ using Spectate.Network.Impl;
 using Spectate.Patches;
 using Spectate.Patches.Compat;
 using Spectate.UI;
+using Spectate.UI.Support;
 
 namespace Spectate;
 
@@ -72,6 +73,7 @@ public class Plugin : BasePlugin {
 		ApplyPatch<CameraPatch>(h);
 		ApplyPatch<AnimationPatch>(h);
 		ApplyPatch<PouncerPatch>(h);
+		ApplyPatch<SpectateSupportDisplay>(h);
 		ApplyPatch<Net>(h);
 	}
 
@@ -89,7 +91,8 @@ public class Plugin : BasePlugin {
 	}
 
 	private void Initialize() {
-		Logger.Debug("Loading Emojis...");
+		Logger.Debug("Loading Assets...");
+		SharedAssetLibrary.Load();
 		EmojiLibrary.Load();
 
 		Logger.Debug("Initializing Spectate GameObject's...");

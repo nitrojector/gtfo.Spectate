@@ -18,18 +18,9 @@ public class SpectatorCountUI : MonoBehaviour {
 	/// </summary>
 	private const float SpectateTTL = 1.0f;
 
-	private Texture2D? _eyeIconTexture = null;
-
 	private readonly Dictionary<SNet_Player, float> _timeSinceLastActiveSpectate = new();
 
-
 	private void Awake() {
-		_eyeIconTexture = AssetBundleLoader.LoadAsset<Texture2D>("assets/spectate", "Assets/Spectate/eye_icon.png");
-
-		if (_eyeIconTexture != null) {
-			Logger.Debug("Successfully loaded eye icon texture for spectator count UI.");
-		}
-
 		Net.RegisterHandler(NetImpl.PacketIdxSendSpectatorTargetState, HandlePacket);
 	}
 

@@ -1,4 +1,5 @@
-﻿using SNetwork;
+﻿using System.Diagnostics.CodeAnalysis;
+using SNetwork;
 using Spectate.Interop;
 using UnityEngine;
 
@@ -31,12 +32,16 @@ public class PeerInfoManager : MonoBehaviour {
 	public const byte PacketId = 0xFF;
 	public const byte KeyRequest = 0x69;
 	public const byte KeyResponse = 0x67;
+
 	public const int MaxRequestCount = 7;
+	private const float PeerInfoUpdateInterval = 2.0f;
 
 	public static PeerInfoManager? Instance { get; private set; }
+
+	public static event Action? OnPeerInfoUpdated;
+
 	private Dictionary<ulong, PeerInfo> PeerInfos { get; } = new();
 
-	private const float PeerInfoUpdateInterval = 4.0f;
 	private float _timeSinceLastUpdate = 0.0f;
 
 	private void Awake() {
@@ -71,10 +76,12 @@ public class PeerInfoManager : MonoBehaviour {
 
 	/// <summary>
 	/// Returns whether a given player is supported.
+	/// Always returns true for local player.
 	/// </summary>
 	/// <param name="player">player to query</param>
 	/// <returns>true if player is supported</returns>
 	public static bool Supported(SNet_Player player) {
+		if (player.IsLocal) return true;
 		if (Instance == null) return false;
 		return Instance.PeerInfos.TryGetValue(player.Lookup, out var info) && info.Support == PeerSupport.Supported;
 	}
@@ -82,24 +89,60 @@ public class PeerInfoManager : MonoBehaviour {
 	/// <summary>
 	/// Returns whether a support for given player is unknown, meaning we have not
 	/// received a response but also have not reached max request count yet.
+	/// Always returns false for local player.
 	/// </summary>
 	/// <param name="player">player to query</param>
 	/// <returns>true if support is unknown</returns>
 	public static bool SupportUnknown(SNet_Player player) {
+		if (player.IsLocal) return false;
 		if (Instance == null) return false;
 		return Instance.PeerInfos.TryGetValue(player.Lookup, out var info) && info.Support == PeerSupport.Unknown;
 	}
 
 	/// <summary>
 	/// Returns whether a given player is definitely not supported.
+	/// Always returns false for local player.
 	/// <br/>
 	/// Criteria for this is no response after <see cref="MaxRequestCount"/> is reached.
 	/// </summary>
 	/// <param name="player">player to query</param>
 	/// <returns>true if player is definitely not supported</returns>
 	public static bool Unsupported(SNet_Player player) {
+		if (player.IsLocal) return false;
 		if (Instance == null) return false;
 		return Instance.PeerInfos.TryGetValue(player.Lookup, out var info) && info.Support == PeerSupport.NotSupported;
+	}
+
+	/// <summary>
+	/// Tries to get the peer info for a given player.
+	/// Local player will always return supported with current plugin version.
+	/// Returns false if player is null / we have no info for them.
+	/// For simply checking support status, consider using <see cref="Supported"/> instead.
+	/// </summary>
+	/// <param name="player">player to query</param>
+	/// <param name="info">peer information</param>
+	/// <returns>true if found</returns>
+	public static bool TryGetPeerInfo(SNet_Player player, [NotNullWhen(true)] out PeerInfo? info) {
+		if (player == null) {
+			info = null;
+			return false;
+		}
+
+		if (player.IsLocal) {
+			info = new PeerInfo {
+				Support = PeerSupport.Supported,
+				PlugVersion = Plugin.PlugVersion,
+				Player = player
+			};
+			return true;
+		}
+
+		if (Instance == null) {
+			info = null;
+			return false;
+		}
+
+		return Instance.PeerInfos.TryGetValue(player.Lookup, out info);
 	}
 
 	/// <summary>
@@ -113,6 +156,7 @@ public class PeerInfoManager : MonoBehaviour {
 			if (!sessionHub.IsPlayerInHub(PeerInfos[id].Player)) {
 				Logger.Debug($"Player '{PeerInfos[id].Player?.NickName ?? "???"}' ({id}) is not in lobby anymore, removing their info.");
 				PeerInfos.Remove(id);
+				OnPeerInfoUpdated?.Invoke();
 			}
 		}
 
@@ -137,6 +181,7 @@ public class PeerInfoManager : MonoBehaviour {
 
 			if (info.MaxRequestsReached) {
 				info.Support = PeerSupport.NotSupported;
+				OnPeerInfoUpdated?.Invoke();
 				Logger.Info($"Player '{player.GetName()}' ({player.Lookup}) reached max request count without response, marking as not supported.");
 				return;
 			}
@@ -160,6 +205,7 @@ public class PeerInfoManager : MonoBehaviour {
 		SendPeerInfoRequest(player);
 		info.IncrementRequestCount();
 		info.Player ??= player;
+		OnPeerInfoUpdated?.Invoke();
 
 		Logger.Debug($"Sent request for info to player '{player.GetName()}' ({player.Lookup}), RequestCount({info.RequestCount} of {MaxRequestCount})");
 	}
@@ -225,6 +271,8 @@ public class PeerInfoManager : MonoBehaviour {
 				info.Support = PeerSupport.Supported;
 				info.PlugVersion = new PlugVersion(data, 1);
 				info.Player = sender;
+
+				OnPeerInfoUpdated?.Invoke();
 
 				Logger.Info($"Received peer info response from player '{sender.GetName()}' ({sender.Lookup}) version={info.PlugVersion}");
 				break;

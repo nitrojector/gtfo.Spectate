@@ -10,10 +10,12 @@ public static class Events {
 
 	// === Lobby ===
 	public static event Action<SNet_Player>? OnPlayerJoinLobby;
+	public static event Action? OnPageLoadoutPlayerListUpdate;
 
 	internal static void RaiseSessionEnd() => OnSessionEnd?.Invoke();
 	internal static void RaiseSessionStart() => OnSessionStart?.Invoke();
 	internal static void RaiseAnyPlayerDeath() => OnAnyPlayerDeath?.Invoke();
 	internal static void RaiseCheckpointReload() => OnCheckpointReload?.Invoke();
 	internal static void RaisePlayerJoinLobby(SNet_Player player) => OnPlayerJoinLobby?.Invoke(player);
+	internal static void RaiseLoadoutPlayerListUpdate() => OnPageLoadoutPlayerListUpdate?.Invoke();
 }

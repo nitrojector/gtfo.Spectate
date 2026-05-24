@@ -1,4 +1,5 @@
-﻿using HarmonyLib;
+﻿using CellMenu;
+using HarmonyLib;
 using SNetwork;
 
 namespace Spectate.Patches;
@@ -57,10 +58,17 @@ public class EventPatch {
 	[HarmonyPrefix]
 	private static void CheckpointStateChange(pCheckpointState oldState, pCheckpointState newState) {
 		if (newState.lastInteraction == eCheckpointInteractionType.ReloadCheckpoint) {
-#if DEBUG
-			Logger.Debug("[EVENT] OnCheckpointReload");
-#endif
 			Events.RaiseCheckpointReload();
 		}
+	}
+
+
+	[HarmonyPatch(
+		typeof(CM_PageLoadout),
+		nameof(CM_PageLoadout.UpdatePlayerList)
+	)]
+	[HarmonyPostfix]
+	private static void CM_PageLoadout_UpdatePlayerList() {
+		Events.RaiseLoadoutPlayerListUpdate();
 	}
 }
