@@ -78,6 +78,8 @@ public class SpectateSupportDisplay : MonoBehaviour {
 		{
 			_cmItem = _containerGo.AddComponent<CM_Item>();
 
+			_cmItem.OnBtnPressCallback = new Action<int>(_ => { });
+
 			_boxCollider = _containerGo.AddComponent<BoxCollider2D>();
 			_boxCollider.size = width.ToVector2();
 
