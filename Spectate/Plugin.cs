@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using System.Runtime.CompilerServices;
 using BepInEx;
 using BepInEx.Unity.IL2CPP;
 using Globals;
@@ -41,7 +42,6 @@ public class Plugin : BasePlugin {
 	public event Action? OnManagersSetup;
 	public static GameObject? PluginObject;
 
-
 	public override void Load() {
 		Logger.Setup();
 		Logger.Info($"{NAME} [{GUID} @ {VERSION}]");
@@ -77,6 +77,7 @@ public class Plugin : BasePlugin {
 		Logger.Info("Finished Patching");
 	}
 
+	[MethodImpl(MethodImplOptions.NoOptimization | MethodImplOptions.NoInlining)]
 	private static void ApplyPatches(Harmony h)
 	{
 		ApplyPatch<EventPatch>(h);
@@ -91,9 +92,10 @@ public class Plugin : BasePlugin {
 		ApplyPatch<Net>(h);
 	}
 
+	[MethodImpl(MethodImplOptions.NoOptimization | MethodImplOptions.NoInlining)]
 	private static void ApplyCompatPatches(Harmony h) {
 		if (ConfigMgr.DevEnables(eDevOpts.CompatPatchUsingReflection) ||
-		    ConfigMgr.CompatPatchUsingReflection) {
+		    ConfigMgr.CompatPatchUseReflection) {
 			CompatPatcher.PatchAll(h);
 			return;
 		}
@@ -103,6 +105,7 @@ public class Plugin : BasePlugin {
 		ApplyPatchIfLoaded<EOSAmor_Compat>(h, GUID_EOSAmor);
 	}
 
+	[MethodImpl(MethodImplOptions.NoOptimization | MethodImplOptions.NoInlining)]
 	private static void ApplyPatchIfLoaded<T>(Harmony h, string guid) {
 		if (IL2CPPChainloader.Instance.Plugins.ContainsKey(guid)){
 			ApplyPatch<T>(h);
@@ -112,17 +115,33 @@ public class Plugin : BasePlugin {
 		Logger.Info($"Plugin with GUID {guid} not found, skipping compat patches for it.");
 	}
 
+	[MethodImpl(MethodImplOptions.NoOptimization | MethodImplOptions.NoInlining)]
 	private static void ApplyPatch<T>(Harmony h) {
 		h.PatchAll(typeof(T));
 	}
 
+	[MethodImpl(MethodImplOptions.NoOptimization | MethodImplOptions.NoInlining)]
 	private static void RegisterIl2CppTypes()
 	{
-		foreach (Type type in Assembly.GetExecutingAssembly().GetTypes())
-		{
-			if (type.GetCustomAttribute<RegisterIl2CppAttribute>() is not null)
-				ClassInjector.RegisterTypeInIl2Cpp(type);
+		if (ConfigMgr.Il2CppTypeDiscoveryForRegUseReflection) {
+			foreach (Type type in Assembly.GetExecutingAssembly().GetTypes())
+			{
+				if (type.GetCustomAttribute<RegisterIl2CppAttribute>() is not null)
+					ClassInjector.RegisterTypeInIl2Cpp(type);
+			}
+
+			return;
 		}
+
+		ClassInjector.RegisterTypeInIl2Cpp<PeerInfoManager>();
+		ClassInjector.RegisterTypeInIl2Cpp<SpectateSupportDisplay>();
+		ClassInjector.RegisterTypeInIl2Cpp<SpectateUI>();
+		ClassInjector.RegisterTypeInIl2Cpp<SpectatorCountUI>();
+		ClassInjector.RegisterTypeInIl2Cpp<Wm>();
+		ClassInjector.RegisterTypeInIl2Cpp<PouncerTracker>();
+		ClassInjector.RegisterTypeInIl2Cpp<PouncerTrackingDart>();
+		ClassInjector.RegisterTypeInIl2Cpp<SpectateCam>();
+		ClassInjector.RegisterTypeInIl2Cpp<SpectateConfigUpdater>();
 	}
 
 	private void Initialize() {

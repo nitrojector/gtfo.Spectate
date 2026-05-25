@@ -21,10 +21,12 @@ internal static class ConfigMgr {
 
 	// DEBUG
 	private static readonly ConfigEntryExtended<bool> DebugConf;
-	private static readonly ConfigEntryExtended<bool> CompatPathUsingReflectionConf;
+	private static readonly ConfigEntryExtended<bool> CompatPathUseReflectionConf;
+	private static readonly ConfigEntryExtended<bool> Il2CppTypeDiscoveryForRegUseReflectionConf;
 	private static readonly ConfigEntryExtended<string> DevOptsConf;
 	public static bool Debug => DebugConf.Value;
-	public static bool CompatPatchUsingReflection => CompatPathUsingReflectionConf.Value;
+	public static bool CompatPatchUseReflection => CompatPathUseReflectionConf.Value;
+	public static bool Il2CppTypeDiscoveryForRegUseReflection => Il2CppTypeDiscoveryForRegUseReflectionConf.Value;
 	private static eDevOpts _devOptsVal = 0;
 	public static bool DevEnables(eDevOpts opt) => _devOptsVal.HasFlag(opt);
 
@@ -341,9 +343,15 @@ internal static class ConfigMgr {
 			false,
 			"debug logging");
 
-		CompatPathUsingReflectionConf = Conf.Bind(
+		Il2CppTypeDiscoveryForRegUseReflectionConf = Conf.Bind(
 			sectionHeader,
-			"Apply Compatibility Patches using Reflection",
+			"Use Reflection for Type Discovery",
+			true,
+			"Whether to use reflection for type discovery (currently for registering type in il2cpp specifically)");
+
+		CompatPathUseReflectionConf = Conf.Bind(
+			sectionHeader,
+			"Apply Compatibility Patches Using Reflection",
 			false,
 			"Applies compatibility patches using direct reflection instead of Harmony. " +
 			"This has been observed to cause crashes with UE and FloLib.");
