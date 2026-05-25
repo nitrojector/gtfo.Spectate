@@ -1,8 +1,7 @@
 ﻿using System.Runtime.CompilerServices;
-using BoosterImplants;
 using CellMenu;
 using Player;
-using SNetwork;
+using PlayerSync.Sync.Ammo;
 using Spectate.Config;
 using Spectate.Interop;
 using Spectate.Patches;
@@ -557,6 +556,8 @@ public class SpectateUI : MonoBehaviour {
 
 		var activeSlot = target.ActiveItemSlot ?? InventorySlot.None;
 
+		bool reserveHasClip = AmmoSync.ReserveIncludesClip(target.SAgent);
+
 		_spectateInv!.SetHeader(target.Agent.InteractionName, Color.white);
 
 		foreach (var slot in _spectateInv.m_slotGUIOrder) {
@@ -575,6 +576,10 @@ public class SpectateUI : MonoBehaviour {
 			int clip = (int)tAmmoStorage.GetClipAmmoFromSlot(slot);
 			int inPack = ammo.BulletsInPack;
 			float inPackRel = (inPack + clip) * ammo.BulletsToRelConv;
+
+			if (reserveHasClip) {
+				inPack -= clip;
+			}
 
 			guiSlot.SetArchetypeName(archeName);
 			guiSlot.SetDetailedName(modelName);
