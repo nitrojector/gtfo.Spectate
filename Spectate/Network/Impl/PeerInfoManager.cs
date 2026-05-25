@@ -77,11 +77,13 @@ public class PeerInfoManager : MonoBehaviour {
 	/// <summary>
 	/// Returns whether a given player is supported.
 	/// Always returns true for local player.
+	/// Always returns false for bots.
 	/// </summary>
 	/// <param name="player">player to query</param>
 	/// <returns>true if player is supported</returns>
 	public static bool Supported(SNet_Player player) {
 		if (player.IsLocal) return true;
+		if (player.IsBot) return false;
 		if (Instance == null) return false;
 		return Instance.PeerInfos.TryGetValue(player.Lookup, out var info) && info.Support == PeerSupport.Supported;
 	}
@@ -90,27 +92,14 @@ public class PeerInfoManager : MonoBehaviour {
 	/// Returns whether a support for given player is unknown, meaning we have not
 	/// received a response but also have not reached max request count yet.
 	/// Always returns false for local player.
+	/// Always returns false for bots.
 	/// </summary>
 	/// <param name="player">player to query</param>
 	/// <returns>true if support is unknown</returns>
 	public static bool SupportUnknown(SNet_Player player) {
-		if (player.IsLocal) return false;
+		if (player.IsLocal || player.IsBot) return false;
 		if (Instance == null) return false;
 		return Instance.PeerInfos.TryGetValue(player.Lookup, out var info) && info.Support == PeerSupport.Unknown;
-	}
-
-	/// <summary>
-	/// Returns whether a given player is definitely not supported.
-	/// Always returns false for local player.
-	/// <br/>
-	/// Criteria for this is no response after <see cref="MaxRequestCount"/> is reached.
-	/// </summary>
-	/// <param name="player">player to query</param>
-	/// <returns>true if player is definitely not supported</returns>
-	public static bool Unsupported(SNet_Player player) {
-		if (player.IsLocal) return false;
-		if (Instance == null) return false;
-		return Instance.PeerInfos.TryGetValue(player.Lookup, out var info) && info.Support == PeerSupport.NotSupported;
 	}
 
 	/// <summary>
