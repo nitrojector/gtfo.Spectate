@@ -1,3 +1,7 @@
+# v1.6.3
+
+- feat: align ammo display to be correct wrt v1.1.1 of PlayerSync where reserve ammo includes clip ammo for non-local players.
+
 # v1.6.2
 
 - fix: some issues caused by reflection with UE
