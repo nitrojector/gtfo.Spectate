@@ -2,6 +2,7 @@
 using System.Runtime.CompilerServices;
 using BepInEx;
 using BepInEx.Unity.IL2CPP;
+using Clonesoft.Json.Linq;
 using Globals;
 using HarmonyLib;
 using Il2CppInterop.Runtime.Injection;
@@ -46,20 +47,11 @@ public class Plugin : BasePlugin {
 		Logger.Setup();
 		Logger.Info($"{NAME} [{GUID} @ {VERSION}]");
 
+		// throw early if JSON library not present (not enforceable via BepInDependency)
+		_ = JObject.Parse("{}");
+
 		Harmony h = new Harmony(GUID);
 		ConfigMgr.Process();
-
-		{
-			try {
-				_ = Assembly.Load(ASM_ClonesoftJson);
-				Logger.Info($"ASM({ASM_ClonesoftJson}) loaded.");
-			} catch (Exception ex) {
-				Logger.Error($"Exception while loading assembly ({ASM_ClonesoftJson}): {ex}");
-				Logger.Fatal($"Failed to load assembly ({ASM_ClonesoftJson}). " +
-				             $"This is required for Spectate to function. Aborting...");
-				return;
-			}
-		}
 
 		PluginFolder = Path.GetDirectoryName(IL2CPPChainloader.Instance.Plugins[GUID].Location) ?? "";
 
