@@ -26,7 +26,7 @@ namespace Spectate;
 public class Plugin : BasePlugin {
 	public const string NAME = "Spectate";
 	public const string GUID = "io.takina.gtfo." + NAME;
-	public const string VERSION = "1.6.0";
+	public const string VERSION = "1.6.1";
 
 	public const string GUID_PlayerSync = "io.takina.gtfo.PlayerSync";
 	public const string GUID_EOSExtEMP = "Inas.EOSExt.EMP";

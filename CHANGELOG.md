@@ -1,3 +1,7 @@
+# v1.6.1
+
+- Re-release v1.6.0 with release build.
+
 # v1.6.0
 
 - Add networking

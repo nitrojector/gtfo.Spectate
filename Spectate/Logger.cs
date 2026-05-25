@@ -24,7 +24,7 @@ internal static class Logger {
 		_mLogSource.LogInfo(" [DEBUG] " + Format(msg));
 #else
 		if (ConfigMgr.Debug) {
-			_mLogSource.LogInfo(" [DEBUG] " + Format(msg));
+			_mLogSource.LogDebug(Format(msg));
 		}
 #endif
 	}
@@ -35,7 +35,7 @@ internal static class Logger {
 		_mLogSource.LogInfo("[DEBUG] " + Format(string.Format(fmt, args)));
 #else
 		if (ConfigMgr.Debug) {
-			_mLogSource.LogInfo("[DEBUG] " + Format(string.Format(fmt, args)));
+			_mLogSource.LogDebug(Format(string.Format(fmt, args)));
 		}
 #endif
  	}
