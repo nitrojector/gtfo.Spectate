@@ -60,7 +60,7 @@ public class SpectatorCountUI : MonoBehaviour {
 
 		bool isActiveSpectate = data[0] != 0;
 		if (isActiveSpectate) {
-			Logger.Info($"Player '{sender.GetName()}' ({sender.Lookup}) is spectating local player.");
+			Logger.Debug($"Player '{sender.GetName()}' ({sender.Lookup}) is spectating local player.");
 			_timeSinceLastActiveSpectate[sender] = 0.0f;
 		} else {
 			_timeSinceLastActiveSpectate.Remove(sender);
