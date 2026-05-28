@@ -37,7 +37,7 @@ public class Net {
 	/// <returns>true if registered successfully, false if already exist</returns>
 	public static bool RegisterHandler(byte packetId, Action<byte[], SNet_Player?> handler) {
 		if (MessageHandlers.TryAdd(packetId, handler)) return true;
-		Logger.Error($"Handler for packetId={packetId} is already registered!");
+		Logger.Error($"[Net] Handler for packetId={packetId} is already registered to {MessageHandlers[packetId].Method.DeclaringType?.FullName ?? "???"}");
 		return false;
 	}
 

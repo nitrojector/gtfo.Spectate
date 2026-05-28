@@ -58,7 +58,7 @@ public static class EmojiLibrary {
 			Texture2D? texture = AssetBundleLoader.LoadAsset<Texture2D>(BundlePath, texturePath);
 
 			if (pageAsset == null || texture == null) {
-				Logger.Error($"[EmojiLibrary] Failed to load page {i}.");
+				Logger.Error($"[EmojiLibrary] Failed to load page {i}. jsonPath={jsonPath}, texturePath={texturePath}");
 				continue;
 			}
 

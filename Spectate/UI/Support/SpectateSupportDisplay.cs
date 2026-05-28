@@ -145,6 +145,12 @@ public class SpectateSupportDisplay : MonoBehaviour {
 			return (ti, ColorNa);
 		}
 
+		if (!(SNet.SessionHub?.IsPlayerInHub(player) ?? false)) {
+			ti.TooltipHeader += $" <#{CHex(ColorNa)}>(N/A)</color>";
+			ti.TooltipText = "<color=red>[ERROR] player not in SessionHub</color>";
+			return (ti, ColorNa);
+		}
+
 		if (player.IsBot) {
 			ti.TooltipHeader += $" <#{CHex(ColorNa)}>(Bot)</color>";
 			ti.TooltipText = "Beep boop, I'm a bot!";
@@ -153,9 +159,10 @@ public class SpectateSupportDisplay : MonoBehaviour {
 
 		if (!PeerInfoManager.TryGetPeerInfo(player, out var info)) {
 			Logger.Error(
-				"Failed to get PeerInfo for player in support display update, how do they not have PeerInfo??");
+				$"[SpectateSupportDisplay] can't get info for player (slot={SlotIndex}) '{player.NickName}' ({player.Lookup}) " +
+				$"IsBot={player.IsBot} IsLocal={player.IsLocal} IsInLobby={player.IsInLobby} IsInSessionHub={player.IsInSessionHub}");
 			ti.TooltipHeader += $" <#{CHex(ColorUnknown)}>(Unknown)</color>";
-			ti.TooltipText = "<color=red>[ERROR] player in hub but has no PeerInfo</color>";
+			ti.TooltipText = "<color=red>[ERROR] player in SessionHub but has no PeerInfo</color>";
 			return (ti, ColorUnknown);
 		}
 

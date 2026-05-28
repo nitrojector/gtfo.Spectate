@@ -248,7 +248,7 @@ public class PeerInfoManager : MonoBehaviour {
 
 			case KeyResponse:
 				if (data.Length < 4) {
-					Logger.Error($"Received peer info response of invalid length {data.Length}, expected 4.");
+					Logger.Error($"Received peer info response of invalid length {data.Length} from {sender.NickName} ({sender.Lookup}), expected 4.");
 					return;
 				}
 
