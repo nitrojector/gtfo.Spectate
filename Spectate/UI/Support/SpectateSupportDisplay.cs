@@ -166,6 +166,8 @@ public class SpectateSupportDisplay : MonoBehaviour {
 			return (ti, ColorUnknown);
 		}
 
+		var gotPlayerSyncVer = PlayerSync.Network.Impl.PeerInfoManager.TryGetPeerInfo(player, out var playerSyncInfo);
+
 		ti.TooltipHeader = "Spectate" + info.Support switch {
 			PeerInfoManager.PeerSupport.Supported => $" <#{CHex(ColorSupported)}>(Supported)</color>",
 			PeerInfoManager.PeerSupport.NotSupported => $" <#{CHex(ColorUnsupported)}>(Unsupported)</color>",
@@ -174,6 +176,7 @@ public class SpectateSupportDisplay : MonoBehaviour {
 		};
 		ti.TooltipText = info.Support switch {
 			PeerInfoManager.PeerSupport.Supported => $"<#63DBD5>v{info.PlugVersion}</color>\n" +
+			                                         $"<#63DBD5>v{(gotPlayerSyncVer ? playerSyncInfo!.PlugVersion : "???")}</color> [PlayerSync]\n" +
 			                                         (player.IsLocal
 				                                         ? "This is you!"
 				                                         : "Complete features available with this player."),
