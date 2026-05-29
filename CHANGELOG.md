@@ -1,3 +1,8 @@
+# v1.6.4
+
+- feat: add more details to logs; adjust logging levels.
+- feat: add check for IsPlayerInHub for player update outside of error case.
+
 # v1.6.3
 
 - feat: align ammo display to be correct wrt v1.1.1 of PlayerSync where reserve ammo includes clip ammo for non-local players.
