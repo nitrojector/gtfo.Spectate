@@ -387,7 +387,9 @@ public class SpectateUI : MonoBehaviour {
 		PUI_LocalPlayerStatus? pstatus = GuiManager.PlayerLayer?.m_playerStatus;
 		if (pstatus == null) return false;
 
-		Transform mvmtRootTrans = pstatus.transform.parent;
+		Transform? mvmtRootTrans = GuiManager.PlayerLayer?.CustomComponentRoot;
+		if (mvmtRootTrans == null) return false;
+
 		TextMeshPro refTmp = pstatus.m_healthText;
 
 		// Spectate Target Text (floating)

@@ -14,16 +14,13 @@ public static class NetImpl {
 	/// Sends a spectate target state update to a player.
 	/// <br/>
 	/// Encoding:
-	/// [ <see cref="spectating"/> 1B ]
+	/// [ <see cref="SNet_Player.Lookup"/> 8B ]
 	/// </summary>
-	/// <param name="spectating"></param>
-	/// <param name="player"></param>
-	public static void SendSpectateTargetState(bool spectating, SNet_Player player) {
-		if (player == null) return;
-		if (player.IsBot) return;
-
-		byte[] data = { (byte)(spectating ? 0x01 : 0x00) };
-		Net.SendBytes(data, PacketIdxSendSpectatorTargetState, player);
+	public static void SendSpectateTargetState(SNet_Player sendTarget, SNet_Player currentlySpectating) {
+		if (sendTarget == null) return;
+		if (sendTarget.IsBot) return;
+		var lookupData = BitConverter.GetBytes(currentlySpectating.Lookup);
+		Net.SendBytes(lookupData, PacketIdxSendSpectatorTargetState, sendTarget);
 	}
 
 }

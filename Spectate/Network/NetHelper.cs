@@ -1,4 +1,5 @@
 ﻿using SNetwork;
+using Spectate.Network.Impl;
 
 namespace Spectate.Network;
 
@@ -33,6 +34,20 @@ public static class NetHelper {
 
 			if (agent.IsBot) continue;
 			if (agent.IsLocal) continue;
+			sendMethod.Invoke(agent);
+		}
+	}
+
+	public static void InvokeWithAllSupportedPlayers(Action<SNet_Player> sendMethod) {
+		if (!SNet.IsInLobby) return;
+
+		foreach (SNet_Player agent in SNet.Lobby.Players) {
+			if (agent == null) continue;
+
+			if (agent.IsBot) continue;
+			if (agent.IsLocal) continue;
+			if (!PeerInfoManager.Supported(agent)) continue;
+
 			sendMethod.Invoke(agent);
 		}
 	}

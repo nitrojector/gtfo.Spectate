@@ -534,9 +534,8 @@ public class SpectateCam : MonoBehaviour {
 
 		Logger.Debug("SpectateCam: Sending spectate target update messages");
 		_timeSinceLastSpectateMessage = 0f;
-		NetHelper.InvokeWithAllPlayers(player => {
-			if (!PeerInfoManager.Supported(player)) return;
-			NetImpl.SendSpectateTargetState(_target!.Lookup == player.Lookup, player);
+		NetHelper.InvokeWithAllSupportedPlayers(player => {
+			NetImpl.SendSpectateTargetState(player, Target!.SAgent);
 		});
 	}
 
