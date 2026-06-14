@@ -17,15 +17,18 @@
         <BepInEx Condition="'$(CI)' == 'true'">$(SolutionDir)/GTFOBepInDep</BepInEx>
         <BepInEx Condition="'$(CI)' != 'true' AND '$(IsMacOS)' != 'true'">$(AppData)/com.kesomannen.gale/gtfo/profiles/$(Profile)/BepInEx</BepInEx>
         <BepInEx Condition="'$(CI)' != 'true' AND '$(IsMacOS)' == 'true'">/opt/GTFOBepInDep</BepInEx>
-        
+
         <BIEPluginFolder>$(BepInEx)/plugins</BIEPluginFolder>
         <PlugOutput>$(BIEPluginFolder)/$(ModGroup)-$(ModName)</PlugOutput>
         <BIEAssetsFolder>$(BepInEx)/Assets/$(ModName)</BIEAssetsFolder>
         <ProjectAssetsFolder>$(SolutionDir)/Assets/$(ModName)</ProjectAssetsFolder>
-        
+
+        <BIEResourcesFolder>$(PlugOutput)/Resources</BIEResourcesFolder>
+        <ProjectResourcesFolder>$(SolutionDir)/Resources</ProjectResourcesFolder>
+
         <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     </PropertyGroup>
-    
+
     <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
         <DefineConstants>DEBUG</DefineConstants>
         <DebugType>embedded</DebugType>
@@ -40,17 +43,19 @@
     <Target Name="PostBuild" BeforeTargets="PostBuildEvent">
         <Delete Files="$(OutputPath)/$(AssemblyName).deps.json"/>
     </Target>
-    
+
     <Target Name="AssetBundleCopy" AfterTargets="Build">
         <Copy SourceFiles="@(UnityAssetBundles)" DestinationFolder="$(ProjectAssetsFolder)"/>
     </Target>
-    
+
     <Target Name="PostBuildCopy" AfterTargets="AssetBundleCopy">
         <Copy Condition="'$(CI)' != 'true' AND '$(IsMacOS)' != 'true'" SourceFiles="$(OutputPath)/$(AssemblyName).dll" DestinationFolder="$(PlugOutput)"/>
         <ItemGroup>
             <AssetFiles Include="$(ProjectAssetsFolder)/**/*"/>
+            <ResourceFiles Include="$(ProjectResourcesFolder)/**/*"/>
         </ItemGroup>
         <Copy Condition="'$(CI)' != 'true' AND '$(IsMacOS)' != 'true'" SourceFiles="@(AssetFiles)" DestinationFolder="$(BIEAssetsFolder)/%(RecursiveDir)"/>
+        <Copy Condition="'$(CI)' != 'true' AND '$(IsMacOS)' != 'true'" SourceFiles="@(ResourceFiles)" DestinationFolder="$(BIEResourcesFolder)/%(RecursiveDir)"/>
     </Target>
 
     <Target Name="Package" AfterTargets="AssetBundleCopy">
@@ -60,6 +65,7 @@
         </PropertyGroup>
         <ItemGroup>
             <AssetFiles Include="$(ProjectAssetsFolder)/**/*"/>
+            <ResourceFiles Include="$(ProjectResourcesFolder)/**/*"/>
         </ItemGroup>
 
         <Exec WorkingDirectory="$(SolutionDir)" Command="python &quot;$(SolutionDir)/mkmanifest.py&quot;"/>
@@ -69,6 +75,7 @@
         <Copy SourceFiles="$(OutputPath)/$(AssemblyName).dll" DestinationFolder="$(PkgFolder)"/>
         <Copy SourceFiles="$(SolutionDir)/.assets/icon.png" DestinationFolder="$(PkgFolder)"/>
         <Copy SourceFiles="@(AssetFiles)" DestinationFolder="$(PkgFolder)/Assets/$(ModName)/%(RecursiveDir)"/>
+        <Copy SourceFiles="@(ResourceFiles)" DestinationFolder="$(PkgFolder)/plugins/Resources/%(RecursiveDir)"/>
         <Copy SourceFiles="$(SolutionDir)/README.md" DestinationFolder="$(PkgFolder)"/>
         <Copy SourceFiles="$(SolutionDir)/CHANGELOG.md" DestinationFolder="$(PkgFolder)"/>
         <Copy SourceFiles="$(SolutionDir)/manifest.json" DestinationFolder="$(PkgFolder)"/>
@@ -94,13 +101,13 @@
         <Reference Remove="$(BepInEx)\interop\Newtonsoft.Json.dll"/>
         <Reference Remove="$(BepInEx)\interop\netstandard.dll"/>
     </ItemGroup>
-    
+
     <!-- Mod Dependencies -->
     <ItemGroup>
         <Reference Include="$(BIEPluginFolder)\AuriRex-Clonesoft_Json\*.dll" Private="false"/>
         <Reference Include="$(BIEPluginFolder)\food-PlayerSync\*.dll" Private="false"/>
     </ItemGroup>
-    
+
     <!-- Patching Dependencies -->
     <ItemGroup>
         <Reference Include="$(BIEPluginFolder)\hirnukuono-EEC_H\*.dll" Private="false"/>
@@ -112,12 +119,12 @@
         <Compile Remove="obj\**"/>
         <Compile Remove="pkg\**"/>
     </ItemGroup>
-    
+
     <ItemGroup>
         <EmbeddedResource Remove="obj\**"/>
         <EmbeddedResource Remove="pkg\**"/>
     </ItemGroup>
-    
+
     <ItemGroup>
         <None Remove="obj\**"/>
         <None Remove="pkg\**"/>

@@ -1,0 +1,46 @@
+{
+  "mod.name": "观战",
+
+  "ui.navMarkerYou": "您",
+
+  "sys.log.error": "错误",
+
+  "support.state.supported": "支持",
+  "support.state.unsupported": "不支持",
+  "support.state.unknown": "未知",
+  "support.state.bot": "机器人",
+  "support.state.na": "N/A",
+
+  "support.detail.noPlayerInSlot": "该槽位没有玩家",
+  "support.detail.playerNotInSessionHub": "玩家不在 SessionHub 中",
+  "support.detail.bot": "我是机器人呢！",
+  "support.detail.self": "这是你自己！",
+  "support.detail.supported": "与该玩家可使用完整功能。",
+  "support.detail.unsupported": "部分功能受限。",
+  "support.detail.unknown": "等待玩家信息...",
+  "support.detail.unknownAttempts": "尝试中 ({0} / {1})",
+  "support.detail.noPeerInfo": "玩家在 SessionHub 中心但没有相对客户端信息",
+  "support.detail.na": "N/A",
+
+  "menu.cam.freeLook": "自由视角",
+  "menu.cam.follow": "跟随",
+
+  "menu.label.showMenu": "展开菜单",
+  "menu.label.hideMenu": "隐藏菜单",
+  "menu.label.enterSpectate": "进入观战",
+  "menu.label.exitSpectate": "退出观战",
+  "menu.label.toggleFreecam": "切换视角",
+  "menu.label.enableAutoFollow": "启用自动跟随",
+  "menu.label.disableAutoFollow": "禁用自动跟随",
+  "menu.label.switchPlayer": "切换玩家",
+  "menu.label.selectPlayer": "选择玩家",
+  "menu.label.distance": "镜头距离",
+  "menu.label.orbitCenterHeight": "镜头垂直距离",
+  "menu.label.followPitch": "镜头俯仰角",
+
+  "menu.key.switchPlayer": "左 / 右键",
+  "menu.key.selectPlayer": "1 - 8",
+  "menu.key.distance": "滚轮",
+  "menu.key.orbitCenterHeight": "Ctrl + 滚轮",
+  "menu.key.followPitch": "Shift + 滚轮"
+}

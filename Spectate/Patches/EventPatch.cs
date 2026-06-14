@@ -1,4 +1,5 @@
 ﻿using CellMenu;
+using GameData;
 using HarmonyLib;
 using SNetwork;
 
@@ -69,5 +70,14 @@ public class EventPatch {
 	[HarmonyPostfix]
 	private static void CM_PageLoadout_UpdatePlayerList() {
 		Events.RaiseLoadoutPlayerListUpdate();
+	}
+
+	[HarmonyPatch(
+		typeof(GameDataInit),
+		nameof(GameDataInit.Initialize)
+	)]
+	[HarmonyPostfix]
+	public static void Postfix__GameDataInit_Initialize() {
+		Events.RaiseGameDataInitialized();
 	}
 }

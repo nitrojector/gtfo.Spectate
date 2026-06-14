@@ -10,6 +10,7 @@ using Spectate.Assets;
 using UnityEngine;
 using Spectate.Config;
 using Spectate.Interop;
+using Spectate.Localization;
 using Spectate.Network;
 using Spectate.Network.Impl;
 using Spectate.Patches;
@@ -56,6 +57,8 @@ public class Plugin : BasePlugin {
 		PluginFolder = Path.GetDirectoryName(IL2CPPChainloader.Instance.Plugins[GUID].Location) ?? "";
 
 		RegisterIl2CppTypes();
+
+		Events.OnGameDataInitialized += Loc.InsertToGtfoDB;
 
 		OnManagersSetup += Initialize;
 		Global.add_OnAllManagersSetup(OnManagersSetup);

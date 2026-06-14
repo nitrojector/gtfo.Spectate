@@ -1,24 +1,27 @@
 ﻿using Spectate.Config;
+using Spectate.Localization;
 using UnityEngine;
 
 namespace Spectate.UI;
 
 public struct MenuKeybindEntry {
-	private string _keyName;
+	public bool IsAssociated => _isAssociated;
+
+	private string _keyLocaleKey;
 
 	private bool _isAssociated;
 	private SpectateInputAction _associatedAction;
 
-	public MenuKeybindEntry(string keyName) {
+	public MenuKeybindEntry(string keyLocaleKey) {
 		_isAssociated = false;
 		_associatedAction = SpectateInputAction.None;
-		_keyName = keyName;
+		_keyLocaleKey = keyLocaleKey;
 	}
 
 	public MenuKeybindEntry(SpectateInputAction action) {
 		_isAssociated = true;
 		_associatedAction = action;
-		_keyName = "";
+		_keyLocaleKey = "";
 	}
 
 	public override string ToString() {
@@ -26,7 +29,7 @@ public struct MenuKeybindEntry {
 			KeyCode key = ConfigMgr.GetKeybind(_associatedAction);
 			return CellSettingGlobals.GetLocalizedKeyCode(key);
 		} else {
-			return _keyName;
+			return Loc.T(_keyLocaleKey);
 		}
 	}
 }

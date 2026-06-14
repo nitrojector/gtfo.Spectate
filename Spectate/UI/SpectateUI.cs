@@ -4,6 +4,7 @@ using Player;
 using PlayerSync.Sync.Ammo;
 using Spectate.Config;
 using Spectate.Interop;
+using Spectate.Localization;
 using Spectate.Patches;
 using TMPro;
 using UnityEngine;
@@ -153,26 +154,27 @@ public class SpectateUI : MonoBehaviour {
 	public PUI_Inventory? SpectateInventory => _spectateInv;
 
 	// === UI Render Data ===
+	private string MenuTitleStr => $"<allcaps>{Loc.T("mod.name")}</allcaps>";
 	private string _specTargetStr = "";
-	private readonly string _menuTitleStr = "SPECTATE";
 	private string _menuViewModeStr = "";
-	private readonly List<ValueTuple<string, string>> _menuItemsStr = new(); // (option, keybind)
+
+	private readonly List<ValueTuple<string, string>> _menuItemsToRender = new(); // (option, keybind)
 
 	private readonly Dictionary<eSpectateMenuItem, ValueTuple<string, MenuKeybindEntry>> _menuItems = new() {
-		[eSpectateMenuItem.ShowMenu] = ("Show Menu", new(SpectateInputAction.ToggleMenu)),
-		[eSpectateMenuItem.HideMenu] = ("Hide Menu", new(SpectateInputAction.ToggleMenu)),
-		[eSpectateMenuItem.EnterSpectate] = ("Enter Spectate", new(SpectateInputAction.ToggleSpectate)),
-		[eSpectateMenuItem.ExitSpectate] = ("Exit Spectate", new(SpectateInputAction.ToggleSpectate)),
-		[eSpectateMenuItem.ToggleFreecam] = ("Toggle Free-Look", new(SpectateInputAction.ToggleFreecam)),
+		[eSpectateMenuItem.ShowMenu] = ("menu.label.showMenu", new(SpectateInputAction.ToggleMenu)),
+		[eSpectateMenuItem.HideMenu] = ("menu.label.hideMenu", new(SpectateInputAction.ToggleMenu)),
+		[eSpectateMenuItem.EnterSpectate] = ("menu.label.enterSpectate", new(SpectateInputAction.ToggleSpectate)),
+		[eSpectateMenuItem.ExitSpectate] = ("menu.label.exitSpectate", new(SpectateInputAction.ToggleSpectate)),
+		[eSpectateMenuItem.ToggleFreecam] = ("menu.label.toggleFreecam", new(SpectateInputAction.ToggleFreecam)),
 		[eSpectateMenuItem.EnableFreecamAutoTransition] =
-			("Enable Auto-Follow", new(SpectateInputAction.ToggleAutoFollow)),
+			("menu.label.enableAutoFollow", new(SpectateInputAction.ToggleAutoFollow)),
 		[eSpectateMenuItem.DisableFreecamAutoTransition] =
-			("Disable Auto-Follow", new(SpectateInputAction.ToggleAutoFollow)),
-		[eSpectateMenuItem.SwitchPlayer] = ("Switch Player", new("LMB / RMB")),
-		[eSpectateMenuItem.SelectPlayer] = ("Select Player", new("1 - 8")),
-		[eSpectateMenuItem.AdjustDistance] = ("Camera Distance", new("Scroll")),
-		[eSpectateMenuItem.AdjustOrbitCenterHeight] = ("Camera Vertical Offset", new("Ctrl + Scroll")),
-		[eSpectateMenuItem.AdjustFollowPitch] = ("Camera Pitch", new("Shift + Scroll")),
+			("menu.label.disableAutoFollow", new(SpectateInputAction.ToggleAutoFollow)),
+		[eSpectateMenuItem.SwitchPlayer] = ("menu.label.switchPlayer", new("menu.key.switchPlayer")),
+		[eSpectateMenuItem.SelectPlayer] = ("menu.label.selectPlayer", new("menu.key.selectPlayer")),
+		[eSpectateMenuItem.AdjustDistance] = ("menu.label.distance", new("menu.key.distance")),
+		[eSpectateMenuItem.AdjustOrbitCenterHeight] = ("menu.label.orbitCenterHeight", new("menu.key.orbitCenterHeight")),
+		[eSpectateMenuItem.AdjustFollowPitch] = ("menu.label.followPitch", new("menu.key.followPitch")),
 	};
 
 	/// <summary>
@@ -239,7 +241,7 @@ public class SpectateUI : MonoBehaviour {
 		_navMarker.SetIconScale(0.4f);
 		_navMarker.SetTitle(localPlayer.InteractionName);
 		_navMarker.SetAlpha(2.0f);
-		_navMarker.SetSignInfo("<#FFF>YOU</color>");
+		_navMarker.SetSignInfo($"<#FFF><allcaps>{Loc.T("ui.navMarkerYou")}</allcaps></color>");
 	}
 
 	/// <summary>
@@ -606,13 +608,14 @@ public class SpectateUI : MonoBehaviour {
 	}
 
 	private void AddMenuItem(eSpectateMenuItem item, bool enableUI = true) {
-		if (_menuItemsStr.Count >= MaxMenuItems) {
+		if (_menuItemsToRender.Count >= MaxMenuItems) {
 			Logger.Warn($"SpectateUI: AddMenuItem ({item.ToString()}) but menu is full!");
 			return;
 		}
 
 		if (_menuItems.TryGetValue(item, out var val)) {
-			_menuItemsStr.Add((val.Item1, val.Item2.ToString()));
+			var (label, key) = val;
+			_menuItemsToRender.Add((Loc.T(label), key.ToString()));
 		} else {
 			Logger.Warn("SpectateUI: Tried to add unknown menu item!");
 		}
@@ -623,9 +626,11 @@ public class SpectateUI : MonoBehaviour {
 	}
 
 	private void UpdateViewMode(bool freecam, bool enableUI = true) {
-		string freeTxt = freecam ? $"<#{StateHighlightColor}FF>FREE-LOOK</color>" : "<#FFFFFF60>FREE-LOOK</color>";
-		string followTxt = !freecam ? $"<#{StateHighlightColor}FF>FOLLOW</color>" : "<#FFFFFF60>FOLLOW</color>";
-		_menuViewModeStr = $"{freeTxt} / {followTxt}";
+		string freeTxt = $"<allcaps>{Loc.T("menu.cam.freeLook")}</allcaps>";
+		string followTxt = $"<allcaps>{Loc.T("menu.cam.follow")}</allcaps>";
+		string freeExpr = freecam ? $"<#{StateHighlightColor}FF>{freeTxt}</color>" : $"<#FFFFFF60>{freeTxt}</color>";
+		string followExpr = !freecam ? $"<#{StateHighlightColor}FF>{followTxt}</color>" : $"<#FFFFFF60>{followTxt}</color>";
+		_menuViewModeStr = $"{freeExpr} / {followExpr}";
 		if (enableUI) {
 			EnableUI(eSpectateUIComp.ViewMode);
 		}
@@ -717,7 +722,7 @@ public class SpectateUI : MonoBehaviour {
 	/// </summary>
 	private void ClearUI() {
 		_menuViewModeStr = "";
-		_menuItemsStr.Clear();
+		_menuItemsToRender.Clear();
 
 		// Clear menu item states (to display)
 		foreach (var e in Enum.GetValues<eSpectateUIComp>()) {
@@ -782,7 +787,7 @@ public class SpectateUI : MonoBehaviour {
 
 				case eSpectateUIComp.Title:
 					if (state) {
-						UpdateText(_menuTitleTmp, _menuTitleStr);
+						UpdateText(_menuTitleTmp, MenuTitleStr);
 					}
 
 					Util.SetTargetActiveIfDiff(_menuTitleTmp, state);
@@ -798,12 +803,12 @@ public class SpectateUI : MonoBehaviour {
 
 				case eSpectateUIComp.Menu:
 					if (state) {
-						int menuItemCount = _menuItemsStr.Count;
+						int itemsToRenderCount = _menuItemsToRender.Count;
 						for (int i = 0; i < MaxMenuItems; i++) {
 							var (optionTmp, keybindTmp) = _menuItemsTmp[i];
 
-							if (i < menuItemCount) {
-								var (optionStr, keybindStr) = _menuItemsStr[i];
+							if (i < itemsToRenderCount) {
+								var (optionStr, keybindStr) = _menuItemsToRender[i];
 								UpdateText(optionTmp, $"<allcaps>{optionStr}</allcaps>");
 								UpdateText(keybindTmp, $"<color=orange>[{keybindStr}]</color>");
 								Util.SetTargetActiveIfDiff(optionTmp, true);

@@ -1,0 +1,46 @@
+{
+  "mod.name": "Spectate",
+  
+  "ui.navMarkerYou": "You",
+  
+  "sys.log.error": "ERROR",
+  
+  "support.state.supported": "Supported",
+  "support.state.unsupported": "Unsupported",
+  "support.state.unknown": "Unknown",
+  "support.state.bot": "Bot",
+  "support.state.na": "N/A",
+  
+  "support.detail.noPlayerInSlot": "No player in slot",
+  "support.detail.playerNotInSessionHub": "Player not in SessionHub",
+  "support.detail.bot": "Beep boop, I'm a bot!",
+  "support.detail.self": "This is you!",
+  "support.detail.supported": "Complete features available with this player.",
+  "support.detail.unsupported": "Some features are limited.",
+  "support.detail.unknown": "Waiting for player info...",
+  "support.detail.unknownAttempts": "Attempts ({0} of {1})",
+  "support.detail.noPeerInfo": "Player in SessionHub but has no PeerInfo",
+  "support.detail.na": "N/A",
+  
+  "menu.cam.freeLook": "Free-Look",
+  "menu.cam.follow": "Follow",
+  
+  "menu.label.showMenu": "Show Menu",
+  "menu.label.hideMenu": "Hide Menu",
+  "menu.label.enterSpectate": "Enter Spectate",
+  "menu.label.exitSpectate": "Exit Spectate",
+  "menu.label.toggleFreecam": "Toggle Free-Look",
+  "menu.label.enableAutoFollow": "Enable Auto-Follow",
+  "menu.label.disableAutoFollow": "Disable Auto-Follow",
+  "menu.label.switchPlayer": "Switch Player",
+  "menu.label.selectPlayer": "Select Player",
+  "menu.label.distance": "Camera Distance",
+  "menu.label.orbitCenterHeight": "Camera Vertical Offset",
+  "menu.label.followPitch": "Camera Pitch",
+  
+  "menu.key.switchPlayer": "LMB / RMB",
+  "menu.key.selectPlayer": "1 - 8",
+  "menu.key.distance": "Scroll",
+  "menu.key.orbitCenterHeight": "Ctrl + Scroll",
+  "menu.key.followPitch": "Shift + Scroll"
+}

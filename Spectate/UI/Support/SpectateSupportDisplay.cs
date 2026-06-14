@@ -1,8 +1,10 @@
 ﻿using CellMenu;
+using Dissonance;
 using HarmonyLib;
 using SNetwork;
 using Spectate.Assets;
 using Spectate.Interop;
+using Spectate.Localization;
 using Spectate.Network.Impl;
 using Spectate.Utility.Ext;
 using UnityEngine;
@@ -131,7 +133,7 @@ public class SpectateSupportDisplay : MonoBehaviour {
 
 		TooltipInfo ti = new TooltipInfo {
 			PositionType = TooltipPositionType.UnderElement,
-			TooltipHeader = "Spectate",
+			TooltipHeader = Loc.T("mod.name"),
 			TooltipText = "",
 			UseTooptip = true
 		};
@@ -140,20 +142,20 @@ public class SpectateSupportDisplay : MonoBehaviour {
 		// NOTE: honestly this should never show up, since the part we are attaching
 		//  to is only active when there is a player in slot.
 		if (player == null) {
-			ti.TooltipHeader += $" <#{CHex(ColorNa)}>(N/A)</color>";
-			ti.TooltipText = "No player in slot";
+			ti.TooltipHeader += $" <#{CHex(ColorNa)}>({Loc.T("support.state.na")})</color>";
+			ti.TooltipText = Loc.T("support.detail.noPlayerInSlot");
 			return (ti, ColorNa);
 		}
 
 		if (!(SNet.SessionHub?.IsPlayerInHub(player) ?? false)) {
-			ti.TooltipHeader += $" <#{CHex(ColorNa)}>(N/A)</color>";
-			ti.TooltipText = "<color=red>[ERROR] player not in SessionHub</color>";
+			ti.TooltipHeader += $" <#{CHex(ColorNa)}>({Loc.T("support.state.na")})</color>";
+			ti.TooltipText = $"<color=red>[{Loc.T("sys.log.error")}] {Loc.T("support.detail.playerNotInSessionHub")}</color>";
 			return (ti, ColorNa);
 		}
 
 		if (player.IsBot) {
-			ti.TooltipHeader += $" <#{CHex(ColorNa)}>(Bot)</color>";
-			ti.TooltipText = "Beep boop, I'm a bot!";
+			ti.TooltipHeader += $" <#{CHex(ColorNa)}>({Loc.T("support.state.bot")})</color>";
+			ti.TooltipText = Loc.T("support.detail.bot");
 			return (ti, ColorNa);
 		}
 
@@ -161,29 +163,29 @@ public class SpectateSupportDisplay : MonoBehaviour {
 			Logger.Error(
 				$"[SpectateSupportDisplay] can't get info for player (slot={SlotIndex}) '{player.NickName}' ({player.Lookup}) " +
 				$"IsBot={player.IsBot} IsLocal={player.IsLocal} IsInLobby={player.IsInLobby} IsInSessionHub={player.IsInSessionHub}");
-			ti.TooltipHeader += $" <#{CHex(ColorUnknown)}>(Unknown)</color>";
-			ti.TooltipText = "<color=red>[ERROR] player in SessionHub but has no PeerInfo</color>";
+			ti.TooltipHeader += $" <#{CHex(ColorUnknown)}>({Loc.T("support.state.unknown")})</color>";
+			ti.TooltipText = $"<color=red>[{Loc.T("sys.log.error")}] {Loc.T("support.detail.noPeerInfo")}</color>";
 			return (ti, ColorUnknown);
 		}
 
 		var gotPlayerSyncVer = PlayerSync.Network.Impl.PeerInfoManager.TryGetPeerInfo(player, out var playerSyncInfo);
 
-		ti.TooltipHeader = "Spectate" + info.Support switch {
-			PeerInfoManager.PeerSupport.Supported => $" <#{CHex(ColorSupported)}>(Supported)</color>",
-			PeerInfoManager.PeerSupport.NotSupported => $" <#{CHex(ColorUnsupported)}>(Unsupported)</color>",
-			PeerInfoManager.PeerSupport.Unknown => $" <#{CHex(ColorUnknown)}>(Unknown)</color>",
+		ti.TooltipHeader = Loc.T("mod.name") + info.Support switch {
+			PeerInfoManager.PeerSupport.Supported => $" <#{CHex(ColorSupported)}>({Loc.T("support.state.supported")})</color>",
+			PeerInfoManager.PeerSupport.NotSupported => $" <#{CHex(ColorUnsupported)}>({Loc.T("support.state.unsupported")})</color>",
+			PeerInfoManager.PeerSupport.Unknown => $" <#{CHex(ColorUnknown)}>({Loc.T("support.state.unknown")})</color>",
 			_ => ""
 		};
 		ti.TooltipText = info.Support switch {
 			PeerInfoManager.PeerSupport.Supported => $"<#63DBD5>v{info.PlugVersion}</color>\n" +
 			                                         $"<#63DBD5>v{(gotPlayerSyncVer ? playerSyncInfo!.PlugVersion : "???")}</color> [PlayerSync]\n" +
 			                                         (player.IsLocal
-				                                         ? "This is you!"
-				                                         : "Complete features available with this player."),
-			PeerInfoManager.PeerSupport.NotSupported => "Some features are limited.",
-			PeerInfoManager.PeerSupport.Unknown => "Waiting for player info...\n" +
-			                                       $"<#{CHex(ColorUnsupported)}>Attempts ({info.RequestCount} of {PeerInfoManager.MaxRequestCount})</color>",
-			_ => "N/A"
+				                                         ? Loc.T("support.detail.self")
+				                                         : Loc.T("support.detail.supported")),
+			PeerInfoManager.PeerSupport.NotSupported => Loc.T("support.detail.unsupported"),
+			PeerInfoManager.PeerSupport.Unknown => $"{Loc.T("support.detail.unknown")}\n" +
+			                                       $"<#{CHex(ColorUnsupported)}>{string.Format(Loc.T("support.detail.unknownAttempts"), info.RequestCount, PeerInfoManager.MaxRequestCount)}</color>",
+			_ => Loc.T("support.detail.na")
 		};
 		_cmItem.TooltipInfo = ti;
 
