@@ -1,3 +1,8 @@
+# v1.7.0
+
+- feat: spectator count display
+- feat: Simplified and Traditional Chinese localization
+
 # v1.6.4
 
 - feat: add more details to logs; adjust logging levels.
