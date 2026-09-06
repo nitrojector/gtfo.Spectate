@@ -1,3 +1,9 @@
+# v1.7.1
+
+- fix: adjust spectator count display anchored offset so it doesn't overlap with warden timer text.
+- fix: PlayerStatus health bar damage animation now resets when entering spectate
+- docs: adjust README known issues to reflect current state of the mod.
+
 # v1.7.0
 
 - feat: spectator count display
