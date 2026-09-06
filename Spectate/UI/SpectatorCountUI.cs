@@ -36,7 +36,7 @@ public class SpectatorCountUI : MonoBehaviour {
 	private const float IconSize = 24.0f;
 	private const float IconTextSpacing = 18.0f;
 	private const float TextContainerWidth = 48.0f;
-	private const float UIGroupOffsetFromTop = 85.0f;
+	private const float UIGroupOffsetFromTop = 142.0f;
 
 	private RectTransform? _uiContainer = null;
 	private SpriteRenderer? _iconSr = null;
