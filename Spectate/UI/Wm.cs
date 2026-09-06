@@ -23,16 +23,24 @@ public class Wm : MonoBehaviour {
 	private void Awake() {
 		Ld();
 		Mk();
+		Rd();
 	}
 
+#if false
 	private void Update() {
 		if (_tp == null && !Mk()) return;
 		if (!Util.SetTargetActiveIfDiff(_tp!.gameObject, !ConfigMgr.HideWm)) return;
 		_t += Time.deltaTime;
 		if (_t < Itv) return;
 		_t = 0.0f;
-		_tp!.text = $"TKN[SPX{_ma:X2}{_fx:X2}{_mj:X2}{_dx:X2}{_mi:X2}]";
+		Rd();
 		Nx();
+	}
+#endif
+
+	private void Rd() {
+		if (_tp == null) return;
+		_tp.text = $"TKN[SP:{_ma:D2}:{_mj:X2}:{_mi:X2}]";
 	}
 
 	private void Ld() {
