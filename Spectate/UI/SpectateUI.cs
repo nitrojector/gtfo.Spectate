@@ -63,6 +63,11 @@ public class SpectateUI : MonoBehaviour {
 	private readonly Dictionary<eSpectateUIComp, bool> _uiCompState = new();
 
 	/// <summary>
+	/// Half-assed solution to disable damage animation when entering spectate
+	/// </summary>
+	private bool _wantToResetDamageAnimation = false;
+
+	/// <summary>
 	/// Whether there is a pending request to revert PUI to local player.
 	/// Sometimes we want to do so but player is null at the moment.
 	/// </summary>
@@ -302,6 +307,7 @@ public class SpectateUI : MonoBehaviour {
 		}
 
 		SetSpectateInventoryActive(true);
+		_wantToResetDamageAnimation = true;
 		GuiManager.PlayerLayer.m_playerStatus.gameObject.SetActive(true); // for compat with EOSExt EMP ig...
 		if (ConfigMgr.ShowLocalPlayerNavMarker)
 			ShowNavMarker();
@@ -524,8 +530,9 @@ public class SpectateUI : MonoBehaviour {
 
 		StaminaPatch.RevertStaminaBpmDisplay(pstatus);
 
-		if (_lastRenderedTarget?.Pointer != target.Agent.Pointer) {
+		if (_lastRenderedTarget?.Pointer != target.Agent.Pointer || _wantToResetDamageAnimation) {
 			pstatus?.ResetDamageAnimation();
+			_wantToResetDamageAnimation = false;
 		}
 
 		InPlayerStatusUpdate = false;
