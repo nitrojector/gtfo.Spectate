@@ -21,6 +21,11 @@ public class SpectateSupportDisplay : MonoBehaviour {
 	/// </summary>
 	private const float PlayerSelectIconSize = 28.0f * 1.16f;
 
+	/// <summary>
+	/// Lookup of Takina's steam.
+	/// </summary>
+	private const ulong TakinaLookup = 76561198854733565;
+
 	private static readonly Color ColorSupported = new(0.02f, 0.69f, 0.4f, 1.0f);
 	private static readonly Color ColorUnknown = new(0.5f, 0.1f, 0.5f, 1.0f);
 	private static readonly Color ColorUnsupported = new(0.8f, 0.8f, 0.0f, 1.0f);
@@ -176,12 +181,11 @@ public class SpectateSupportDisplay : MonoBehaviour {
 			PeerInfoManager.PeerSupport.Unknown => $" <#{CHex(ColorUnknown)}>({Loc.T("support.state.unknown")})</color>",
 			_ => ""
 		};
+
 		ti.TooltipText = info.Support switch {
 			PeerInfoManager.PeerSupport.Supported => $"<#63DBD5>v{info.PlugVersion}</color>\n" +
 			                                         $"<#63DBD5>v{(gotPlayerSyncVer ? playerSyncInfo!.PlugVersion : "???")}</color> [PlayerSync]\n" +
-			                                         (player.IsLocal
-				                                         ? Loc.T("support.detail.self")
-				                                         : Loc.T("support.detail.supported")),
+			                                         GetSupportedPlayerDetailsText(),
 			PeerInfoManager.PeerSupport.NotSupported => Loc.T("support.detail.unsupported"),
 			PeerInfoManager.PeerSupport.Unknown => $"{Loc.T("support.detail.unknown")}\n" +
 			                                       $"<#{CHex(ColorUnsupported)}>{string.Format(Loc.T("support.detail.unknownAttempts"), info.RequestCount, PeerInfoManager.MaxRequestCount)}</color>",
@@ -197,6 +201,18 @@ public class SpectateSupportDisplay : MonoBehaviour {
 		};
 
 		return (ti, spriteColor);
+
+		string GetSupportedPlayerDetailsText() {
+			if (player.Lookup == TakinaLookup) {
+				return Loc.T("support.detail.thisGuy");
+			}
+
+			if (player.IsLocal) {
+				return Loc.T("support.detail.self");
+			}
+
+			return Loc.T("support.detail.supported");
+		}
 	}
 
 	[HarmonyPatch(

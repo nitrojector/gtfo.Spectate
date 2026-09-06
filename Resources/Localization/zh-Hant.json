@@ -14,6 +14,7 @@
   "support.detail.noPlayerInSlot": "該槽位沒有玩家",
   "support.detail.playerNotInSessionHub": "玩家不在 SessionHub 中",
   "support.detail.bot": "我是機器人呢！",
+  "support.detail.thisGuy": "這個模組是這傢伙做的欸！",
   "support.detail.self": "這是你自己！",
   "support.detail.supported": "與該玩家可使用完整功能。",
   "support.detail.unsupported": "部分功能受限。",

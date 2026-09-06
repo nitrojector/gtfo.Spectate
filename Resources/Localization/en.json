@@ -14,6 +14,7 @@
   "support.detail.noPlayerInSlot": "No player in slot",
   "support.detail.playerNotInSessionHub": "Player not in SessionHub",
   "support.detail.bot": "Beep boop, I'm a bot!",
+  "support.detail.thisGuy": "This guy made this mod!",
   "support.detail.self": "This is you!",
   "support.detail.supported": "Complete features available with this player.",
   "support.detail.unsupported": "Some features are limited.",
