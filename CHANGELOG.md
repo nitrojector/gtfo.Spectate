@@ -1,3 +1,8 @@
+# v1.7.2
+
+- feat: added a small Easter egg.
+- style: simplify watermark
+
 # v1.7.1
 
 - fix: adjust spectator count display anchored offset so it doesn't overlap with warden timer text.
