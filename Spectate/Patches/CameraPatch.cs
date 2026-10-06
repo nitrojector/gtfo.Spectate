@@ -59,6 +59,24 @@ public class CameraPatch {
 	}
 
 	/// <summary>
+	/// Spectate culling sets the local moving culler's node to the target's, and C_MovingCuller.SetCurrentNode
+	/// forwards it to SetCourseNode. Keep the local CourseNode real so respawn rooms (EGS_GuardsRespawn, host),
+	/// zone enter events, etc. still see the local player's body.
+	/// </summary>
+	[HarmonyPatch(
+		typeof(PlayerAgent),
+		nameof(PlayerAgent.SetCourseNode)
+	)]
+	[HarmonyPrefix]
+	private static bool PlayerAgent_SetCourseNode(PlayerAgent __instance) {
+		if ((SpectateCam.Instance?.HoldLocalCourseNode ?? false) && __instance.IsLocallyOwned) {
+			return false;
+		}
+
+		return true;
+	}
+
+	/// <summary>
 	/// Ensure clients receive updates of our real camera direction
 	/// </summary>
 	[HarmonyPatch(

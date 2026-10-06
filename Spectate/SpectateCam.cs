@@ -86,6 +86,13 @@ public class SpectateCam : MonoBehaviour {
 	public C_Node? LastLocalCullNode { get; private set; } = null;
 
 	/// <summary>
+	/// Whether the local player's course node is held at its real value. <see cref="UpdateCull"/> borrows the
+	/// local moving culler, whose node changes would otherwise move the local CourseNode to the target's
+	/// (breaking respawn room blocking, zone enter events, etc.). See CameraPatch.PlayerAgent_SetCourseNode.
+	/// </summary>
+	public bool HoldLocalCourseNode { get; private set; } = false;
+
+	/// <summary>
 	/// The real camera position of the local player
 	/// </summary>
 	public Vector3 DiegeticCamDir { get; private set; } = Vector3.forward;
@@ -332,6 +339,11 @@ public class SpectateCam : MonoBehaviour {
 	/// <summary>
 	/// Unloads local and target agent. Sets <see cref="Active"/> to false.
 	/// </summary>
+	/// <remarks>
+	/// Does not call <see cref="SetRelatedActive"/>: agent-scoped state dies with the agent on level cleanup
+	/// (and the agent may already be unusable here). Mod/global state that outlives the agent must be reset
+	/// here or in <see cref="SetActive"/>. For a full revert while the agent is alive, <see cref="Detach"/> first.
+	/// </remarks>
 	/// <returns>true always (currently)</returns>
 	public bool Unload() {
 		SetActive(false);
@@ -402,6 +414,7 @@ public class SpectateCam : MonoBehaviour {
 		GuiManager.CrosshairLayer.ShowPrecisionDot();
 		SpectateUI.Instance?.UpdateForAttach();
 		SetRelatedActive(true);
+		HoldLocalCourseNode = true; // NOTE: must be set before the first UpdateCull
 		UpdateCull();
 		SetActive(true);
 
@@ -441,6 +454,10 @@ public class SpectateCam : MonoBehaviour {
 	/// <summary>
 	/// Sets the active state of the spectate camera, and triggers <see cref="OnActive"/> if transitioning from inactive to active.
 	/// </summary>
+	/// <remarks>
+	/// Owns mod-scoped state (lives on this singleton, outlives the agent), reset on every deactivate path
+	/// including <see cref="Unload"/>. Agent-scoped state belongs in <see cref="SetRelatedActive"/>.
+	/// </remarks>
 	/// <param name="active">the active state to transition to</param>
 	private void SetActive(bool active) {
 		if (active && !_wasActive) {
@@ -450,6 +467,7 @@ public class SpectateCam : MonoBehaviour {
 		_wasActive = Active;
 		Active = active;
 		if (!Active) {
+			HoldLocalCourseNode = false;
 			_yaw = 0f;
 			_pitch = ConfigMgr.CameraPitchAngleDeg;
 			_freeLookReturnTimer = 0f;
@@ -459,6 +477,11 @@ public class SpectateCam : MonoBehaviour {
 	/// <summary>
 	/// Sets related game component states for our spectate state.
 	/// </summary>
+	/// <remarks>
+	/// Agent-scoped state only (rig, inventory, FPS camera, etc.); not reverted on <see cref="Unload"/>.
+	/// May be toggled while <see cref="Active"/> (see AnimationPatch), so mod-scoped state that must track
+	/// <see cref="Active"/> (e.g. <see cref="HoldLocalCourseNode"/>) belongs in <see cref="SetActive"/>.
+	/// </remarks>
 	/// <param name="spectateActive">whether spectate is active</param>
 	internal void SetRelatedActive(bool spectateActive) {
 		if (!SelfReady) {
@@ -529,14 +552,13 @@ public class SpectateCam : MonoBehaviour {
 			_timeSinceLastSpectateMessage = SpectateMessageSendInterval + 1f;
 			return;
 		}
+
 		_timeSinceLastSpectateMessage += Time.deltaTime;
 		if (_timeSinceLastSpectateMessage < SpectateMessageSendInterval) return;
 
 		Logger.Debug("SpectateCam: Sending spectate target update messages");
 		_timeSinceLastSpectateMessage = 0f;
-		NetHelper.InvokeWithAllSupportedPlayers(player => {
-			NetImpl.SendSpectateTargetState(player, Target!.SAgent);
-		});
+		NetHelper.InvokeWithAllSupportedPlayers(player => { NetImpl.SendSpectateTargetState(player, Target!.SAgent); });
 	}
 
 	/// <summary>
