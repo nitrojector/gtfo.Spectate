@@ -18,8 +18,6 @@
 
 *Known Issues*
 
-- Players do not prevent respawn rooms from respawning when spectating (i.e. their in-game position is effectively
-  whomever they are spectating).
 - Bots, under certain circumstances, might not shoot their weapon when the player is spectating.
 - *(Unconfirmed, possibly related)* Enemy exhibit teleportation in rare instances
 

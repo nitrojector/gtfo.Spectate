@@ -1,3 +1,8 @@
+# v1.7.3
+
+- fix: host player will now still block respawn rooms even when spectating.
+    - The course node for the `PlayerAgent` is maintained.
+
 # v1.7.2
 
 - feat: added a small Easter egg.
